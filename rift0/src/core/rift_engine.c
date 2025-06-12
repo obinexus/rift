@@ -185,7 +185,15 @@ RiftResult rift_ir_write_file(RiftIR* ir, const char* output_file) {
 
 // FIXED: File processing with proper config usage
 RiftResult rift_process_file(const char* input_file, const char* output_file, RiftConfig* config) {
-    if (!input_file || !output_file) return RIFT_ERROR_NULL_POINTER;
+    if (!input_file || !output_file || !config) return RIFT_ERROR_NULL_POINTER;
+    
+    // Use config settings
+    bool verbose = config->verbose;
+    bool debug = config->debug_mode;
+
+    if (verbose) {
+        printf("📁 Processing: %s -> %s\n", input_file, output_file);
+    }
     
     // Use config for verbose/debug output to fix unused parameter error
     bool verbose = config ? config->verbose : false;
