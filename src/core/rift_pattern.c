@@ -1,6 +1,5 @@
 #include "../../include/rift.h"
 
-// CRITICAL FIX: Extract regex pattern from RIFT syntax
 RiftPattern* rift_parse_pattern(const char* pattern_string) {
     if (!pattern_string) return NULL;
     

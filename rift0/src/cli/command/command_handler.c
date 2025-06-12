@@ -1,7 +1,8 @@
 
 // cli/command/config_handler.c
-#include "cli/command/config_handler.h"
-
+#include "config_handler.h"
+#include <pthread.h>
+#include <atomic.h>
 
 // Thread-safe configuration processing
 static pthread_mutex_t config_mutex = PTHREAD_MUTEX_INITIALIZER;

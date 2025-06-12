@@ -1,5 +1,4 @@
 
-
 // cli/command/pattern_manager.h
 #ifndef RIFT_PATTERN_MANAGER_H
 #define RIFT_PATTERN_MANAGER_H
