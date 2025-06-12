@@ -1,113 +1,118 @@
-# RIFT Configuration - OBINexus Governance-First Architecture
-# Version: 1.0.0
-# Compliance: OBINexus-v1.0
+# RIFT Advanced Configuration - Pipeline and Threading System
+# OBINexus Governance-First Architecture with Parallel Processing
+# Version: 2.0.0
 
 [general]
-version=1.0.0
-architecture=governance-first
-compliance_level=OBINexus-v1.0
+version=2.0.0
+architecture=governance-first-parallel
+compliance_level=OBINexus-v2.0
+pipeline_enabled=true
+threading_model=hybrid
 
 [paths]
-# Source paths
+# Core paths
 source_root=src
 include_root=include
 project_root=include/project-root
+config_root=config
 
-# Output artifact paths (.rift.0, .rift.*, etc.)
+# Pipeline artifact paths
 output_root=out
 artifacts_root=out/artifacts
 stage0_output=out/stage0
-stage1_output=out/stage1 
+stage1_output=out/stage1
 stage2_output=out/stage2
 final_output=out/final
 temp_output=out/temp
 
-# Examples and data
-examples_root=examples
-data_root=examples/data
-config_root=config
-
-# Build paths
+# Build and library paths
 build_root=build
 lib_root=lib
-test_root=tests
+log_root=logs
 
-[compilation]
-# Stage 0: Tokenization (.rift → .rift.0)
-stage0_enabled=true
-stage0_output_ext=.rift.0
-stage0_debug=false
-stage0_verbose=true
+[pipeline]
+# Pipeline orchestration settings
+enabled=true
+mode=hybrid_parallel_sequential
+max_parallel_stages=4
+sequence_validation=strict
+artifact_tracking=comprehensive
 
-# Stage 1: Parse Tree (.rift.0 → .rift.1)
-stage1_enabled=false
-stage1_output_ext=.rift.1
+# Stage configuration
+stage0_parallel=true
+stage1_parallel=true
+stage2_sequential=true
+final_sequential=true
 
-# Stage 2: AST Generation (.rift.1 → .rift.2)
-stage2_enabled=false
-stage2_output_ext=.rift.2
+# Pipeline progression: .rift → .rift.0 → .rift.1 → .rift.2 → final
+stage_extensions=.rift,.rift.0,.rift.1,.rift.2,.final
+artifact_compression=false
+intermediate_cleanup=false
 
-# Governance validation
-governance_enabled=true
-governance_strict=true
-governance_files=.rift.gov
+[threading]
+# Threading model configuration (OBINexus Model 1 & 2)
+model=hybrid
+# Model 1: True Parallelism with Governance-Bound Workers
+model1_enabled=true
+model1_dedicated_cores=true
+model1_governance_isolation=strict
+model1_cryptographic_identity=true
 
-[output]
-# Artifact organization
-auto_organize=true
-preserve_source_structure=true
-timestamp_artifacts=true
-compress_intermediate=false
+# Model 2: Shared-Core Concurrent Threading
+model2_enabled=true
+model2_time_sliced=true
+model2_governance_reconciliation=true
+model2_parent_child_hierarchy=true
 
-# File extensions and patterns
-rift_source_pattern=*.rift
-rift0_pattern=*.rift.0
-rift1_pattern=*.rift.1
-rift2_pattern=*.rift.2
-gov_pattern=*.rift.gov
-ir_pattern=*.rift.ir
+[worker_pools]
+# Worker pool configuration
+default_pool_size=8
+max_pool_size=32
+min_pool_size=2
+worker_timeout=30
+governance_validation_per_worker=true
 
-[logging]
-log_level=info
-log_file=logs/rift.log
-debug_mode=false
-verbose=true
-trace_compilation=false
+# Pool types
+tokenizer_pool_size=4
+parser_pool_size=4
+ast_pool_size=2
+validator_pool_size=2
 
-[security]
-# Cryptographic settings (OBINexus compliance)
-enable_signatures=true
-hash_algorithm=sha3_256
-signature_algorithm=ed25519
-entropy_monitoring=true
-audit_trail=true
+[governance]
+# Governance configuration
+enabled=true
+strict_mode=true
+cryptographic_validation=true
+audit_trail=comprehensive
 
-[validation]
-# Governance triangle validation
+# Thread governance
+thread_governance_isolation=true
+worker_cryptographic_identity=true
+cross_thread_validation=mandatory
+governance_context_inheritance=true
+
+# Governance triangle validation (from OBINexus spec)
 attack_risk_threshold=0.3
 rollback_cost_threshold=0.3
 stability_impact_threshold=0.4
 max_governance_vector=1.0
 
-[build]
-# Build system integration
-compiler=gcc
-c_standard=c11
-optimization_level=O2
-warnings=all,extra,pedantic,error
-include_paths=include,include/project-root
-library_paths=lib
+[logging]
+# Advanced logging configuration
+log_level=info
+debug_mode=false
+verbose=true
+trace_compilation=true
 
-[examples]
-# Example configuration
-csv_enabled=true
-governance_examples=true
-advanced_patterns=true
-auto_test=true
+# Specialized logging
+pipeline_logging=enabled
+thread_logging=enabled
+worker_logging=enabled
+governance_logging=enabled
 
-[tools]
-# Tool integration
-git_raf_enabled=false
-polybuild_enabled=false
-nlink_enabled=false
-gosilang_enabled=false
+# Log files
+main_log=logs/rift.log
+pipeline_log=logs/pipeline/pipeline.log
+thread_log=logs/pipeline/threading.log
+worker_log=logs/workers/workers.log
+governance_log=logs/pipeline/governance.log
