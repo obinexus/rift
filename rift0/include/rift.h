@@ -15,10 +15,7 @@
 #include <string.h>
 #include <regex.h>
 #include <errno.h>
-#include <pthread.h>
-#include <stdatomic.h>
 
-// RIFT Pattern Syntax: R"pattern/flags[mode]"
 typedef enum {
     RIFT_MODE_TOP_DOWN = 't',
     RIFT_MODE_BOTTOM_UP = 'b'
@@ -35,7 +32,7 @@ typedef enum {
 
 typedef struct RiftPattern {
     char* raw_pattern;
-    char* regex_pattern;    // CRITICAL: Extracted pattern only (fixes test)
+    char* regex_pattern;
     char* flags;
     RiftMatchMode mode;
     regex_t compiled_regex;
@@ -73,7 +70,6 @@ typedef struct RiftAutomaton {
     char* input_alphabet;
 } RiftAutomaton;
 
-// Thread-safe token with matched_state preservation
 typedef struct RiftToken {
     char* type;
     char* value;
@@ -81,7 +77,7 @@ typedef struct RiftToken {
     size_t line;
     size_t column;
     size_t position;
-    RiftState* matched_state;  // CRITICAL: Preserved for AST minimization
+    RiftState* matched_state;
 } RiftToken;
 
 typedef struct RiftEngine {
@@ -123,6 +119,7 @@ RiftResult rift_pattern_compile(RiftPattern* pattern);
 RiftAutomaton* rift_automaton_create(void);
 void rift_automaton_destroy(RiftAutomaton* automaton);
 RiftState* rift_automaton_add_state(RiftAutomaton* automaton, const char* pattern_str, bool is_final);
+RiftResult rift_automaton_add_transition(RiftAutomaton* automaton, RiftState* from, RiftState* to, const char* input_symbol);
 
 RiftEngine* rift_engine_create(void);
 void rift_engine_destroy(RiftEngine* engine);
@@ -130,7 +127,6 @@ RiftResult rift_engine_process_input(RiftEngine* engine, const char* input);
 RiftToken* rift_engine_next_token(RiftEngine* engine);
 
 RiftToken* rift_token_create(const char* type, const char* value, size_t line, size_t column);
-RiftToken* rift_token_create_thread_safe(const char* type, const char* value, size_t line, size_t column, RiftState* matched_state);
 void rift_token_destroy(RiftToken* token);
 
 RiftIR* rift_ir_create(const char* source_file);
