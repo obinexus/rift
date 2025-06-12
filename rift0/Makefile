@@ -1,14 +1,13 @@
-
-# Enhanced RIFT Stage 0 Makefile with Fixed CLI Command Structure
+# Fixed RIFT Stage 0 Makefile with Proper Library Selection
 # Supports: make LIB=SO (shared library) or make LIB=A (static library)
-# Default: generates both .a and .so
+# Default: shared library only to avoid conflicts
 
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude -g -O2
-LDFLAGS = -lm -lpthread
+LDFLAGS = -lm
 
-# Library generation control
-LIB ?= BOTH
+# Library generation control - DEFAULT TO SHARED ONLY
+LIB ?= SO
 LIBDIR = lib
 BINDIR = bin
 BUILDDIR = build
@@ -22,46 +21,57 @@ CLICMDDIR = $(CLIDIR)/command
 TESTDIR = tests
 EXAMPLEDIR = examples
 
-# Core source files
-CORE_SOURCES = $(wildcard $(COREDIR)/*.c)
+# Core source files (EXCLUDE main.c from library)
+CORE_SOURCES = $(filter-out $(COREDIR)/main.c, $(wildcard $(COREDIR)/*.c))
 CORE_OBJECTS = $(patsubst $(COREDIR)/%.c,$(BUILDDIR)/core_%.o,$(CORE_SOURCES))
 
-# CLI source files (main CLI files)
+# CLI source files
 CLI_MAIN_SOURCES = $(wildcard $(CLIDIR)/*.c)
 CLI_MAIN_OBJECTS = $(patsubst $(CLIDIR)/%.c,$(BUILDDIR)/cli_%.o,$(CLI_MAIN_SOURCES))
 
-# CLI command source files (command subdirectory)
+# CLI command source files
 CLI_CMD_SOURCES = $(wildcard $(CLICMDDIR)/*.c)
 CLI_CMD_OBJECTS = $(patsubst $(CLICMDDIR)/%.c,$(BUILDDIR)/cli_command_%.o,$(CLI_CMD_SOURCES))
 
-# All CLI objects combined
+# All CLI objects
 CLI_OBJECTS = $(CLI_MAIN_OBJECTS) $(CLI_CMD_OBJECTS)
 
 # Test source files
 TEST_SOURCES = $(wildcard $(TESTDIR)/qa_mocks/*.c)
 TEST_OBJECTS = $(patsubst $(TESTDIR)/qa_mocks/%.c,$(BUILDDIR)/test_%.o,$(TEST_SOURCES))
 
-# Library targets based on LIB flag
+# Demo main object (separate from library)
+DEMO_OBJECT = $(BUILDDIR)/core_main.o
+
+# Library selection - CHOOSE ONE, NOT BOTH
 ifeq ($(LIB),SO)
-    LIBRARY_TARGETS = $(LIBDIR)/librift0.so
+    LIBRARY_TARGET = $(LIBDIR)/librift0.so
     LIBCFLAGS = -fPIC
     LIBLINKFLAGS = -shared
+    LINK_FLAGS = -L$(LIBDIR) -lrift0
 else ifeq ($(LIB),A)
-    LIBRARY_TARGETS = $(LIBDIR)/librift0.a
+    LIBRARY_TARGET = $(LIBDIR)/librift0.a
     LIBCFLAGS = 
     LIBLINKFLAGS = 
-else
-    LIBRARY_TARGETS = $(LIBDIR)/librift0.so $(LIBDIR)/librift0.a
+    LINK_FLAGS = -L$(LIBDIR) -lrift0 -static
+else ifeq ($(LIB),BOTH)
+    LIBRARY_TARGET = $(LIBDIR)/librift0.so $(LIBDIR)/librift0.a
     LIBCFLAGS = -fPIC
     LIBLINKFLAGS = -shared
+    LINK_FLAGS = -L$(LIBDIR) -lrift0
+else
+    LIBRARY_TARGET = $(LIBDIR)/librift0.so
+    LIBCFLAGS = -fPIC
+    LIBLINKFLAGS = -shared
+    LINK_FLAGS = -L$(LIBDIR) -lrift0
 endif
 
 # Main targets
-.PHONY: all clean test config lib install bootstrap structure help
+.PHONY: all clean test config lib install bootstrap help
 
-all: directories $(LIBRARY_TARGETS) $(BINDIR)/rift0.exe $(BINDIR)/rift0_demo
+all: directories $(LIBRARY_TARGET) $(BINDIR)/rift0.exe $(BINDIR)/rift0_demo
 
-# Create enhanced directory structure
+# Create directories
 directories:
 	@echo "🏗️  Initialized build directories"
 	@mkdir -p $(BUILDDIR) $(BINDIR) $(LIBDIR) $(OUTPUTDIR)
@@ -69,23 +79,18 @@ directories:
 	@mkdir -p $(TESTDIR)/qa_mocks $(EXAMPLEDIR)
 	@mkdir -p include
 
-# Create proper directory structure with files
-structure: directories
-	@echo "🏗️  Creating enhanced RIFT Stage 0 structure..."
-	@echo "📁 Setting up CLI command architecture..."
-
-# Core object files with library flags
+# Core object files (library components only)
 $(BUILDDIR)/core_%.o: $(COREDIR)/%.c
 	@echo "🔨 Compiling core $<..."
 	$(CC) $(CFLAGS) $(LIBCFLAGS) -c $< -o $@
 
-# CLI object files
+# CLI main object files
 $(BUILDDIR)/cli_%.o: $(CLIDIR)/%.c
 	@echo "🔨 Compiling CLI $<..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# CLI command object files (new structure)
-$(BUILDDIR)/cli_command_%.o: $(CLIDIR)/command/%.c
+# CLI command object files
+$(BUILDDIR)/cli_command_%.o: $(CLICMDDIR)/%.c
 	@echo "🔨 Compiling CLI command $<..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -97,145 +102,145 @@ $(BUILDDIR)/test_%.o: $(TESTDIR)/qa_mocks/%.c
 # Shared library generation
 $(LIBDIR)/librift0.so: $(CORE_OBJECTS)
 	@echo "🔗 Building shared library librift0.so..."
-	@echo "   ✅ Library flags: $(LIBCFLAGS) $(LIBLINKFLAGS)"
+	@echo "   📚 Objects: $(words $(CORE_OBJECTS)) core files"
 	$(CC) $(LIBLINKFLAGS) -o $@ $(CORE_OBJECTS) $(LDFLAGS)
 
 # Static library generation  
 $(LIBDIR)/librift0.a: $(CORE_OBJECTS)
 	@echo "🔗 Building static library librift0.a..."
+	@echo "   📚 Objects: $(words $(CORE_OBJECTS)) core files"
 	ar rcs $@ $(CORE_OBJECTS)
 
-# CLI executable (links against library)
-$(BINDIR)/rift0.exe: $(CLI_OBJECTS) $(LIBRARY_TARGETS)
+# CLI executable - FIXED LINKING
+$(BINDIR)/rift0.exe: $(CLI_OBJECTS) $(LIBRARY_TARGET)
 	@echo "🔗 Linking RIFT Stage 0 CLI..."
-	@echo "   ✅ Preserving token type/value separation"
-	@echo "   ✅ Maintaining matched_state for AST minimization"
-	@echo "   ✅ Integrating .riftrc configuration system"
-ifeq ($(LIB),A)
-	$(CC) $(CLI_OBJECTS) -L$(LIBDIR) -lrift0 -static $(LDFLAGS) -o $@
+	@echo "   📚 Library mode: $(LIB)"
+	@echo "   🔗 Link flags: $(LINK_FLAGS)"
+	@echo "   ✅ CLI objects: $(words $(CLI_OBJECTS)) files"
+ifeq ($(LIB),SO)
+	$(CC) $(CLI_OBJECTS) $(LINK_FLAGS) $(LDFLAGS) -o $@
+else ifeq ($(LIB),A)
+	$(CC) $(CLI_OBJECTS) $(LINK_FLAGS) $(LDFLAGS) -o $@
 else
-	$(CC) $(CLI_OBJECTS) -L$(LIBDIR) -lrift0 $(LDFLAGS) -o $@
+	$(CC) $(CLI_OBJECTS) $(LINK_FLAGS) $(LDFLAGS) -o $@
 endif
 
-# Demo executable
-$(BINDIR)/rift0_demo: $(BUILDDIR)/core_main.o $(LIBRARY_TARGETS)
+# Demo executable - FIXED LINKING  
+$(BINDIR)/rift0_demo: $(DEMO_OBJECT) $(LIBRARY_TARGET)
 	@echo "🔗 Linking RIFT Stage 0 Demo..."
-ifeq ($(LIB),A)
-	$(CC) $(BUILDDIR)/core_main.o -L$(LIBDIR) -lrift0 -static $(LDFLAGS) -o $@
+	@echo "   📚 Library mode: $(LIB)"
+ifeq ($(LIB),SO)
+	$(CC) $(DEMO_OBJECT) $(LINK_FLAGS) $(LDFLAGS) -o $@
+else ifeq ($(LIB),A)
+	$(CC) $(DEMO_OBJECT) $(LINK_FLAGS) $(LDFLAGS) -o $@
 else
-	$(CC) $(BUILDDIR)/core_main.o -L$(LIBDIR) -lrift0 $(LDFLAGS) -o $@
+	$(CC) $(DEMO_OBJECT) $(LINK_FLAGS) $(LDFLAGS) -o $@
 endif
 
-# Test executable with enhanced pattern parsing tests
-$(BUILDDIR)/test_rift0: $(TEST_OBJECTS) $(LIBRARY_TARGETS)
+# Test executable - FIXED LINKING
+$(BUILDDIR)/test_rift0: $(TEST_OBJECTS) $(LIBRARY_TARGET)
 	@echo "🔗 Linking test suite..."
-ifeq ($(LIB),A)
-	$(CC) $(TEST_OBJECTS) -L$(LIBDIR) -lrift0 -static $(LDFLAGS) -o $@
+	@echo "   📚 Library mode: $(LIB)"
+ifeq ($(LIB),SO)
+	$(CC) $(TEST_OBJECTS) $(LINK_FLAGS) $(LDFLAGS) -o $@
+else ifeq ($(LIB),A)
+	$(CC) $(TEST_OBJECTS) $(LINK_FLAGS) $(LDFLAGS) -o $@
 else
-	$(CC) $(TEST_OBJECTS) -L$(LIBDIR) -lrift0 $(LDFLAGS) -o $@
+	$(CC) $(TEST_OBJECTS) $(LINK_FLAGS) $(LDFLAGS) -o $@
 endif
 
 # Library target
-lib: $(LIBRARY_TARGETS)
+lib: $(LIBRARY_TARGET)
 	@echo "📚 Library generation complete"
-	@echo "   📁 Libraries: $(LIBRARY_TARGETS)"
-ifeq ($(LIB),SO)
-	@echo "   🔗 Shared library mode (-fPIC -shared)"
-else ifeq ($(LIB),A)
-	@echo "   🔗 Static library mode"
-else
-	@echo "   🔗 Both static and shared libraries"
-endif
+	@echo "   📁 Generated: $(LIBRARY_TARGET)"
+	@echo "   🔗 Mode: $(LIB)"
 
-# Configuration setup with .riftrc processing
+# Configuration
 config:
 	@echo "⚙️  Setting up enhanced configuration..."
 	@if [ ! -f .riftrc ]; then \
-		echo "# RIFT Stage 0 Configuration" > .riftrc; \
+		echo "# Enhanced RIFT Stage 0 Configuration" > .riftrc; \
 		echo "output_dir=./output" >> .riftrc; \
 		echo "stage_name=rift.0" >> .riftrc; \
 		echo "debug=false" >> .riftrc; \
 		echo "verbose=false" >> .riftrc; \
-		echo "pattern_mode=t" >> .riftrc; \
-		echo "log_level=info" >> .riftrc; \
-		echo "✅ Generated default .riftrc"; \
+		echo "lib_mode=$(LIB)" >> .riftrc; \
+		echo "✅ Generated .riftrc with lib_mode=$(LIB)"; \
 	else \
 		echo "✅ Using existing .riftrc"; \
 	fi
 
-# Enhanced testing with pattern parsing fixes
+# Testing with proper library path
 test: $(BUILDDIR)/test_rift0
-	@echo "🧪 Running enhanced QA tests..."
-	@echo "🔍 Verifying token type/value separation..."
-	@echo "🔍 Verifying matched_state preservation..."
-	@echo "🔍 Testing RIFT pattern syntax parsing..."
+	@echo "🧪 Running QA tests with $(LIB) library..."
+ifeq ($(LIB),SO)
 	@export LD_LIBRARY_PATH=$(PWD)/$(LIBDIR):$$LD_LIBRARY_PATH && ./$(BUILDDIR)/test_rift0
+else
+	@./$(BUILDDIR)/test_rift0
+endif
 
-# Bootstrap enhancement script
+# Bootstrap with library selection
 bootstrap:
-	@echo "🚀 Bootstrapping enhanced RIFT Stage 0..."
-	@echo "🏗️  Creating CLI command structure..."
-	@mkdir -p $(CLIDIR)/command
-	@echo "🔧 Setting up thread-safe token memory..."
-	@echo "📚 Generating libraries with LIB=$(LIB)..."
+	@echo "🚀 Enhanced RIFT Stage 0 Bootstrap"
+	@echo "===================================="
+	@echo "📚 Library mode: $(LIB)"
 	@$(MAKE) clean
-	@$(MAKE) all
-	@echo "⚙️  Configuring .riftrc..."
+	@$(MAKE) all LIB=$(LIB)
 	@$(MAKE) config
-	@echo "🧪 Running verification tests..."
 	@$(MAKE) test
 	@echo ""
 	@echo "✅ Enhanced RIFT Stage 0 bootstrap complete!"
 	@echo "📊 Build Summary:"
 	@echo "  📁 CLI executable: ./$(BINDIR)/rift0.exe"
 	@echo "  📁 Demo executable: ./$(BINDIR)/rift0_demo"  
-	@echo "  📁 Libraries: $(LIBRARY_TARGETS)"
+	@echo "  📁 Library: $(LIBRARY_TARGET)"
 	@echo "  📁 Configuration: .riftrc"
-	@echo "  📁 Output directory: ./$(OUTPUTDIR)/"
 	@echo ""
-	@echo "💡 Usage examples:"
+	@echo "🎯 Usage Examples:"
 	@echo "  ./$(BINDIR)/rift0.exe $(EXAMPLEDIR)/sample.rift"
-	@echo "  ./$(BINDIR)/rift0.exe --config .riftrc $(EXAMPLEDIR)/sample.rift"
-	@echo "  make LIB=SO lib    # Generate shared library only"
-	@echo "  make LIB=A lib     # Generate static library only"
+	@echo ""
+	@echo "📚 Library Modes:"
+	@echo "  make LIB=SO bootstrap    # Shared library (default)"
+	@echo "  make LIB=A bootstrap     # Static library"
+	@echo "  make LIB=BOTH lib        # Generate both libraries"
+	@echo ""
+	@echo "🔗 External Usage:"
+	@echo "  gcc -I./include -L./$(LIBDIR) -lrift0 program.c -o program"
 
-# Installation target
+# Installation
 install: all
 	@echo "📦 Installing RIFT Stage 0..."
 	@mkdir -p /usr/local/lib /usr/local/bin /usr/local/include
-	@cp $(LIBRARY_TARGETS) /usr/local/lib/
-	@cp $(BINDIR)/rift0.exe /usr/local/bin/
+	@cp $(LIBRARY_TARGET) /usr/local/lib/
+	@cp $(BINDIR)/rift0.exe /usr/local/bin/rift0
 	@cp include/rift.h /usr/local/include/
-	@echo "✅ Installation complete"
+	@echo "✅ Installation complete ($(LIB) library)"
 
-# Clean target
+# Clean
 clean:
 	@echo "🧹 Cleaning build artifacts..."
 	rm -rf $(BUILDDIR) $(BINDIR) $(LIBDIR)
 	@echo "✅ Clean complete"
 
-# Help target
+# Help
 help:
-	@echo "RIFT Stage 0 Enhanced Makefile"
+	@echo "Enhanced RIFT Stage 0 Makefile"
 	@echo "=============================="
 	@echo ""
-	@echo "Library Generation:"
-	@echo "  make LIB=SO     # Generate librift0.so (shared library)"
-	@echo "  make LIB=A      # Generate librift0.a (static library)" 
-	@echo "  make LIB=BOTH   # Generate both (default)"
+	@echo "📚 Library Selection (IMPORTANT):"
+	@echo "  make LIB=SO     # Shared library (.so) - Default"
+	@echo "  make LIB=A      # Static library (.a)"
+	@echo "  make LIB=BOTH   # Generate both (use SO for linking)"
 	@echo ""
-	@echo "Main Targets:"
-	@echo "  make all        # Build everything"
-	@echo "  make lib        # Build libraries only"
-	@echo "  make test       # Run enhanced QA tests"
-	@echo "  make bootstrap  # Full setup with CLI commands"
-	@echo "  make config     # Generate .riftrc configuration"
+	@echo "🎯 Main Targets:"
+	@echo "  make all        # Build everything with selected library"
+	@echo "  make lib        # Build library only"
+	@echo "  make test       # Run QA tests"
+	@echo "  make bootstrap  # Complete setup"
+	@echo "  make config     # Generate .riftrc"
 	@echo "  make install    # Install system-wide"
 	@echo "  make clean      # Clean build artifacts"
 	@echo ""
-	@echo "Architecture:"
-	@echo "  ✅ Token type/value separation enforced"
-	@echo "  ✅ Thread-safe token memory management"
-	@echo "  ✅ Enhanced CLI command structure"
-	@echo "  ✅ .riftrc configuration processing"
-	@echo "  ✅ RIFT pattern syntax parsing (R\"pattern/flags[mode]\")"
+	@echo "⚠️  CRITICAL: Choose ONE library type to avoid linker conflicts!"
+	@echo "✅ Recommended: Use LIB=SO (shared library) for development"
+	@echo "✅ Use LIB=A (static library) for distribution"

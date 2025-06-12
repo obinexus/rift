@@ -1,4 +1,4 @@
-// src/core/rift_engine.c - FINAL FIX: Remove duplicate variable declarations
+// FIXED src/core/rift_engine.c - Remove rift_print_* functions (moved to rift_config.c)
 #include "../../include/rift.h"
 
 RiftEngine* rift_engine_create(void) {
@@ -14,7 +14,6 @@ RiftEngine* rift_engine_create(void) {
 void rift_engine_destroy(RiftEngine* engine) {
     if (!engine) return;
     
-    // Free tokens
     for (size_t i = 0; i < engine->token_count; i++) {
         rift_token_destroy(engine->tokens[i]);
     }
@@ -27,26 +26,23 @@ void rift_engine_destroy(RiftEngine* engine) {
 RiftResult rift_engine_process_input(RiftEngine* engine, const char* input) {
     if (!engine || !input) return RIFT_ERROR_NULL_POINTER;
     
-    // Store input
     free(engine->current_input);
     engine->current_input = strdup(input);
     engine->input_length = strlen(input);
     engine->input_position = 0;
     engine->token_count = 0;
     
-    // Process each character
     size_t line = 1;
     size_t column = 1;
     
     for (size_t i = 0; i < engine->input_length; i++) {
         char c = input[i];
         
-        // Skip whitespace except for position tracking
         if (c == ' ') {
             column++;
             continue;
         } else if (c == '\t') {
-            column += 4;  // Tab = 4 spaces
+            column += 4;
             continue;
         } else if (c == '\n') {
             line++;
@@ -54,11 +50,9 @@ RiftResult rift_engine_process_input(RiftEngine* engine, const char* input) {
             continue;
         }
         
-        // Create token for each character (Stage 0 tokenization)
         char value[2] = {c, '\0'};
         RiftToken* token = rift_token_create("CHAR", value, line, column);
         if (token) {
-            // Add to engine's token list
             if (engine->token_count >= engine->token_capacity) {
                 engine->token_capacity *= 2;
                 engine->tokens = realloc(engine->tokens, 
@@ -83,7 +77,6 @@ RiftToken* rift_engine_next_token(RiftEngine* engine) {
     return engine->tokens[engine->input_position++];
 }
 
-// Token management
 RiftToken* rift_token_create(const char* type, const char* value, size_t line, size_t column) {
     if (!type || !value) return NULL;
     
@@ -92,11 +85,11 @@ RiftToken* rift_token_create(const char* type, const char* value, size_t line, s
     
     token->type = strdup(type);
     token->value = strdup(value);
-    token->lexeme = strdup(value);  // For Stage 0, lexeme == value
+    token->lexeme = strdup(value);
     token->line = line;
     token->column = column;
-    token->position = 0;  // Will be set by caller if needed
-    token->matched_state = NULL;  // Will be set during processing
+    token->position = 0;
+    token->matched_state = NULL;
     
     return token;
 }
@@ -110,7 +103,6 @@ void rift_token_destroy(RiftToken* token) {
     free(token);
 }
 
-// IR management
 RiftIR* rift_ir_create(const char* source_file) {
     if (!source_file) return NULL;
     
@@ -148,7 +140,6 @@ void rift_ir_destroy(RiftIR* ir) {
 RiftResult rift_ir_add_token(RiftIR* ir, RiftToken* token) {
     if (!ir || !token) return RIFT_ERROR_NULL_POINTER;
     
-    // Reallocate tokens array
     ir->tokens = realloc(ir->tokens, (ir->token_count + 1) * sizeof(RiftToken*));
     if (!ir->tokens) return RIFT_ERROR_MEMORY_ALLOCATION;
     
@@ -164,7 +155,6 @@ RiftResult rift_ir_write_file(RiftIR* ir, const char* output_file) {
     FILE* file = fopen(output_file, "w");
     if (!file) return RIFT_ERROR_IO;
     
-    // Write header
     fprintf(file, "# RIFT Intermediate Representation\n");
     fprintf(file, "stage=%s\n", ir->stage);
     fprintf(file, "version=%s\n", ir->version);
@@ -172,7 +162,6 @@ RiftResult rift_ir_write_file(RiftIR* ir, const char* output_file) {
     fprintf(file, "token_count=%zu\n\n", ir->token_count);
     fprintf(file, "# Tokens\n");
     
-    // Write tokens
     for (size_t i = 0; i < ir->token_count; i++) {
         RiftToken* token = ir->tokens[i];
         fprintf(file, "TOKEN %zu: type=\"%s\" value=\"%s\" pos=(%zu,%zu)\n",
@@ -183,7 +172,7 @@ RiftResult rift_ir_write_file(RiftIR* ir, const char* output_file) {
     return RIFT_SUCCESS;
 }
 
-// FIXED: File processing - removed duplicate variable declarations
+// FIXED: File processing with proper config usage
 RiftResult rift_process_file(const char* input_file, const char* output_file, RiftConfig* config) {
     if (!input_file || !output_file) return RIFT_ERROR_NULL_POINTER;
     
@@ -195,7 +184,6 @@ RiftResult rift_process_file(const char* input_file, const char* output_file, Ri
         printf("📁 Processing: %s -> %s\n", input_file, output_file);
     }
     
-    // Read input file
     FILE* file = fopen(input_file, "r");
     if (!file) {
         if (debug) {
@@ -222,7 +210,6 @@ RiftResult rift_process_file(const char* input_file, const char* output_file, Ri
         printf("📊 Read %ld bytes\n", file_size);
     }
     
-    // Create engine and process
     RiftEngine* engine = rift_engine_create();
     if (!engine) {
         free(content);
@@ -240,7 +227,6 @@ RiftResult rift_process_file(const char* input_file, const char* output_file, Ri
         printf("🔤 Generated %zu tokens\n", engine->token_count);
     }
     
-    // Create IR and add tokens
     RiftIR* ir = rift_ir_create(input_file);
     if (!ir) {
         free(content);
@@ -248,14 +234,12 @@ RiftResult rift_process_file(const char* input_file, const char* output_file, Ri
         return RIFT_ERROR_MEMORY_ALLOCATION;
     }
     
-    // Use config to set IR stage name if available
     if (config && config->stage_name) {
         free(ir->stage);
         ir->stage = strdup(config->stage_name);
     }
     
     for (size_t i = 0; i < engine->token_count; i++) {
-        // Create copy of token for IR
         RiftToken* token_copy = rift_token_create(
             engine->tokens[i]->type,
             engine->tokens[i]->value,
@@ -265,14 +249,12 @@ RiftResult rift_process_file(const char* input_file, const char* output_file, Ri
         rift_ir_add_token(ir, token_copy);
     }
     
-    // Write IR file
     result = rift_ir_write_file(ir, output_file);
     
     if (verbose && result == RIFT_SUCCESS) {
         printf("✅ Generated IR: %s\n", output_file);
     }
     
-    // Cleanup
     free(content);
     rift_engine_destroy(engine);
     rift_ir_destroy(ir);
@@ -280,7 +262,6 @@ RiftResult rift_process_file(const char* input_file, const char* output_file, Ri
     return result;
 }
 
-// Utility functions
 const char* rift_result_string(RiftResult result) {
     switch (result) {
         case RIFT_SUCCESS: return "Success";
@@ -293,6 +274,72 @@ const char* rift_result_string(RiftResult result) {
     }
 }
 
+// FIXED src/core/rift_config.c - Keep rift_print_* functions HERE ONLY
+#include "../../include/rift.h"
+
+RiftConfig* rift_config_create(void) {
+    RiftConfig* config = calloc(1, sizeof(RiftConfig));
+    if (!config) return NULL;
+    
+    config->output_dir = strdup("./output");
+    config->stage_name = strdup("rift.0");
+    config->debug_mode = false;
+    config->verbose = false;
+    config->log_level = strdup("info");
+    
+    return config;
+}
+
+void rift_config_destroy(RiftConfig* config) {
+    if (!config) return;
+    
+    free(config->output_dir);
+    free(config->stage_name);
+    free(config->log_level);
+    free(config);
+}
+
+RiftResult rift_config_load(RiftConfig* config, const char* config_file) {
+    if (!config || !config_file) return RIFT_ERROR_NULL_POINTER;
+    
+    FILE* file = fopen(config_file, "r");
+    if (!file) return RIFT_ERROR_IO;
+    
+    char line[1024];
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0] == '#' || line[0] == '\n') continue;
+        
+        char* equals = strchr(line, '=');
+        if (!equals) continue;
+        
+        *equals = '\0';
+        char* key = line;
+        char* value = equals + 1;
+        
+        char* newline = strchr(value, '\n');
+        if (newline) *newline = '\0';
+        
+        if (strcmp(key, "output_dir") == 0) {
+            free(config->output_dir);
+            config->output_dir = strdup(value);
+        } else if (strcmp(key, "stage_name") == 0) {
+            free(config->stage_name);
+            config->stage_name = strdup(value);
+        } else if (strcmp(key, "debug") == 0) {
+            config->debug_mode = (strcmp(value, "true") == 0);
+        } else if (strcmp(key, "verbose") == 0) {
+            config->verbose = (strcmp(value, "true") == 0);
+        } else if (strcmp(key, "log_level") == 0) {
+            free(config->log_level);
+            config->log_level = strdup(value);
+        }
+    }
+    
+    fclose(file);
+    return RIFT_SUCCESS;
+}
+
+// KEEP THESE FUNCTIONS HERE ONLY (removed from rift_engine.c)
 void rift_print_version(void) {
     printf("RIFT Stage 0 Tokenizer v1.0.0\n");
     printf("AEGIS Automaton Engine for Generative Interpretation & Syntax\n");
@@ -304,4 +351,6 @@ void rift_print_usage(const char* program_name) {
     printf("Options:\n");
     printf("  -h, --help     Show help\n");
     printf("  -v, --version  Show version\n");
+    printf("  --verbose      Enable verbose output\n");
+    printf("  --config FILE  Use custom .riftrc file\n");
 }
