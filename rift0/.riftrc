@@ -1,0 +1,113 @@
+# RIFT Configuration - OBINexus Governance-First Architecture
+# Version: 1.0.0
+# Compliance: OBINexus-v1.0
+
+[general]
+version=1.0.0
+architecture=governance-first
+compliance_level=OBINexus-v1.0
+
+[paths]
+# Source paths
+source_root=src
+include_root=include
+project_root=include/project-root
+
+# Output artifact paths (.rift.0, .rift.*, etc.)
+output_root=out
+artifacts_root=out/artifacts
+stage0_output=out/stage0
+stage1_output=out/stage1 
+stage2_output=out/stage2
+final_output=out/final
+temp_output=out/temp
+
+# Examples and data
+examples_root=examples
+data_root=examples/data
+config_root=config
+
+# Build paths
+build_root=build
+lib_root=lib
+test_root=tests
+
+[compilation]
+# Stage 0: Tokenization (.rift → .rift.0)
+stage0_enabled=true
+stage0_output_ext=.rift.0
+stage0_debug=false
+stage0_verbose=true
+
+# Stage 1: Parse Tree (.rift.0 → .rift.1)
+stage1_enabled=false
+stage1_output_ext=.rift.1
+
+# Stage 2: AST Generation (.rift.1 → .rift.2)
+stage2_enabled=false
+stage2_output_ext=.rift.2
+
+# Governance validation
+governance_enabled=true
+governance_strict=true
+governance_files=.rift.gov
+
+[output]
+# Artifact organization
+auto_organize=true
+preserve_source_structure=true
+timestamp_artifacts=true
+compress_intermediate=false
+
+# File extensions and patterns
+rift_source_pattern=*.rift
+rift0_pattern=*.rift.0
+rift1_pattern=*.rift.1
+rift2_pattern=*.rift.2
+gov_pattern=*.rift.gov
+ir_pattern=*.rift.ir
+
+[logging]
+log_level=info
+log_file=logs/rift.log
+debug_mode=false
+verbose=true
+trace_compilation=false
+
+[security]
+# Cryptographic settings (OBINexus compliance)
+enable_signatures=true
+hash_algorithm=sha3_256
+signature_algorithm=ed25519
+entropy_monitoring=true
+audit_trail=true
+
+[validation]
+# Governance triangle validation
+attack_risk_threshold=0.3
+rollback_cost_threshold=0.3
+stability_impact_threshold=0.4
+max_governance_vector=1.0
+
+[build]
+# Build system integration
+compiler=gcc
+c_standard=c11
+optimization_level=O2
+warnings=all,extra,pedantic,error
+include_paths=include,include/project-root
+library_paths=lib
+
+[examples]
+# Example configuration
+csv_enabled=true
+governance_examples=true
+advanced_patterns=true
+auto_test=true
+
+[tools]
+# Tool integration
+git_raf_enabled=false
+polybuild_enabled=false
+nlink_enabled=false
+gosilang_enabled=false
