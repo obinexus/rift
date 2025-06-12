@@ -1,0 +1,145 @@
+.
+├── artifacts
+│   ├── docs
+│   │   ├── design
+│   │   │   ├── automaton.md
+│   │   │   ├── ir_spec.md
+│   │   │   ├── regex_automaton.log
+│   │   │   ├── regex_automaton.pdf
+│   │   │   ├── regex_automaton.tex
+│   │   │   └── regex_states.md
+│   │   └── old_modules
+│   │       ├── LIBRIFT.md
+│   │       └── LibRift Regexp.md
+│   └── poc
+│       ├── c
+│       │   ├── pocrift
+│       │   └── pocrift.c
+│       ├── python
+│       │   └── pocrift.py
+│       └── README.md
+├── config
+│   ├── dev
+│   ├── governance
+│   ├── pipeline
+│   ├── prod
+│   ├── test
+│   └── workers
+├── docs
+│   ├── api
+│   ├── architecture
+│   ├── governance
+│   └── r_extension
+│       └── r_integration_guide.md
+├── examples
+│   ├── basic
+│   │   ├── hello.rift
+│   │   └── sample.rift
+│   ├── csv
+│   │   ├── advanced_parser.rift
+│   │   ├── csv_parser
+│   │   ├── csv_parser.c
+│   │   └── Makefile
+│   ├── data
+│   │   ├── complex.csv
+│   │   ├── config
+│   │   ├── csv
+│   │   │   └── test.csv
+│   │   ├── json
+│   │   ├── malformed.csv
+│   │   ├── samples
+│   │   ├── simple.csv
+│   │   └── test.csv
+│   ├── governance
+│   │   └── policy_example.rift
+│   ├── r_extension
+│   │   ├── Makefile
+│   │   ├── r_extensions_demo.c
+│   │   ├── r_uml_extensions_demo.c
+│   │   └── sample_with_r_extensions.rift
+│   └── sample
+│       ├── sample.0
+│       └── sample.rift
+├── include
+│   ├── rift0
+│   │   ├── cli
+│   │   │   └── command
+│   │   │       ├── config_handler.h
+│   │   │       └── pattern_manager.h
+│   │   ├── core
+│   │   │   ├── config
+│   │   │   │   └── rift_config_advanced.h
+│   │   │   ├── r_extension
+│   │   │   │   ├── compose
+│   │   │   │   ├── governance
+│   │   │   │   │   └── r_governance_validation.h
+│   │   │   │   ├── logic
+│   │   │   │   ├── r_extensions.h
+│   │   │   │   └── uml
+│   │   │   │       └── r_uml_patterns.h
+│   │   │   └── rift_core_api.h
+│   │   └── rift.h
+│   └── rift.h
+├── logs
+│   ├── debug
+│   ├── pipeline
+│   │   ├── refactor_20250612_193249.log
+│   │   ├── refactor_20250612_193250.log
+│   │   └── rift_refactor_assistant.sh
+│   ├── rift_refactor_assistant.sh
+│   ├── validation
+│   │   └── rift_r_extend_validator.sh
+│   └── workers
+├── Makefile
+├── Makefile.backup.20250612_193249
+├── Makefile.backup.20250612_193250
+├── nlink
+├── output
+├── QA
+│   └── edge_case_registry.md
+├── README.md
+├── refactoring_script.sh
+├── rift0.txt
+├── run.sh
+├── scripts
+│   ├── build
+│   │   └── process_artifacts.sh
+│   ├── deploy
+│   └── validation
+│       └── validate_structure.sh
+├── src
+│   ├── cli
+│   │   ├── commands
+│   │   │   ├── command_handler.c
+│   │   │   ├── config
+│   │   │   │   └── config_main.c
+│   │   │   ├── config_handler.c
+│   │   │   └── pattern_manager.c
+│   │   ├── main.c
+│   │   └── main_original.c
+│   ├── core
+│   │   ├── config
+│   │   │   ├── governance
+│   │   │   ├── pipeline
+│   │   │   ├── rift_pipeline_simple.c
+│   │   │   └── threading
+│   │   ├── main.c
+│   │   ├── r_extensions
+│   │   │   ├── compose
+│   │   │   ├── governance
+│   │   │   │   └── r_governance_validation.c
+│   │   │   ├── logic
+│   │   │   ├── r_extensions_core.c
+│   │   │   └── uml
+│   │   │       └── r_uml_patterns.c
+│   │   └── rift_core.c
+│   ├── governance
+│   └── lib
+└── tests
+    ├── governance
+    ├── integration
+    ├── qa_mocks
+    │   └── test_automaton.c
+    └── unit
+
+75 directories, 68 files
