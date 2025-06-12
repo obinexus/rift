@@ -1,4 +1,5 @@
-# Enhanced RIFT Stage 0 Makefile with Library Generation
+
+# Enhanced RIFT Stage 0 Makefile with Fixed CLI Command Structure
 # Supports: make LIB=SO (shared library) or make LIB=A (static library)
 # Default: generates both .a and .so
 
@@ -17,6 +18,7 @@ OUTPUTDIR = output
 SRCDIR = src
 COREDIR = $(SRCDIR)/core
 CLIDIR = $(SRCDIR)/cli
+CLICMDDIR = $(CLIDIR)/command
 TESTDIR = tests
 EXAMPLEDIR = examples
 
@@ -24,9 +26,16 @@ EXAMPLEDIR = examples
 CORE_SOURCES = $(wildcard $(COREDIR)/*.c)
 CORE_OBJECTS = $(patsubst $(COREDIR)/%.c,$(BUILDDIR)/core_%.o,$(CORE_SOURCES))
 
-# CLI source files (including new command structure)
-CLI_SOURCES = $(wildcard $(CLIDIR)/*.c) $(wildcard $(CLIDIR)/command/*.c)
-CLI_OBJECTS = $(patsubst $(CLIDIR)/%.c,$(BUILDDIR)/cli_%.o,$(CLI_SOURCES))
+# CLI source files (main CLI files)
+CLI_MAIN_SOURCES = $(wildcard $(CLIDIR)/*.c)
+CLI_MAIN_OBJECTS = $(patsubst $(CLIDIR)/%.c,$(BUILDDIR)/cli_%.o,$(CLI_MAIN_SOURCES))
+
+# CLI command source files (command subdirectory)
+CLI_CMD_SOURCES = $(wildcard $(CLICMDDIR)/*.c)
+CLI_CMD_OBJECTS = $(patsubst $(CLICMDDIR)/%.c,$(BUILDDIR)/cli_command_%.o,$(CLI_CMD_SOURCES))
+
+# All CLI objects combined
+CLI_OBJECTS = $(CLI_MAIN_OBJECTS) $(CLI_CMD_OBJECTS)
 
 # Test source files
 TEST_SOURCES = $(wildcard $(TESTDIR)/qa_mocks/*.c)
@@ -48,15 +57,22 @@ else
 endif
 
 # Main targets
-.PHONY: all clean test config lib install bootstrap
+.PHONY: all clean test config lib install bootstrap structure help
 
 all: directories $(LIBRARY_TARGETS) $(BINDIR)/rift0.exe $(BINDIR)/rift0_demo
 
-# Create directory structure
+# Create enhanced directory structure
 directories:
 	@echo "🏗️  Initialized build directories"
 	@mkdir -p $(BUILDDIR) $(BINDIR) $(LIBDIR) $(OUTPUTDIR)
-	@mkdir -p $(CLIDIR)/command  # Ensure CLI command structure exists
+	@mkdir -p $(SRCDIR)/core $(SRCDIR)/cli $(SRCDIR)/cli/command
+	@mkdir -p $(TESTDIR)/qa_mocks $(EXAMPLEDIR)
+	@mkdir -p include
+
+# Create proper directory structure with files
+structure: directories
+	@echo "🏗️  Creating enhanced RIFT Stage 0 structure..."
+	@echo "📁 Setting up CLI command architecture..."
 
 # Core object files with library flags
 $(BUILDDIR)/core_%.o: $(COREDIR)/%.c
