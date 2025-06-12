@@ -1,204 +1,87 @@
-// Fixed CLI main.c with proper argument parsing
 #include "../../include/rift.h"
 #include <getopt.h>
 
-static void print_usage(const char* program_name) {
+static void print_help() {
     printf("🔤 RIFT Stage 0 - Tokenizer\n");
-    printf("============================\n");
-    printf("Usage: %s [options] <input_file>\n\n", program_name);
+    printf("Usage: rift0 [options] <input_file>\n");
     printf("Options:\n");
-    printf("  -h, --help              Show this help message\n");
-    printf("  -v, --version           Show version information\n");
-    printf("  -V, --verbose           Enable verbose output\n");
-    printf("  -o, --output <file>     Specify output file (default: <input>.0)\n");
-    printf("  -c, --config <file>     Use custom configuration file\n");
-    printf("  -d, --output-dir <dir>  Set output directory\n");
-    printf("  --debug                 Enable debug mode\n");
-    printf("  --stage <name>          Set stage name (default: rift.0)\n");
-    printf("\n");
+    printf("  -h, --help     Show help\n");
+    printf("  -v, --version  Show version\n");
+    printf("  --verbose      Enable verbose output\n");
     printf("Examples:\n");
-    printf("  %s input.rift                    # Basic tokenization\n", program_name);
-    printf("  %s --verbose input.rift          # Verbose output\n", program_name);
-    printf("  %s -o custom.ir input.rift       # Custom output file\n", program_name);
-    printf("  %s --config .riftrc input.rift   # Custom config\n", program_name);
-    printf("\n");
-    printf("🏗️  RIFT Architecture: Structure IS the syntax!\n");
-    printf("📚 Part of OBINexus governance-first compilation toolchain\n");
-}
-
-static void print_version(void) {
-    printf("🔤 RIFT Stage 0 Tokenizer v1.0.0\n");
-    printf("AEGIS Automaton Engine for Generative Interpretation & Syntax\n");
-    printf("OBINexus Computing - Governance-First Compilation Architecture\n");
-    printf("Built: %s %s\n", __DATE__, __TIME__);
-    printf("\n");
-    printf("🏗️  Architecture: Memory-first token triplets (memory→type→value)\n");
-    printf("🔗 Toolchain: riftlang.exe → .so.a → rift.exe → gosilang\n");
-    printf("📋 Stage: 0 (Tokenization with behavior-driven automaton)\n");
+    printf("  rift0 input.rift\n");
+    printf("  rift0 --verbose input.rift\n");
 }
 
 int main(int argc, char* argv[]) {
-    // Configuration variables
-    const char* input_file = NULL;
-    const char* output_file = NULL;
-    const char* config_file = ".riftrc";
-    const char* output_dir = NULL;
-    const char* stage_name = NULL;
     bool verbose = false;
-    bool debug = false;
     bool show_help = false;
     bool show_version = false;
-
-    // Long option definitions
-    static struct option long_options[] = {
-        {"help",       no_argument,       0, 'h'},
-        {"version",    no_argument,       0, 'v'},
-        {"verbose",    no_argument,       0, 'V'},
-        {"output",     required_argument, 0, 'o'},
-        {"config",     required_argument, 0, 'c'},
-        {"output-dir", required_argument, 0, 'd'},
-        {"debug",      no_argument,       0, 1000},
-        {"stage",      required_argument, 0, 1001},
-        {0, 0, 0, 0}
-    };
-
-    // Parse command line arguments
-    int option_index = 0;
-    int c;
     
-    while ((c = getopt_long(argc, argv, "hvVo:c:d:", long_options, &option_index)) != -1) {
-        switch (c) {
-            case 'h':
-                show_help = true;
-                break;
-            case 'v':
-                show_version = true;
-                break;
-            case 'V':
-                verbose = true;
-                break;
-            case 'o':
-                output_file = optarg;
-                break;
-            case 'c':
-                config_file = optarg;
-                break;
-            case 'd':
-                output_dir = optarg;
-                break;
-            case 1000: // --debug
-                debug = true;
-                break;
-            case 1001: // --stage
-                stage_name = optarg;
-                break;
-            case '?':
-                // getopt_long already printed an error message
-                fprintf(stderr, "Try '%s --help' for more information.\n", argv[0]);
-                return 1;
-            default:
-                fprintf(stderr, "❌ Unknown option: %c\n", c);
-                return 1;
+    // Simple argument parsing
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            show_help = true;
+        } else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
+            show_version = true;
+        } else if (strcmp(argv[i], "--verbose") == 0) {
+            verbose = true;
         }
     }
-
-    // Handle help and version flags
+    
     if (show_help) {
-        print_usage(argv[0]);
+        print_help();
         return 0;
     }
-
+    
     if (show_version) {
-        print_version();
+        rift_print_version();
         return 0;
     }
-
-    // Check for input file
-    if (optind >= argc) {
-        fprintf(stderr, "❌ Error: No input file specified\n");
-        fprintf(stderr, "Try '%s --help' for more information.\n", argv[0]);
+    
+    // Find input file (first non-option argument)
+    const char* input_file = NULL;
+    for (int i = 1; i < argc; i++) {
+        if (argv[i][0] != '-') {
+            input_file = argv[i];
+            break;
+        }
+    }
+    
+    if (!input_file) {
+        printf("❌ Error: No input file specified\n");
+        printf("Try 'rift0 --help' for usage information.\n");
         return 1;
     }
-
-    input_file = argv[optind];
-
-    // Create and configure RIFT config
+    
+    // Create config
     RiftConfig* config = rift_config_create();
     if (!config) {
         fprintf(stderr, "❌ Failed to create configuration\n");
         return 1;
     }
-
-    // Load configuration file
-    if (access(config_file, F_OK) == 0) {
-        RiftResult result = rift_config_load(config, config_file);
-        if (result != RIFT_SUCCESS && verbose) {
-            printf("⚠️  Warning: Could not load config file %s: %s\n", 
-                   config_file, rift_result_string(result));
-        }
-    }
-
-    // Override config with command line options
-    if (verbose) config->verbose = true;
-    if (debug) config->debug_mode = true;
-    if (output_dir) {
-        free(config->output_dir);
-        config->output_dir = strdup(output_dir);
-    }
-    if (stage_name) {
-        free(config->stage_name);
-        config->stage_name = strdup(stage_name);
-    }
-
-    // Generate output filename if not specified
-    char generated_output[1024];
-    if (!output_file) {
-        snprintf(generated_output, sizeof(generated_output), "%s/%s.0", 
-                 config->output_dir, basename(strdup(input_file)));
-        output_file = generated_output;
-    }
-
-    // Ensure output directory exists
-    char* output_dirname = strdup(output_file);
-    char* dir = dirname(output_dirname);
-    struct stat st = {0};
-    if (stat(dir, &st) == -1) {
-        if (mkdir(dir, 0755) != 0 && errno != EEXIST) {
-            fprintf(stderr, "❌ Failed to create output directory: %s\n", dir);
-            free(output_dirname);
-            rift_config_destroy(config);
-            return 1;
-        }
-    }
-    free(output_dirname);
-
-    // Print startup information
-    if (verbose || debug) {
+    
+    config->verbose = verbose;
+    
+    // Generate output filename
+    char output_file[1024];
+    snprintf(output_file, sizeof(output_file), "%s.0", input_file);
+    
+    if (verbose) {
         printf("🔤 RIFT Stage 0 - Tokenization\n");
-        printf("==============================\n");
-        printf("📁 Input:  %s\n", input_file);
-        printf("📁 Output: %s\n", output_file);
-        printf("⚙️  Config: %s\n", config_file);
-        printf("🏗️  Stage:  %s\n", config->stage_name);
-        if (debug) {
-            printf("🐛 Debug mode: enabled\n");
-        }
-        printf("\n");
+        printf("Input:  %s\n", input_file);
+        printf("Output: %s\n", output_file);
     }
-
+    
     // Process the file
-    printf("🚀 Processing: %s\n", input_file);
     RiftResult result = rift_process_file(input_file, output_file, config);
-
+    
     if (result == RIFT_SUCCESS) {
         printf("✅ Stage 0 processing complete\n");
-        if (verbose) {
-            printf("📄 Output saved: %s\n", output_file);
-        }
     } else {
         printf("❌ Processing failed: %s\n", rift_result_string(result));
     }
-
+    
     rift_config_destroy(config);
     return (result == RIFT_SUCCESS) ? 0 : 1;
 }
