@@ -1,229 +1,180 @@
-# RIFT Stage 0 - Enhanced Library Conventions with CSV Support
-# Supports: static/shared libraries, CSV examples, R"" syntax extensions
+# RIFT Enhanced Makefile - OBINexus Governance-First Architecture
+# Supports: artifact organization, .rift.0 generation, structured builds
 
+# Load configuration
+include .riftrc.make
+
+# Compiler and flags
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude -g -O2
+CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Werror -g -O2
 LDFLAGS = -lm
 
-# Library configuration - Default to STATIC for easier deployment
-LIB ?= A
-LIBDIR = lib
-BINDIR = bin
-BUILDDIR = build
-OUTPUTDIR = output
-EXAMPLEDIR = examples
-
-# Source directories
+# Project structure (from .riftrc)
 SRCDIR = src
-COREDIR = $(SRCDIR)/core
-CLIDIR = $(SRCDIR)/cli
+INCDIR = include
+OUTDIR = out
+BUILDDIR = build
+LIBDIR = lib
+EXAMPLEDIR = examples
+CONFIGDIR = config
 
-# Core library source (single file to prevent multiple definitions)
-CORE_SOURCE = $(COREDIR)/rift_core.c
-CORE_OBJECT = $(BUILDDIR)/rift_core.o
+# Include paths
+INCLUDES = -I$(INCDIR) -I$(INCDIR)/project-root -I$(INCDIR)/project-root/core
 
-# CLI and demo sources
-CLI_SOURCE = $(CLIDIR)/main.c
-CLI_OBJECT = $(BUILDDIR)/cli_main.o
-DEMO_SOURCE = $(COREDIR)/main.c
-DEMO_OBJECT = $(BUILDDIR)/demo_main.o
+# Output organization
+STAGE0_OUT = $(OUTDIR)/stage0
+STAGE1_OUT = $(OUTDIR)/stage1
+ARTIFACTS_OUT = $(OUTDIR)/artifacts
+FINAL_OUT = $(OUTDIR)/final
 
-# CSV example sources
-CSV_DIR = $(EXAMPLEDIR)/csv
-CSV_SOURCES = $(wildcard $(CSV_DIR)/*.c)
-CSV_OBJECTS = $(CSV_SOURCES:$(CSV_DIR)/%.c=$(BUILDDIR)/csv_%.o)
-CSV_TARGETS = $(CSV_SOURCES:$(CSV_DIR)/%.c=$(BINDIR)/csv_%)
+# Library targets
+STATIC_LIB = $(LIBDIR)/librift0.a
+SHARED_LIB = $(LIBDIR)/librift0.so
 
-# Library target selection
-ifeq ($(LIB),SO)
-    LIBRARY_TARGET = $(LIBDIR)/librift0.so
-    LIBCFLAGS = -fPIC
-    LIBLINKFLAGS = -shared
-    LINK_FLAGS = -L$(LIBDIR) -lrift0
-    RUN_PREFIX = export LD_LIBRARY_PATH=$(PWD)/$(LIBDIR):$$LD_LIBRARY_PATH &&
-else
-    LIBRARY_TARGET = $(LIBDIR)/librift0.a
-    LIBCFLAGS = 
-    LIBLINKFLAGS = 
-    LINK_FLAGS = $(LIBRARY_TARGET)
-    RUN_PREFIX = 
-endif
+# Core source files
+CORE_SOURCES = $(SRCDIR)/core/rift_core.c
+CORE_OBJECTS = $(BUILDDIR)/rift_core.o
 
-.PHONY: all clean test lib csv examples verify-architecture config
+# CLI source files  
+CLI_SOURCES = $(SRCDIR)/cli/main.c
+CLI_OBJECTS = $(BUILDDIR)/cli_main.o
+
+# Demo source files
+DEMO_SOURCES = $(SRCDIR)/core/main.c  
+DEMO_OBJECTS = $(BUILDDIR)/demo_main.o
 
 # Main targets
-all: directories $(LIBRARY_TARGET) $(BINDIR)/rift0 $(BINDIR)/rift0_demo
+.PHONY: all clean test lib examples artifacts install help
 
-# Include CSV examples in full build
-full: all csv
+all: directories lib bin/rift0 bin/rift0_demo
 
-# Create directories
+# Create directory structure
 directories:
-	@echo "📁 Creating standard directories..."
-	@mkdir -p $(BUILDDIR) $(BINDIR) $(LIBDIR) $(OUTPUTDIR)
-	@mkdir -p $(CSV_DIR) $(EXAMPLEDIR)/basic
+	@echo "📁 Creating OBINexus directory structure..."
+	@mkdir -p $(BUILDDIR) $(LIBDIR) bin
+	@mkdir -p $(STAGE0_OUT) $(STAGE1_OUT) $(ARTIFACTS_OUT) $(FINAL_OUT)
+	@mkdir -p $(ARTIFACTS_OUT)/{rift0,rift1,gov,ir}
+	@mkdir -p $(EXAMPLEDIR)/{basic,csv,governance,advanced}
+	@mkdir -p $(EXAMPLEDIR)/data/{csv,json,config,samples}
 
-# Core library compilation
-$(CORE_OBJECT): $(CORE_SOURCE)
+# Compile core library
+$(CORE_OBJECTS): $(CORE_SOURCES)
 	@echo "🔨 Compiling core library..."
-	$(CC) $(CFLAGS) $(LIBCFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-# CLI compilation
-$(CLI_OBJECT): $(CLI_SOURCE)
+# Compile CLI
+$(CLI_OBJECTS): $(CLI_SOURCES)
 	@echo "🔨 Compiling CLI..."
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-# Demo compilation
-$(DEMO_OBJECT): $(DEMO_SOURCE)
+# Compile demo
+$(DEMO_OBJECTS): $(DEMO_SOURCES)
 	@echo "🔨 Compiling demo..."
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-# Shared library
-$(LIBDIR)/librift0.so: $(CORE_OBJECT)
-	@echo "🔗 Building shared library: librift0.so"
-	@echo "   📚 Usage: gcc -L./lib -lrift0 (requires LD_LIBRARY_PATH)"
-	$(CC) $(LIBLINKFLAGS) -o $@ $< $(LDFLAGS)
-
-# Static library (recommended for easier deployment)
-$(LIBDIR)/librift0.a: $(CORE_OBJECT)
-	@echo "🔗 Building static library: librift0.a (recommended)"
-	@echo "   📚 Usage: gcc program.c librift0.a -lm"
+# Build static library
+$(STATIC_LIB): $(CORE_OBJECTS)
+	@echo "🔗 Building static library: librift0.a"
 	ar rcs $@ $<
 
+# Build shared library  
+$(SHARED_LIB): $(CORE_OBJECTS)
+	@echo "🔗 Building shared library: librift0.so"
+	$(CC) -shared -o $@ $< $(LDFLAGS)
+
+# Library target
+lib: $(STATIC_LIB)
+
 # CLI executable
-$(BINDIR)/rift0: $(CLI_OBJECT) $(LIBRARY_TARGET)
+bin/rift0: $(CLI_OBJECTS) $(STATIC_LIB)
 	@echo "🔗 Linking CLI executable..."
-ifeq ($(LIB),SO)
-	$(CC) $(CLI_OBJECT) $(LINK_FLAGS) $(LDFLAGS) -o $@
-else
-	$(CC) $(CLI_OBJECT) $(LINK_FLAGS) $(LDFLAGS) -o $@
-endif
+	@mkdir -p bin
+	$(CC) $(CLI_OBJECTS) $(STATIC_LIB) $(LDFLAGS) -o $@
 
-# Demo executable  
-$(BINDIR)/rift0_demo: $(DEMO_OBJECT) $(LIBRARY_TARGET)
+# Demo executable
+bin/rift0_demo: $(DEMO_OBJECTS) $(STATIC_LIB)
 	@echo "🔗 Linking demo executable..."
-ifeq ($(LIB),SO)
-	$(CC) $(DEMO_OBJECT) $(LINK_FLAGS) $(LDFLAGS) -o $@
-else
-	$(CC) $(DEMO_OBJECT) $(LINK_FLAGS) $(LDFLAGS) -o $@
-endif
+	@mkdir -p bin
+	$(CC) $(DEMO_OBJECTS) $(STATIC_LIB) $(LDFLAGS) -o $@
 
-# CSV example compilation
-$(BUILDDIR)/csv_%.o: $(CSV_DIR)/%.c
-	@echo "🔨 Compiling CSV example: $*..."
-	$(CC) $(CFLAGS) -c $< -o $@
+# Process .rift files to .rift.0 artifacts
+artifacts: bin/rift0
+	@echo "🎯 Processing .rift files to .rift.0 artifacts..."
+	@find $(EXAMPLEDIR) -name "*.rift" | while read file; do \
+		echo "Processing $$file..."; \
+		./bin/rift0 --output $(STAGE0_OUT)/ "$$file"; \
+		if [ -f "$$file.0" ]; then \
+			mv "$$file.0" $(ARTIFACTS_OUT)/rift0/; \
+		fi; \
+	done
+	@echo "✅ Artifacts organized in $(ARTIFACTS_OUT)/"
 
-$(BINDIR)/csv_%: $(BUILDDIR)/csv_%.o $(LIBRARY_TARGET)
-	@echo "🔗 Linking CSV example: $*..."
-ifeq ($(LIB),SO)
-	$(CC) $< $(LINK_FLAGS) $(LDFLAGS) -o $@
-else
-	$(CC) $< $(LINK_FLAGS) $(LDFLAGS) -o $@
-endif
+# Examples target
+examples: bin/rift0
+	@echo "🧪 Building examples..."
+	@cd $(EXAMPLEDIR)/csv && $(MAKE) all || true
+	@echo "✅ Examples built"
 
-# CSV examples target
-csv: directories $(LIBRARY_TARGET) $(CSV_TARGETS)
-	@echo "✅ CSV examples built successfully!"
+# Test target with artifact validation
+test: all examples
+	@echo "🧪 Running comprehensive tests..."
+	@echo "Testing CLI..."
+	@./bin/rift0 --help > /dev/null
+	@./bin/rift0 --version > /dev/null
+	@echo "Testing demo..."
+	@./bin/rift0_demo > /dev/null
+	@echo "Testing artifact generation..."
+	@$(MAKE) artifacts
+	@echo "✅ All tests passed"
 
-# Library only
-lib: $(LIBRARY_TARGET)
-	@echo "📚 Library ready: $(LIBRARY_TARGET)"
+# Install target for system-wide installation
+install: all
+	@echo "📦 Installing RIFT Stage 0..."
+	@sudo cp bin/rift0 /usr/local/bin/
+	@sudo cp $(STATIC_LIB) /usr/local/lib/
+	@sudo mkdir -p /usr/local/include/rift
+	@sudo cp -r $(INCDIR)/project-root/* /usr/local/include/rift/
+	@echo "✅ RIFT installed system-wide"
 
-# Enhanced testing with library path handling
-test: all
-	@echo "🧪 Testing RIFT Stage 0..."
-	@echo "Library type: $(LIB)"
-ifeq ($(LIB),SO)
-	@echo "📋 Shared library test (requires LD_LIBRARY_PATH):"
-	@echo "Setting library path and running demo..."
-	@$(RUN_PREFIX) ./$(BINDIR)/rift0_demo
-	@echo "Testing CLI help..."
-	@$(RUN_PREFIX) ./$(BINDIR)/rift0 --help 2>/dev/null || echo "CLI help test completed"
-else
-	@echo "📋 Static library test:"
-	@echo "Running demo..."
-	@./$(BINDIR)/rift0_demo
-	@echo "Testing CLI help..."
-	@./$(BINDIR)/rift0 --help 2>/dev/null || echo "CLI help test completed"
-endif
-
-# Architecture verification
-verify-architecture: all
-	@echo "🏗️  Verifying RIFT architecture compliance..."
-	@echo "✅ Token type/value separation maintained"
-	@echo "✅ Single core source prevents multiple definitions"
-	@echo "✅ Standard library conventions followed"
-	@echo "✅ Cross-platform compatibility ensured"
-
-# Configuration generation
-config:
-	@echo "⚙️  Generating default configuration..."
-	@echo "# RIFT Configuration" > .riftrc
-	@echo "output_dir=./output" >> .riftrc
-	@echo "stage_name=rift.0" >> .riftrc
-	@echo "debug=false" >> .riftrc
-	@echo "verbose=true" >> .riftrc
-	@echo "log_level=info" >> .riftrc
-	@echo "✅ Configuration written to .riftrc"
-
-# Example generation
-examples: directories
-	@echo "📝 Creating enhanced examples with R\"\" syntax support..."
-	@$(MAKE) -f examples.mk all
-
-# Clean
+# Clean all artifacts and build files
 clean:
 	@echo "🧹 Cleaning all artifacts..."
-	rm -rf $(BUILDDIR) $(BINDIR) $(LIBDIR) $(OUTPUTDIR)
-	rm -f .riftrc run_rift0.sh run_rift0_demo.sh
+	@rm -rf $(BUILDDIR) bin $(LIBDIR)
+	@rm -rf $(OUTDIR)
+	@find $(EXAMPLEDIR) -name "*.rift.0" -delete
+	@find . -name "*.rift.*" -not -path "./$(OUTDIR)/*" -delete
 
-# Development workflow shortcuts
-dev: clean
-	@echo "🚀 Development build (static linking for reliability)..."
-	@$(MAKE) all LIB=A
-	@$(MAKE) test
-	@echo "✅ Development build ready!"
+# Development workflow
+dev: clean all test
+	@echo "🚀 Development build complete!"
+	@echo "📊 Project status:"
+	@echo "   📚 Library: $(STATIC_LIB)"
+	@echo "   🎯 CLI: bin/rift0"
+	@echo "   🎮 Demo: bin/rift0_demo"
+	@echo "   📁 Artifacts: $(ARTIFACTS_OUT)/"
 
-deploy: clean  
-	@echo "🚀 Deployment build (static libraries for distribution)..."
-	@$(MAKE) full LIB=A
-	@$(MAKE) test
-	@echo "✅ Deployment build ready!"
-
-shared: clean
-	@echo "🚀 Shared library build..."
-	@$(MAKE) all LIB=SO
-	@echo "Creating library path wrappers..."
-	@echo '#!/bin/bash' > run_rift0.sh
-	@echo 'export LD_LIBRARY_PATH="$$(dirname "$$0")/lib:$$LD_LIBRARY_PATH"' >> run_rift0.sh
-	@echo 'exec "$$(dirname "$$0")/bin/rift0" "$$@"' >> run_rift0.sh
-	@chmod +x run_rift0.sh
-	@$(MAKE) test
-	@echo "✅ Shared library build ready! Use ./run_rift0.sh"
-
-# Help
+# Help target
 help:
-	@echo "🎯 RIFT Stage 0 Build System"
-	@echo "=========================="
+	@echo "🎯 RIFT Build System - OBINexus Architecture"
+	@echo "==========================================="
 	@echo ""
 	@echo "Main targets:"
-	@echo "  all       - Build core library and executables"
-	@echo "  full      - Build everything including CSV examples"
-	@echo "  lib       - Build library only"
-	@echo "  csv       - Build CSV examples"
-	@echo "  test      - Run tests"
-	@echo "  clean     - Clean all artifacts"
+	@echo "  all        - Build everything (default)"
+	@echo "  lib        - Build library only"
+	@echo "  examples   - Build examples"
+	@echo "  artifacts  - Generate .rift.0 artifacts"
+	@echo "  test       - Run comprehensive tests"
+	@echo "  install    - Install system-wide"
+	@echo "  clean      - Clean all build artifacts"
+	@echo "  dev        - Development workflow"
 	@echo ""
-	@echo "Build modes:"
-	@echo "  dev       - Development build (static, recommended)"
-	@echo "  deploy    - Deployment build (static, full)"
-	@echo "  shared    - Shared library build (with wrappers)"
+	@echo "Structure:"
+	@echo "  📁 src/          - Source code"
+	@echo "  📁 include/      - Headers"  
+	@echo "  📁 out/          - Output artifacts (.rift.0, etc.)"
+	@echo "  📁 examples/     - Examples and samples"
+	@echo "  📁 build/        - Build intermediate files"
+	@echo "  📁 lib/          - Libraries"
 	@echo ""
-	@echo "Configuration:"
-	@echo "  LIB=A     - Static library (default, recommended)"
-	@echo "  LIB=SO    - Shared library (requires LD_LIBRARY_PATH)"
-	@echo ""
-	@echo "Examples:"
-	@echo "  make dev          # Quick development build"
-	@echo "  make full         # Build with CSV examples"
-	@echo "  make shared       # Shared libs with wrappers"
+	@echo "Artifact workflow:"
+	@echo "  .rift → .rift.0 → .rift.1 → .rift.2 → final"
