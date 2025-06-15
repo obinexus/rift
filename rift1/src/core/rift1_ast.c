@@ -10,9 +10,12 @@ RiftASTNode* rift_ast_node_create(RiftASTNodeType type __attribute__((unused)), 
     // TODO: Implement full AST node creation
     return node;
 }
-void rift_ast_node_destroy(RiftASTNode* node) {
-    if (node) free(node);
+RiftResult rift_ast_node_destroy(RiftASTNode* node) {
+    if (!node) {
+        return RIFT_ERROR_INVALID_PARAMETER;
+    }
 }
+
 
 RiftResult rift_ast_node_add_child(RiftASTNode* parent, RiftASTNode* child) {
     if (!parent || !child) return RIFT_ERROR_NULL_POINTER;
