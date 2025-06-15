@@ -1,10 +1,14 @@
-# RIFT Stage 1 Enhanced Makefile - AEGIS Architecture
+# ===== Makefile - RIFT Stage 1 AEGIS Parser =====
 # OBINexus Computing - TokenMemory → Parser Pipeline
-# Zero Trust governance with nlink → polybuild integration
+# Build orchestration: nlink → polybuild integration
+# Toolchain: riftlang.exe → .so.a → rift.exe → gosilang
 
+# ===== Compiler Configuration =====
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude -g -O2 -MMD -MP -pthread
-LDFLAGS = -pthread -lm -lcrypto
+CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude -g -O2 -MMD -MP -pthread -fPIC
+LDFLAGS = -pthread -lm
+AR = ar
+ARFLAGS = rcs
 
 # ===== Directory Structure =====
 SRC_DIR = src
@@ -15,20 +19,20 @@ BUILD_DIR = build
 BIN_DIR = bin
 LIB_DIR = lib
 TEST_DIR = tests
-BACKUP_DIR = backup
-DEP_DIR = $(BUILD_DIR)/.deps
+SCRIPTS_DIR = scripts
+DOCS_DIR = docs
 
-# ===== Source Files =====
+# ===== Core Library Sources =====
 CORE_SOURCES = \
-	$(CORE_DIR)/rift1_parsing.c \
-	$(CORE_DIR)/rift_token_memory.c \
+	$(CORE_DIR)/rift_parser.c \
 	$(CORE_DIR)/rift_ast.c \
-	$(CORE_DIR)/rift_core.c \
+	$(CORE_DIR)/rift_automaton.c \
+	$(CORE_DIR)/rift_token_memory.c \
 	$(CORE_DIR)/rift_ir.c \
-	$(CORE_DIR)/rift_automaton.c
+	$(CORE_DIR)/rift_core_utils.c
 
-CLI_SOURCES = $(wildcard $(CLI_DIR)/*.c)
-ALL_SOURCES = $(CORE_SOURCES) $(CLI_SOURCES)
+# ===== CLI Sources =====
+CLI_SOURCES = $(CLI_DIR)/main.c $(CLI_DIR)/cli_args.c $(CLI_DIR)/cli_interface.c
 
 # ===== Object Files =====
 CORE_OBJECTS = $(CORE_SOURCES:$(CORE_DIR)/%.c=$(BUILD_DIR)/core/%.o)
@@ -36,193 +40,208 @@ CLI_OBJECTS = $(CLI_SOURCES:$(CLI_DIR)/%.c=$(BUILD_DIR)/cli/%.o)
 ALL_OBJECTS = $(CORE_OBJECTS) $(CLI_OBJECTS)
 
 # ===== Dependency Files =====
-CORE_DEPS = $(CORE_SOURCES:$(CORE_DIR)/%.c=$(DEP_DIR)/core/%.d)
-CLI_DEPS = $(CLI_SOURCES:$(CLI_DIR)/%.c=$(DEP_DIR)/cli/%.d)
+CORE_DEPS = $(CORE_SOURCES:$(CORE_DIR)/%.c=$(BUILD_DIR)/deps/core/%.d)
+CLI_DEPS = $(CLI_SOURCES:$(CLI_DIR)/%.c=$(BUILD_DIR)/deps/cli/%.d)
 ALL_DEPS = $(CORE_DEPS) $(CLI_DEPS)
-
-# Filter out main.o for library builds
-CORE_LIB_OBJECTS = $(filter-out $(BUILD_DIR)/core/main.o, $(CORE_OBJECTS))
 
 # ===== Build Targets =====
 TARGET = $(BIN_DIR)/rift1.exe
-LIBRARY = $(LIB_DIR)/librift1.a
+STATIC_LIB = $(LIB_DIR)/librift1.a
 SHARED_LIB = $(LIB_DIR)/librift1.so
 
 # ===== Phony Targets =====
-.PHONY: all clean bootstrap test verify-architecture directories
-.PHONY: dev release install lib shared debug
-.PHONY: zero-trust-init verify-keys backup
+.PHONY: all clean bootstrap install test verify-architecture
+.PHONY: core-lib static-lib shared-lib cli debug release
+.PHONY: nlink-integration polybuild-setup validate-obinexus
 
 # ===== Default Target =====
-all: directories $(TARGET)
+all: directories $(TARGET) $(STATIC_LIB)
 
 # ===== OBINexus Bootstrap =====
-bootstrap: clean directories $(TARGET) $(LIBRARY)
-	@echo "🏗️  RIFT Stage 1 AEGIS architecture ready!"
-	@echo "✅ TokenMemory → Parser pipeline established"
-	@echo "✅ .rift.0 → .rift.1 processing enabled"
-	@echo "✅ Zero Trust governance checkpoints active"
+bootstrap: clean directories core-lib static-lib $(TARGET)
+	@echo "🏗️  RIFT Stage 1 AEGIS Parser - Bootstrap Complete"
+	@echo "✅ Core library: $(STATIC_LIB)"
+	@echo "✅ CLI executable: $(TARGET)"
+	@echo "✅ TokenMemory → Parser Pipeline ready"
 	@echo "🔗 Toolchain: riftlang.exe → .so.a → rift.exe → gosilang"
+	@echo "📋 AEGIS: Regex token matching + dual parsing strategies"
 
 # ===== Directory Creation =====
 directories:
-	@mkdir -p $(BUILD_DIR)/core $(BUILD_DIR)/cli $(BIN_DIR) $(LIB_DIR)
-	@mkdir -p $(DEP_DIR)/core $(DEP_DIR)/cli $(BACKUP_DIR)
-	@mkdir -p $(TEST_DIR)/unit $(TEST_DIR)/integration
+	@mkdir -p $(BUILD_DIR)/core $(BUILD_DIR)/cli $(BUILD_DIR)/deps/core $(BUILD_DIR)/deps/cli
+	@mkdir -p $(BIN_DIR) $(LIB_DIR) $(TEST_DIR) $(DOCS_DIR)
+	@mkdir -p $(SCRIPTS_DIR)/build $(SCRIPTS_DIR)/validation
 
-# ===== Main Executable =====
-$(TARGET): $(ALL_OBJECTS) | directories
-	@echo "🔗 Linking RIFT Stage 1 executable..."
-	$(CC) $(ALL_OBJECTS) -o $@ $(LDFLAGS)
-	@echo "✅ RIFT Stage 1 executable created: $@"
+# ===== Core Library Build =====
+core-lib: $(CORE_OBJECTS)
+	@echo "📚 RIFT Stage 1 core library objects ready"
 
-# ===== Static Library =====
-$(LIBRARY): $(CORE_LIB_OBJECTS) | directories
-	@echo "📚 Creating RIFT Stage 1 static library..."
-	ar rcs $@ $^
-	@echo "✅ Static library created: $@"
+static-lib: $(STATIC_LIB)
 
-# ===== Shared Library =====
-$(SHARED_LIB): $(CORE_LIB_OBJECTS) | directories
+$(STATIC_LIB): $(CORE_OBJECTS) | directories
+	@echo "🔗 Creating RIFT Stage 1 static library..."
+	$(AR) $(ARFLAGS) $@ $^
+	@echo "✅ Static library: $@"
+
+shared-lib: $(SHARED_LIB)
+
+$(SHARED_LIB): $(CORE_OBJECTS) | directories
 	@echo "🔗 Creating RIFT Stage 1 shared library..."
-	$(CC) -shared -fPIC $(CORE_LIB_OBJECTS) -o $@ $(LDFLAGS)
-	@echo "✅ Shared library created: $@"
+	$(CC) -shared $(CORE_OBJECTS) -o $@ $(LDFLAGS)
+	@echo "✅ Shared library: $@"
+
+# ===== CLI Executable =====
+cli: $(TARGET)
+
+$(TARGET): $(CLI_OBJECTS) $(STATIC_LIB) | directories
+	@echo "🔗 Linking RIFT Stage 1 CLI executable..."
+	$(CC) $(CLI_OBJECTS) -L$(LIB_DIR) -lrift1 -o $@ $(LDFLAGS)
+	@echo "✅ CLI executable: $@"
 
 # ===== Object File Rules =====
 $(BUILD_DIR)/core/%.o: $(CORE_DIR)/%.c | directories
-	@echo "🔧 Compiling core: $<"
-	@mkdir -p $(dir $@) $(dir $(DEP_DIR)/core/$*.d)
-	$(CC) $(CFLAGS) -MF $(DEP_DIR)/core/$*.d -c $< -o $@
+	@echo "🔨 Compiling core: $<"
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/cli/%.o: $(CLI_DIR)/%.c | directories
-	@echo "🔧 Compiling CLI: $<"
-	@mkdir -p $(dir $@) $(dir $(DEP_DIR)/cli/$*.d)
-	$(CC) $(CFLAGS) -MF $(DEP_DIR)/cli/$*.d -c $< -o $@
+	@echo "🔨 Compiling CLI: $<"
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # ===== Include Dependencies =====
 -include $(ALL_DEPS)
 
-# ===== Library Targets =====
-lib: $(LIBRARY)
-shared: $(SHARED_LIB)
-libs: $(LIBRARY) $(SHARED_LIB)
+# ===== Installation =====
+install: all
+	@echo "📦 Installing RIFT Stage 1..."
+	install -d /usr/local/bin /usr/local/lib /usr/local/include/rift1
+	install $(TARGET) /usr/local/bin/
+	install $(STATIC_LIB) /usr/local/lib/
+	cp -r $(INCLUDE_DIR)/rift1/* /usr/local/include/rift1/
+	@echo "✅ RIFT Stage 1 installed to /usr/local"
 
-# ===== Development Targets =====
-dev: CFLAGS += -DDEBUG -g3 -O0
-dev: $(TARGET)
-	@echo "🐛 Debug build completed"
+# ===== Testing =====
+test: all
+	@echo "🧪 Running RIFT Stage 1 test suite..."
+	@$(SCRIPTS_DIR)/validation/run_tests.sh
+	@echo "✅ All tests passed"
+
+# ===== Architecture Validation =====
+verify-architecture: all
+	@echo "🔍 Validating AEGIS architecture compliance..."
+	@$(SCRIPTS_DIR)/validation/validate_architecture.sh
+	@echo "✅ AEGIS architecture validated"
+
+validate-obinexus: verify-architecture
+	@echo "🔍 Validating OBINexus compliance..."
+	@$(SCRIPTS_DIR)/validation/validate_obinexus.sh
+	@echo "✅ OBINexus compliance validated"
+
+# ===== Build Orchestration Integration =====
+nlink-integration:
+	@echo "🔗 Setting up nlink integration..."
+	@$(SCRIPTS_DIR)/build/setup_nlink.sh
+	@echo "✅ nlink integration ready"
+
+polybuild-setup: nlink-integration
+	@echo "🏗️  Setting up polybuild orchestration..."
+	@$(SCRIPTS_DIR)/build/setup_polybuild.sh
+	@echo "✅ polybuild orchestration ready"
+
+# ===== Debug/Release Builds =====
+debug: CFLAGS += -DDEBUG -g3 -O0
+debug: all
 
 release: CFLAGS += -DNDEBUG -O3 -flto
 release: LDFLAGS += -flto
-release: $(TARGET)
-	@echo "🚀 Release build completed"
+release: all
 
-debug: CFLAGS += -DDEBUG -g3 -O0 -fsanitize=address,undefined
-debug: LDFLAGS += -fsanitize=address,undefined
-debug: $(TARGET)
-	@echo "🔍 Debug build with sanitizers completed"
-
-# ===== Testing =====
-test: $(TARGET)
-	@echo "🧪 Running RIFT Stage 1 architecture tests..."
-	@if [ -f $(TARGET) ]; then \
-		echo "✅ Executable exists"; \
-		$(TARGET) --help >/dev/null 2>&1 || echo "✅ CLI test passed"; \
-	else \
-		echo "❌ Executable not found"; \
-		exit 1; \
-	fi
-	@echo "🧪 Running unit tests..."
-	@if [ -d $(TEST_DIR)/unit ]; then \
-		$(MAKE) -C $(TEST_DIR)/unit || echo "⚠️  Unit tests not configured"; \
-	fi
-
-# ===== Architecture Verification =====
-verify-architecture:
-	@echo "🔍 Verifying AEGIS architecture compliance..."
-	@echo "✅ Header structure: $(shell test -f include/rift1/core/rift_parser.h && echo "PASS" || echo "FAIL")"
-	@echo "✅ TokenMemory bridge: $(shell test -f $(CORE_DIR)/rift_token_memory.c && echo "PASS" || echo "FAIL")"
-	@echo "✅ AST infrastructure: $(shell test -f $(CORE_DIR)/rift_ast.c && echo "PASS" || echo "FAIL")"
-	@echo "✅ Parse engine: $(shell test -f $(CORE_DIR)/rift1_parsing.c && echo "PASS" || echo "FAIL")"
-	@echo "✅ AEGIS automaton: $(shell test -f $(CORE_DIR)/rift_automaton.c && echo "PASS" || echo "FAIL")"
-	@echo "✅ Build system: $(shell test -f Makefile && echo "PASS" || echo "FAIL")"
-
-# ===== Zero Trust Governance =====
-zero-trust-init:
-	@echo "🔐 Initializing Zero Trust cryptographic environment..."
-	@mkdir -p .rift/keys .rift/signatures
-	@if [ ! -f .rift/keys/rift_private.pem ]; then \
-		echo "🔑 Generating RSA-4096 keypair..."; \
-		openssl genrsa -out .rift/keys/rift_private.pem 4096; \
-		openssl rsa -in .rift/keys/rift_private.pem -pubout -out .rift/keys/rift_public.pem; \
-		echo "✅ Cryptographic keys generated"; \
-	else \
-		echo "✅ Cryptographic keys already exist"; \
-	fi
-
-verify-keys:
-	@echo "🔍 Verifying cryptographic key integrity..."
-	@if [ -f .rift/keys/rift_private.pem ] && [ -f .rift/keys/rift_public.pem ]; then \
-		openssl rsa -in .rift/keys/rift_private.pem -check -noout && echo "✅ Private key valid"; \
-		openssl rsa -in .rift/keys/rift_public.pem -pubin -check -noout && echo "✅ Public key valid"; \
-	else \
-		echo "❌ Keys not found. Run 'make zero-trust-init' first"; \
-		exit 1; \
-	fi
-
-# ===== Backup and Cleanup =====
-backup:
-	@echo "💾 Creating backup..."
-	@mkdir -p $(BACKUP_DIR)
-	@find . -name "*.bak" -exec mv {} $(BACKUP_DIR)/ \;
-	@tar -czf $(BACKUP_DIR)/rift1-backup-$(shell date +%Y%m%d-%H%M%S).tar.gz \
-		src/ include/ tests/ Makefile *.md 2>/dev/null || true
-	@echo "✅ Backup created in $(BACKUP_DIR)"
-
+# ===== Cleanup =====
 clean:
 	@echo "🧹 Cleaning build artifacts..."
 	rm -rf $(BUILD_DIR) $(BIN_DIR) $(LIB_DIR)
-	rm -f $(CORE_DIR)/*.o $(CLI_DIR)/*.o
-	@echo "✅ Clean completed"
+	@echo "✅ Clean complete"
 
 distclean: clean
 	@echo "🧹 Deep cleaning..."
-	rm -rf $(BACKUP_DIR) $(DEP_DIR)
-	rm -f .rift/signatures/*
-	@echo "✅ Distribution clean completed"
-
-# ===== Installation =====
-install: $(TARGET)
-	@echo "📦 Installing RIFT Stage 1..."
-	install -m 755 $(TARGET) /usr/local/bin/rift1
-	install -m 644 $(LIBRARY) /usr/local/lib/ 2>/dev/null || true
-	@echo "✅ Installation completed"
+	rm -rf $(DOCS_DIR)/generated $(TEST_DIR)/reports
+	@echo "✅ Distribution clean complete"
 
 # ===== Help =====
 help:
-	@echo "🏗️  RIFT Stage 1 Build System - AEGIS Architecture"
-	@echo "=================================================="
-	@echo "Targets:"
-	@echo "  all              - Build main executable (default)"
-	@echo "  bootstrap        - Complete setup with libraries"
-	@echo "  lib/shared       - Build static/shared libraries"
-	@echo "  test             - Run test suites"
-	@echo "  verify-architecture - Check AEGIS compliance"
-	@echo "  zero-trust-init  - Setup cryptographic keys"
-	@echo "  clean/distclean  - Clean build artifacts"
-	@echo "  dev/release      - Development/optimized builds"
-	@echo "  install          - Install to system"
+	@echo "🔤 RIFT Stage 1 AEGIS Parser - Build System"
+	@echo "============================================"
 	@echo ""
-	@echo "🔗 OBINexus Toolchain: riftlang.exe → .so.a → rift.exe → gosilang"
+	@echo "Targets:"
+	@echo "  all                 - Build everything (default)"
+	@echo "  bootstrap          - Full OBINexus bootstrap"
+	@echo "  core-lib           - Build core library objects"
+	@echo "  static-lib         - Build static library"
+	@echo "  shared-lib         - Build shared library"
+	@echo "  cli                - Build CLI executable"
+	@echo "  test               - Run test suite"
+	@echo "  verify-architecture - Validate AEGIS compliance"
+	@echo "  validate-obinexus  - Validate OBINexus compliance"
+	@echo "  install            - Install to system"
+	@echo "  clean              - Clean build artifacts"
+	@echo "  help               - Show this help"
+	@echo ""
+	@echo "Build Orchestration:"
+	@echo "  nlink-integration  - Setup nlink integration"
+	@echo "  polybuild-setup    - Setup polybuild orchestration"
+	@echo ""
+	@echo "🏗️  Architecture: AEGIS Parser with dual parsing strategies"
+	@echo "🔗 Toolchain: riftlang.exe → .so.a → rift.exe → gosilang"
 
-# ===== Build Information =====
-info:
-	@echo "🏗️  RIFT Stage 1 Build Information"
-	@echo "=================================="
-	@echo "Compiler:     $(CC)"
-	@echo "Flags:        $(CFLAGS)"
-	@echo "Link Flags:   $(LDFLAGS)"
-	@echo "Target:       $(TARGET)"
-	@echo "Library:      $(LIBRARY)"
-	@echo "Sources:      $(words $(ALL_SOURCES)) files"
-	@echo "Architecture: AEGIS with Zero Trust governance"
+# ===== Project Structure Generation =====
+create-structure:
+	@echo "📁 Creating RIFT Stage 1 project structure..."
+	@mkdir -p src/core src/cli include/rift1/core
+	@mkdir -p tests/unit tests/integration tests/qa_mocks
+	@mkdir -p scripts/build scripts/validation scripts/deployment
+	@mkdir -p examples docs bin lib build
+	@touch src/core/.gitkeep src/cli/.gitkeep
+	@touch tests/unit/.gitkeep tests/integration/.gitkeep
+	@touch examples/.gitkeep docs/.gitkeep
+	@echo "✅ Project structure created"
+
+# ===== Development Utilities =====
+format:
+	@echo "🎨 Formatting source code..."
+	@find src include -name "*.c" -o -name "*.h" | xargs clang-format -i
+	@echo "✅ Code formatted"
+
+analyze:
+	@echo "🔍 Running static analysis..."
+	@cppcheck --enable=all --inconclusive src/
+	@echo "✅ Static analysis complete"
+
+docs:
+	@echo "📖 Generating documentation..."
+	@doxygen docs/Doxyfile
+	@echo "✅ Documentation generated"
+
+# ===== File Generation Targets =====
+generate-headers: directories
+	@echo "📝 Generating core headers..."
+	@$(SCRIPTS_DIR)/build/generate_headers.sh
+
+generate-stubs: directories  
+	@echo "📝 Generating implementation stubs..."
+	@$(SCRIPTS_DIR)/build/generate_stubs.sh
+
+# ===== Dependency Information =====
+show-deps:
+	@echo "📋 RIFT Stage 1 Dependencies:"
+	@echo "  - libc (C11 standard library)"
+	@echo "  - POSIX regex support"
+	@echo "  - pthread for threading"
+	@echo "  - libm for math functions"
+	@echo ""
+	@echo "🏗️  Build Tools:"
+	@echo "  - gcc (C11 support required)"
+	@echo "  - make (GNU Make compatible)"
+	@echo "  - ar (for static libraries)"
+	@echo ""
+	@echo "🔗 OBINexus Integration:"
+	@echo "  - nlink (build orchestration)"
+	@echo "  - polybuild (pipeline management)"
