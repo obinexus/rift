@@ -10,7 +10,6 @@ RiftASTNode* rift_ast_node_create(RiftASTNodeType type __attribute__((unused)), 
     // TODO: Implement full AST node creation
     return node;
 }
-
 void rift_ast_node_destroy(RiftASTNode* node) {
     if (node) free(node);
 }
