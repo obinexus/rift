@@ -1,121 +1,113 @@
-/**
- * RIFT Advanced Configuration Structures
- * OBINexus AEGIS Framework - Complete type definitions
- * 
- * Structure IS the syntax - maintains token type/value separation
- * Preserves matched_state for AST minimization
- */
+// include/rift1/core/config/rift_advanced_config_structures.h
+// OBINexus AEGIS Framework - Complete configuration structure definitions
+#ifndef RIFT1_ADVANCED_CONFIG_STRUCTURES_H
+#define RIFT1_ADVANCED_CONFIG_STRUCTURES_H
 
-#ifndef RIFT_ADVANCED_CONFIG_STRUCTURES_H
-#define RIFT_ADVANCED_CONFIG_STRUCTURES_H
-
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
 
-// AEGIS Pipeline Mode Enumeration
-typedef enum {
-    RIFT_PIPELINE_SEQUENTIAL = 0,
-    RIFT_PIPELINE_PARALLEL = 1,
-    RIFT_PIPELINE_HYBRID = 2
-} RiftPipelineMode;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-// OBINexus Threading Model Enumeration
-typedef enum {
-    RIFT_THREADING_MODEL_1_PARALLEL = 0,    // True parallelism with dedicated cores
-    RIFT_THREADING_MODEL_2_CONCURRENT = 1,  // Shared-core time-sliced
-    RIFT_THREADING_HYBRID = 2               // Both models enabled
-} RiftThreadingModel;
-
-// Pipeline Configuration Structure
+// Governance configuration structure
 typedef struct {
-    bool enabled;
-    RiftPipelineMode mode;
-    uint32_t max_parallel_stages;
-    bool sequence_validation;
-    bool artifact_tracking;
-    bool stage0_parallel;
-    bool stage1_parallel;
-    bool stage2_sequential;
-    bool final_sequential;
-} RiftPipelineConfig;
-
-// Threading Configuration Structure (OBINexus Models 1 & 2)
-typedef struct {
-    RiftThreadingModel model;
-    
-    // Model 1: True Parallelism
-    bool model1_enabled;
-    bool model1_dedicated_cores;
-    bool model1_governance_isolation;
-    bool model1_cryptographic_identity;
-    
-    // Model 2: Shared-Core Concurrent
-    bool model2_enabled;
-    bool model2_time_sliced;
-    bool model2_governance_reconciliation;
-    bool model2_parent_child_hierarchy;
-} RiftThreadingConfig;
-
-// Worker Pool Configuration Structure
-typedef struct {
-    uint32_t default_pool_size;
-    uint32_t max_pool_size;
-    uint32_t min_pool_size;
-    uint32_t worker_timeout;
-    bool governance_validation_per_worker;
-    
-    // Specialized pools for pipeline stages
-    uint32_t tokenizer_pool_size;
-    uint32_t parser_pool_size;
-    uint32_t ast_pool_size;
-    uint32_t validator_pool_size;
-} RiftWorkerPoolConfig;
-
-// Governance Configuration Structure (OBINexus Governance Triangle)
-typedef struct {
-    bool enabled;
-    bool strict_mode;
-    bool cryptographic_validation;
-    bool audit_trail;
     bool thread_governance_isolation;
-    bool worker_cryptographic_identity;
-    bool cross_thread_validation;
-    bool governance_context_inheritance;
-    
-    // Governance triangle thresholds
     double attack_risk_threshold;
     double rollback_cost_threshold;
     double stability_impact_threshold;
     double max_governance_vector;
+    
+    // Additional governance parameters
+    size_t max_validation_depth;
+    size_t governance_buffer_size;
+    bool enable_quantum_governance;
+    bool strict_type_enforcement;
 } RiftGovernanceConfig;
 
-// Complete Advanced Configuration Structure
-typedef struct RiftAdvancedConfig {
-    // Basic configuration
-    char* output_dir;
-    char* stage_name;
-    bool debug_mode;
-    bool verbose;
-    char* log_level;
+// Enhanced pipeline configuration with governance integration
+typedef struct {
+    // Core pipeline configuration
+    bool enable_stage0_processing;
+    bool enable_stage1_processing;
+    bool enable_validation;
+    bool enable_enhancement;
     
-    // AEGIS Framework nested configurations
-    RiftPipelineConfig pipeline;
-    RiftThreadingConfig threading;
-    RiftWorkerPoolConfig worker_pools;
+    // Governance configuration
     RiftGovernanceConfig governance;
     
-    // TokenMemory pipeline state preservation
-    size_t matched_state;           // AEGIS state minimization support
-    uint64_t token_validation_hash; // Cryptographic token integrity
-    bool zero_trust_enabled;        // Zero Trust pipeline compliance
-} RiftAdvancedConfig;
+    // Tokenizer configuration
+    struct {
+        bool enable_unicode_support;
+        bool enable_quantum_tokenization;
+        size_t lexer_buffer_size;
+        size_t pattern_cache_size;
+    } tokenizer;
+    
+    // Parser configuration
+    struct {
+        bool enable_bottom_up_parsing;
+        bool enable_top_down_parsing;
+        bool enable_hybrid_parsing;
+        size_t parser_stack_size;
+        size_t ast_node_pool_size;
+    } parser;
+    
+    // Memory management
+    struct {
+        size_t initial_token_capacity;
+        size_t growth_factor;
+        bool enable_memory_validation;
+        bool enable_gc;
+    } memory;
+    
+} RiftPipelineConfig;
 
-// Function declarations that match the implementation
-RiftAdvancedConfig* rift_advanced_config_create(void);
-void rift_advanced_config_destroy(RiftAdvancedConfig* config);
-int rift_advanced_config_load(RiftAdvancedConfig* config, const char* config_file);
-int rift_advanced_config_validate(const RiftAdvancedConfig* config);
-void rift_demo_pipeline_config(const RiftAdvancedConfig* config);
+// Parser mode selection structure
+typedef struct {
+    bool bottom_up_enabled;     // Shift-reduce parsing
+    bool top_down_enabled;      // Recursive descent parsing
+    char* regex_pattern;        // Pattern: R"/[^A-Z0-9\b]/gmi[t|b]"
+    char mode_flag;             // 't' for top-down, 'b' for bottom-up
+} RiftParserModeConfig;
 
-#endif // 
-#RIFT_ADVANCED_CONFIG_STRUCTURES_H
+// Complete AEGIS configuration structure
+typedef struct {
+    RiftPipelineConfig pipeline;
+    RiftParserModeConfig parser_mode;
+    
+    // AEGIS-specific configuration
+    struct {
+        bool enable_pattern_composition;
+        bool enable_functional_transforms;
+        bool enable_data_orientation;
+        bool enable_unified_pipeline;
+    } aegis;
+    
+    // Validation configuration
+    struct {
+        bool enable_compile_time_validation;
+        bool enable_runtime_validation;
+        bool enable_type_safety_checks;
+        bool enable_bounds_checking;
+    } validation;
+    
+} RiftAegisConfig;
+
+// Function declarations for configuration management
+RiftAegisConfig* rift_config_create_default(void);
+bool rift_config_validate(const RiftAegisConfig* config);
+void rift_config_destroy(RiftAegisConfig* config);
+
+// Governance-specific functions
+bool rift_governance_initialize(RiftGovernanceConfig* gov_config);
+bool rift_governance_validate_threshold(const RiftGovernanceConfig* config, 
+                                       double value, 
+                                       const char* threshold_name);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // RIFT1_ADVANCED_CONFIG_STRUCTURES_H
