@@ -1,4 +1,4 @@
-# RIFT Stage 0 Enhanced Makefile
+# RIFT Stage 1 Enhanced Makefile
 # OBINexus Computing - AEGIS Framework
 # Strict Architecture: Token type/value separation + matched_state preservation
 
@@ -29,17 +29,17 @@ TEST_SOURCES = $(wildcard $(TESTDIR)/qa_mocks/*.c)
 TEST_OBJECTS = $(TEST_SOURCES:$(TESTDIR)/qa_mocks/%.c=$(BUILDDIR)/test_%.o)
 
 # Targets
-CLI_TARGET = $(BINDIR)/rift0.exe
-DEMO_TARGET = $(BINDIR)/rift0_demo
-TEST_TARGET = $(BUILDDIR)/test_rift0
-STATIC_LIB = $(LIBDIR)/librift0.a
+CLI_TARGET = $(BINDIR)/rift1.exe
+DEMO_TARGET = $(BINDIR)/rift1_demo
+TEST_TARGET = $(BUILDDIR)/test_rift1
+STATIC_LIB = $(LIBDIR)/librift1.a
 
 .PHONY: all clean test init cli demo lib install verify-architecture bootstrap
 
 all: init cli demo lib
 
 bootstrap: clean all test verify-architecture
-	@echo "🎉 RIFT Stage 0 bootstrap complete!"
+	@echo "🎉 RIFT Stage 1 bootstrap complete!"
 
 cli: init $(CLI_TARGET)
 
@@ -54,7 +54,7 @@ init:
 
 # CLI executable (main production binary)
 $(CLI_TARGET): $(CORE_LIB_OBJECTS) $(CLI_OBJECTS)
-	@echo "🔗 Linking RIFT Stage 0 CLI..."
+	@echo "🔗 Linking RIFT Stage 1 CLI..."
 	@echo "   ✅ Preserving token type/value separation"
 	@echo "   ✅ Maintaining matched_state for AST minimization"
 	$(CC) $(CORE_LIB_OBJECTS) $(CLI_OBJECTS) -o $@ $(LDFLAGS)
@@ -62,7 +62,7 @@ $(CLI_TARGET): $(CORE_LIB_OBJECTS) $(CLI_OBJECTS)
 
 # Demo executable (development/testing)
 $(DEMO_TARGET): $(CORE_LIB_OBJECTS) $(BUILDDIR)/core_main.o
-	@echo "🔗 Linking RIFT Stage 0 Demo..."
+	@echo "🔗 Linking RIFT Stage 1 Demo..."
 	$(CC) $(CORE_LIB_OBJECTS) $(BUILDDIR)/core_main.o -o $@ $(LDFLAGS)
 	@echo "✅ Demo executable ready: $@"
 
@@ -114,8 +114,8 @@ clean:
 	rm -rf $(BUILDDIR) $(BINDIR) $(LIBDIR)
 
 install: cli
-	@echo "📦 Installing RIFT Stage 0..."
-	cp $(CLI_TARGET) /usr/local/bin/rift0 2>/dev/null || echo "⚠️  Manual install required: sudo cp $(CLI_TARGET) /usr/local/bin/"
+	@echo "📦 Installing RIFT Stage 1..."
+	cp $(CLI_TARGET) /usr/local/bin/rift1 2>/dev/null || echo "⚠️  Manual install required: sudo cp $(CLI_TARGET) /usr/local/bin/"
 
 # Configuration file generation
 config:
@@ -125,7 +125,7 @@ config:
 	@echo "debug_mode=false" >> .riftrc
 	@echo "verbose=true" >> .riftrc
 	@echo "log_level=INFO" >> .riftrc
-	@echo "stage=0" >> .riftrc
+	@echo "stage=1" >> .riftrc
 	@echo "✅ Default configuration created: .riftrc"
 
 .DEFAULT_GOAL := all
