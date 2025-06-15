@@ -1,0 +1,622 @@
+In file included from src/core/rift1_parsing.c:2:
+src/core/../../include/rift1/rift.h:180:2: error: #endif without #if
+  180 | #endif
+      |  ^~~~~
+src/core/../../include/rift1/rift.h:182:2: error: #endif without #if
+  182 | #endif
+      |  ^~~~~
+src/core/../../include/rift1/rift.h:196:5: error: redeclaration of enumerator ‘RIFT_MODE_TOP_DOWN’
+  196 |     RIFT_MODE_TOP_DOWN = 't',
+      |     ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:24:5: note: previous definition of ‘RIFT_MODE_TOP_DOWN’ with type ‘enum <anonymous>’
+   24 |     RIFT_MODE_TOP_DOWN = 't',
+      |     ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:197:5: error: redeclaration of enumerator ‘RIFT_MODE_BOTTOM_UP’
+  197 |     RIFT_MODE_BOTTOM_UP = 'b'
+      |     ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:25:5: note: previous definition of ‘RIFT_MODE_BOTTOM_UP’ with type ‘enum <anonymous>’
+   25 |     RIFT_MODE_BOTTOM_UP = 'b'
+      |     ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:198:3: error: conflicting types for ‘RiftMatchMode’; have ‘enum <anonymous>’
+  198 | } RiftMatchMode;
+      |   ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:26:3: note: previous declaration of ‘RiftMatchMode’ with type ‘RiftMatchMode’
+   26 | } RiftMatchMode;
+      |   ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:201:5: error: redeclaration of enumerator ‘RIFT_SUCCESS’
+  201 |     RIFT_SUCCESS = 0,
+      |     ^~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:29:5: note: previous definition of ‘RIFT_SUCCESS’ with type ‘enum <anonymous>’
+   29 |     RIFT_SUCCESS = 0,
+      |     ^~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:202:5: error: redeclaration of enumerator ‘RIFT_ERROR_NULL_POINTER’
+  202 |     RIFT_ERROR_NULL_POINTER = -1,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:30:5: note: previous definition of ‘RIFT_ERROR_NULL_POINTER’ with type ‘enum <anonymous>’
+   30 |     RIFT_ERROR_NULL_POINTER = -1,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:203:5: error: redeclaration of enumerator ‘RIFT_ERROR_MEMORY_ALLOCATION’
+  203 |     RIFT_ERROR_MEMORY_ALLOCATION = -2,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:31:5: note: previous definition of ‘RIFT_ERROR_MEMORY_ALLOCATION’ with type ‘enum <anonymous>’
+   31 |     RIFT_ERROR_MEMORY_ALLOCATION = -2,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:204:5: error: redeclaration of enumerator ‘RIFT_ERROR_PATTERN_INVALID’
+  204 |     RIFT_ERROR_PATTERN_INVALID = -3,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:32:5: note: previous definition of ‘RIFT_ERROR_PATTERN_INVALID’ with type ‘enum <anonymous>’
+   32 |     RIFT_ERROR_PATTERN_INVALID = -3,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:205:5: error: redeclaration of enumerator ‘RIFT_ERROR_COMPILATION_FAILED’
+  205 |     RIFT_ERROR_COMPILATION_FAILED = -4,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:33:5: note: previous definition of ‘RIFT_ERROR_COMPILATION_FAILED’ with type ‘enum <anonymous>’
+   33 |     RIFT_ERROR_COMPILATION_FAILED = -4,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:206:5: error: redeclaration of enumerator ‘RIFT_ERROR_IO’
+  206 |     RIFT_ERROR_IO = -5
+      |     ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:34:5: note: previous definition of ‘RIFT_ERROR_IO’ with type ‘enum <anonymous>’
+   34 |     RIFT_ERROR_IO = -5
+      |     ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:207:3: error: conflicting types for ‘RiftResult’; have ‘enum <anonymous>’
+  207 | } RiftResult;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:35:3: note: previous declaration of ‘RiftResult’ with type ‘RiftResult’
+   35 | } RiftResult;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:209:16: error: redefinition of ‘struct RiftPattern’
+  209 | typedef struct RiftPattern {
+      |                ^~~~~~~~~~~
+src/core/../../include/rift1/rift.h:37:16: note: originally defined here
+   37 | typedef struct RiftPattern {
+      |                ^~~~~~~~~~~
+src/core/../../include/rift1/rift.h:216:3: error: conflicting types for ‘RiftPattern’; have ‘struct RiftPattern’
+  216 | } RiftPattern;
+      |   ^~~~~~~~~~~
+src/core/../../include/rift1/rift.h:44:3: note: previous declaration of ‘RiftPattern’ with type ‘RiftPattern’
+   44 | } RiftPattern;
+      |   ^~~~~~~~~~~
+src/core/../../include/rift1/rift.h:219:16: error: redefinition of ‘struct RiftState’
+  219 | typedef struct RiftState {
+      |                ^~~~~~~~~
+src/core/../../include/rift1/rift.h:47:16: note: originally defined here
+   47 | typedef struct RiftState {
+      |                ^~~~~~~~~
+src/core/../../include/rift1/rift.h:226:3: error: conflicting types for ‘RiftState’; have ‘struct RiftState’
+  226 | } RiftState;
+      |   ^~~~~~~~~
+src/core/../../include/rift1/rift.h:54:3: note: previous declaration of ‘RiftState’ with type ‘RiftState’
+   54 | } RiftState;
+      |   ^~~~~~~~~
+src/core/../../include/rift1/rift.h:229:16: error: redefinition of ‘struct RiftTransition’
+  229 | typedef struct RiftTransition {
+      |                ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:57:16: note: originally defined here
+   57 | typedef struct RiftTransition {
+      |                ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:234:3: error: conflicting types for ‘RiftTransition’; have ‘struct RiftTransition’
+  234 | } RiftTransition;
+      |   ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:62:3: note: previous declaration of ‘RiftTransition’ with type ‘RiftTransition’
+   62 | } RiftTransition;
+      |   ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:237:16: error: redefinition of ‘struct RiftAutomaton’
+  237 | typedef struct RiftAutomaton {
+      |                ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:65:16: note: originally defined here
+   65 | typedef struct RiftAutomaton {
+      |                ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:253:3: error: conflicting types for ‘RiftAutomaton’; have ‘struct RiftAutomaton’
+  253 | } RiftAutomaton;
+      |   ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:81:3: note: previous declaration of ‘RiftAutomaton’ with type ‘RiftAutomaton’
+   81 | } RiftAutomaton;
+      |   ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:256:16: error: redefinition of ‘struct RiftToken’
+  256 | typedef struct RiftToken {
+      |                ^~~~~~~~~
+src/core/../../include/rift1/rift.h:84:16: note: originally defined here
+   84 | typedef struct RiftToken {
+      |                ^~~~~~~~~
+src/core/../../include/rift1/rift.h:264:3: error: conflicting types for ‘RiftToken’; have ‘struct RiftToken’
+  264 | } RiftToken;
+      |   ^~~~~~~~~
+src/core/../../include/rift1/rift.h:92:3: note: previous declaration of ‘RiftToken’ with type ‘RiftToken’
+   92 | } RiftToken;
+      |   ^~~~~~~~~
+src/core/../../include/rift1/rift.h:267:16: error: redefinition of ‘struct RiftEngine’
+  267 | typedef struct RiftEngine {
+      |                ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:95:16: note: originally defined here
+   95 | typedef struct RiftEngine {
+      |                ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:275:3: error: conflicting types for ‘RiftEngine’; have ‘struct RiftEngine’
+  275 | } RiftEngine;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:103:3: note: previous declaration of ‘RiftEngine’ with type ‘RiftEngine’
+  103 | } RiftEngine;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:278:16: error: redefinition of ‘struct RiftConfig’
+  278 | typedef struct RiftConfig {
+      |                ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:106:16: note: originally defined here
+  106 | typedef struct RiftConfig {
+      |                ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:284:3: error: conflicting types for ‘RiftConfig’; have ‘struct RiftConfig’
+  284 | } RiftConfig;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:112:3: note: previous declaration of ‘RiftConfig’ with type ‘RiftConfig’
+  112 | } RiftConfig;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:287:16: error: redefinition of ‘struct RiftIR’
+  287 | typedef struct RiftIR {
+      |                ^~~~~~
+src/core/../../include/rift1/rift.h:115:16: note: originally defined here
+  115 | typedef struct RiftIR {
+      |                ^~~~~~
+src/core/../../include/rift1/rift.h:294:3: error: conflicting types for ‘RiftIR’; have ‘struct RiftIR’
+  294 | } RiftIR;
+      |   ^~~~~~
+src/core/../../include/rift1/rift.h:122:3: note: previous declaration of ‘RiftIR’ with type ‘RiftIR’
+  122 | } RiftIR;
+      |   ^~~~~~
+src/core/../../include/rift1/rift.h:299:13: error: conflicting types for ‘rift_config_create’; have ‘RiftConfig *(void)’
+  299 | RiftConfig* rift_config_create(void);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:127:13: note: previous declaration of ‘rift_config_create’ with type ‘RiftConfig *(void)’
+  127 | RiftConfig* rift_config_create(void);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:300:6: error: conflicting types for ‘rift_config_destroy’; have ‘void(RiftConfig *)’
+  300 | void rift_config_destroy(RiftConfig* config);
+      |      ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:128:6: note: previous declaration of ‘rift_config_destroy’ with type ‘void(RiftConfig *)’
+  128 | void rift_config_destroy(RiftConfig* config);
+      |      ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:301:12: error: conflicting types for ‘rift_config_load’; have ‘RiftResult(RiftConfig *, const char *)’
+  301 | RiftResult rift_config_load(RiftConfig* config, const char* config_file);
+      |            ^~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:129:12: note: previous declaration of ‘rift_config_load’ with type ‘RiftResult(RiftConfig *, const char *)’
+  129 | RiftResult rift_config_load(RiftConfig* config, const char* config_file);
+      |            ^~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:302:12: error: conflicting types for ‘rift_config_save’; have ‘RiftResult(RiftConfig *, const char *)’
+  302 | RiftResult rift_config_save(RiftConfig* config, const char* config_file);
+      |            ^~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:130:12: note: previous declaration of ‘rift_config_save’ with type ‘RiftResult(RiftConfig *, const char *)’
+  130 | RiftResult rift_config_save(RiftConfig* config, const char* config_file);
+      |            ^~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:305:14: error: conflicting types for ‘rift_parse_pattern’; have ‘RiftPattern *(const char *)’
+  305 | RiftPattern* rift_parse_pattern(const char* pattern_string);
+      |              ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:133:14: note: previous declaration of ‘rift_parse_pattern’ with type ‘RiftPattern *(const char *)’
+  133 | RiftPattern* rift_parse_pattern(const char* pattern_string);
+      |              ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:306:6: error: conflicting types for ‘rift_pattern_destroy’; have ‘void(RiftPattern *)’
+  306 | void rift_pattern_destroy(RiftPattern* pattern);
+      |      ^~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:134:6: note: previous declaration of ‘rift_pattern_destroy’ with type ‘void(RiftPattern *)’
+  134 | void rift_pattern_destroy(RiftPattern* pattern);
+      |      ^~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:307:12: error: conflicting types for ‘rift_pattern_compile’; have ‘RiftResult(RiftPattern *)’
+  307 | RiftResult rift_pattern_compile(RiftPattern* pattern);
+      |            ^~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:135:12: note: previous declaration of ‘rift_pattern_compile’ with type ‘RiftResult(RiftPattern *)’
+  135 | RiftResult rift_pattern_compile(RiftPattern* pattern);
+      |            ^~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:310:16: error: conflicting types for ‘rift_automaton_create’; have ‘RiftAutomaton *(void)’
+  310 | RiftAutomaton* rift_automaton_create(void);
+      |                ^~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:138:16: note: previous declaration of ‘rift_automaton_create’ with type ‘RiftAutomaton *(void)’
+  138 | RiftAutomaton* rift_automaton_create(void);
+      |                ^~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:311:6: error: conflicting types for ‘rift_automaton_destroy’; have ‘void(RiftAutomaton *)’
+  311 | void rift_automaton_destroy(RiftAutomaton* automaton);
+      |      ^~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:139:6: note: previous declaration of ‘rift_automaton_destroy’ with type ‘void(RiftAutomaton *)’
+  139 | void rift_automaton_destroy(RiftAutomaton* automaton);
+      |      ^~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:312:12: error: conflicting types for ‘rift_automaton_add_state’; have ‘RiftState *(RiftAutomaton *, const char *, _Bool)’
+  312 | RiftState* rift_automaton_add_state(RiftAutomaton* automaton,
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:140:12: note: previous declaration of ‘rift_automaton_add_state’ with type ‘RiftState *(RiftAutomaton *, const char *, _Bool)’
+  140 | RiftState* rift_automaton_add_state(RiftAutomaton* automaton,
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:315:12: error: conflicting types for ‘rift_automaton_add_transition’; have ‘RiftResult(RiftAutomaton *, RiftState *, RiftState *, const char *)’
+  315 | RiftResult rift_automaton_add_transition(RiftAutomaton* automaton,
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:143:12: note: previous declaration of ‘rift_automaton_add_transition’ with type ‘RiftResult(RiftAutomaton *, RiftState *, RiftState *, const char *)’
+  143 | RiftResult rift_automaton_add_transition(RiftAutomaton* automaton,
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:321:13: error: conflicting types for ‘rift_engine_create’; have ‘RiftEngine *(void)’
+  321 | RiftEngine* rift_engine_create(void);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:149:13: note: previous declaration of ‘rift_engine_create’ with type ‘RiftEngine *(void)’
+  149 | RiftEngine* rift_engine_create(void);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:322:6: error: conflicting types for ‘rift_engine_destroy’; have ‘void(RiftEngine *)’
+  322 | void rift_engine_destroy(RiftEngine* engine);
+      |      ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:150:6: note: previous declaration of ‘rift_engine_destroy’ with type ‘void(RiftEngine *)’
+  150 | void rift_engine_destroy(RiftEngine* engine);
+      |      ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:323:12: error: conflicting types for ‘rift_engine_process_input’; have ‘RiftResult(RiftEngine *, const char *)’
+  323 | RiftResult rift_engine_process_input(RiftEngine* engine, const char* input);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:151:12: note: previous declaration of ‘rift_engine_process_input’ with type ‘RiftResult(RiftEngine *, const char *)’
+  151 | RiftResult rift_engine_process_input(RiftEngine* engine, const char* input);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:324:12: error: conflicting types for ‘rift_engine_next_token’; have ‘RiftToken *(RiftEngine *)’
+  324 | RiftToken* rift_engine_next_token(RiftEngine* engine);
+      |            ^~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:152:12: note: previous declaration of ‘rift_engine_next_token’ with type ‘RiftToken *(RiftEngine *)’
+  152 | RiftToken* rift_engine_next_token(RiftEngine* engine);
+      |            ^~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:327:12: error: conflicting types for ‘rift_token_create’; have ‘RiftToken *(const char *, const char *, size_t,  size_t)’ {aka ‘RiftToken *(const char *, const char *, long unsigned int,  long unsigned int)’}
+  327 | RiftToken* rift_token_create(const char* type, const char* value,
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:155:12: note: previous declaration of ‘rift_token_create’ with type ‘RiftToken *(const char *, const char *, size_t,  size_t)’ {aka ‘RiftToken *(const char *, const char *, long unsigned int,  long unsigned int)’}
+  155 | RiftToken* rift_token_create(const char* type, const char* value,
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:329:6: error: conflicting types for ‘rift_token_destroy’; have ‘void(RiftToken *)’
+  329 | void rift_token_destroy(RiftToken* token);
+      |      ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:157:6: note: previous declaration of ‘rift_token_destroy’ with type ‘void(RiftToken *)’
+  157 | void rift_token_destroy(RiftToken* token);
+      |      ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:332:9: error: conflicting types for ‘rift_ir_create’; have ‘RiftIR *(const char *)’
+  332 | RiftIR* rift_ir_create(const char* source_file);
+      |         ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:160:9: note: previous declaration of ‘rift_ir_create’ with type ‘RiftIR *(const char *)’
+  160 | RiftIR* rift_ir_create(const char* source_file);
+      |         ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:333:6: error: conflicting types for ‘rift_ir_destroy’; have ‘void(RiftIR *)’
+  333 | void rift_ir_destroy(RiftIR* ir);
+      |      ^~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:161:6: note: previous declaration of ‘rift_ir_destroy’ with type ‘void(RiftIR *)’
+  161 | void rift_ir_destroy(RiftIR* ir);
+      |      ^~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:334:12: error: conflicting types for ‘rift_ir_add_token’; have ‘RiftResult(RiftIR *, RiftToken *)’
+  334 | RiftResult rift_ir_add_token(RiftIR* ir, RiftToken* token);
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:162:12: note: previous declaration of ‘rift_ir_add_token’ with type ‘RiftResult(RiftIR *, RiftToken *)’
+  162 | RiftResult rift_ir_add_token(RiftIR* ir, RiftToken* token);
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:335:12: error: conflicting types for ‘rift_ir_write_file’; have ‘RiftResult(RiftIR *, const char *)’
+  335 | RiftResult rift_ir_write_file(RiftIR* ir, const char* output_file);
+      |            ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:163:12: note: previous declaration of ‘rift_ir_write_file’ with type ‘RiftResult(RiftIR *, const char *)’
+  163 | RiftResult rift_ir_write_file(RiftIR* ir, const char* output_file);
+      |            ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:336:12: error: conflicting types for ‘rift_ir_read_file’; have ‘RiftResult(RiftIR *, const char *)’
+  336 | RiftResult rift_ir_read_file(RiftIR* ir, const char* input_file);
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:164:12: note: previous declaration of ‘rift_ir_read_file’ with type ‘RiftResult(RiftIR *, const char *)’
+  164 | RiftResult rift_ir_read_file(RiftIR* ir, const char* input_file);
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:339:12: error: conflicting types for ‘rift_process_file’; have ‘RiftResult(const char *, const char *, RiftConfig *)’
+  339 | RiftResult rift_process_file(const char* input_file, const char* output_file,
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:167:12: note: previous declaration of ‘rift_process_file’ with type ‘RiftResult(const char *, const char *, RiftConfig *)’
+  167 | RiftResult rift_process_file(const char* input_file, const char* output_file,
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:345:13: error: conflicting types for ‘rift_result_string’; have ‘const char *(RiftResult)’
+  345 | const char* rift_result_string(RiftResult result);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:173:13: note: previous declaration of ‘rift_result_string’ with type ‘const char *(RiftResult)’
+  173 | const char* rift_result_string(RiftResult result);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:352:2: error: #endif without #if
+  352 | #endif
+      |  ^~~~~
+src/core/../../include/rift1/rift.h:354:2: error: #endif without #if
+  354 | #endif
+      |  ^~~~~
+src/core/../../include/rift1/rift.h:368:5: error: redeclaration of enumerator ‘RIFT_MODE_TOP_DOWN’
+  368 |     RIFT_MODE_TOP_DOWN = 't',
+      |     ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:196:5: note: previous definition of ‘RIFT_MODE_TOP_DOWN’ with type ‘enum <anonymous>’
+  196 |     RIFT_MODE_TOP_DOWN = 't',
+      |     ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:369:5: error: redeclaration of enumerator ‘RIFT_MODE_BOTTOM_UP’
+  369 |     RIFT_MODE_BOTTOM_UP = 'b'
+      |     ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:197:5: note: previous definition of ‘RIFT_MODE_BOTTOM_UP’ with type ‘enum <anonymous>’
+  197 |     RIFT_MODE_BOTTOM_UP = 'b'
+      |     ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:370:3: error: conflicting types for ‘RiftMatchMode’; have ‘enum <anonymous>’
+  370 | } RiftMatchMode;
+      |   ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:198:3: note: previous declaration of ‘RiftMatchMode’ with type ‘RiftMatchMode’
+  198 | } RiftMatchMode;
+      |   ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:373:5: error: redeclaration of enumerator ‘RIFT_SUCCESS’
+  373 |     RIFT_SUCCESS = 0,
+      |     ^~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:201:5: note: previous definition of ‘RIFT_SUCCESS’ with type ‘enum <anonymous>’
+  201 |     RIFT_SUCCESS = 0,
+      |     ^~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:374:5: error: redeclaration of enumerator ‘RIFT_ERROR_NULL_POINTER’
+  374 |     RIFT_ERROR_NULL_POINTER = -1,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:202:5: note: previous definition of ‘RIFT_ERROR_NULL_POINTER’ with type ‘enum <anonymous>’
+  202 |     RIFT_ERROR_NULL_POINTER = -1,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:375:5: error: redeclaration of enumerator ‘RIFT_ERROR_MEMORY_ALLOCATION’
+  375 |     RIFT_ERROR_MEMORY_ALLOCATION = -2,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:203:5: note: previous definition of ‘RIFT_ERROR_MEMORY_ALLOCATION’ with type ‘enum <anonymous>’
+  203 |     RIFT_ERROR_MEMORY_ALLOCATION = -2,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:376:5: error: redeclaration of enumerator ‘RIFT_ERROR_PATTERN_INVALID’
+  376 |     RIFT_ERROR_PATTERN_INVALID = -3,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:204:5: note: previous definition of ‘RIFT_ERROR_PATTERN_INVALID’ with type ‘enum <anonymous>’
+  204 |     RIFT_ERROR_PATTERN_INVALID = -3,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:377:5: error: redeclaration of enumerator ‘RIFT_ERROR_COMPILATION_FAILED’
+  377 |     RIFT_ERROR_COMPILATION_FAILED = -4,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:205:5: note: previous definition of ‘RIFT_ERROR_COMPILATION_FAILED’ with type ‘enum <anonymous>’
+  205 |     RIFT_ERROR_COMPILATION_FAILED = -4,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:378:5: error: redeclaration of enumerator ‘RIFT_ERROR_IO’
+  378 |     RIFT_ERROR_IO = -5
+      |     ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:206:5: note: previous definition of ‘RIFT_ERROR_IO’ with type ‘enum <anonymous>’
+  206 |     RIFT_ERROR_IO = -5
+      |     ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:379:3: error: conflicting types for ‘RiftResult’; have ‘enum <anonymous>’
+  379 | } RiftResult;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:207:3: note: previous declaration of ‘RiftResult’ with type ‘RiftResult’
+  207 | } RiftResult;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:381:16: error: redefinition of ‘struct RiftPattern’
+  381 | typedef struct RiftPattern {
+      |                ^~~~~~~~~~~
+src/core/../../include/rift1/rift.h:209:16: note: originally defined here
+  209 | typedef struct RiftPattern {
+      |                ^~~~~~~~~~~
+src/core/../../include/rift1/rift.h:388:3: error: conflicting types for ‘RiftPattern’; have ‘struct RiftPattern’
+  388 | } RiftPattern;
+      |   ^~~~~~~~~~~
+src/core/../../include/rift1/rift.h:216:3: note: previous declaration of ‘RiftPattern’ with type ‘RiftPattern’
+  216 | } RiftPattern;
+      |   ^~~~~~~~~~~
+src/core/../../include/rift1/rift.h:391:16: error: redefinition of ‘struct RiftState’
+  391 | typedef struct RiftState {
+      |                ^~~~~~~~~
+src/core/../../include/rift1/rift.h:219:16: note: originally defined here
+  219 | typedef struct RiftState {
+      |                ^~~~~~~~~
+src/core/../../include/rift1/rift.h:398:3: error: conflicting types for ‘RiftState’; have ‘struct RiftState’
+  398 | } RiftState;
+      |   ^~~~~~~~~
+src/core/../../include/rift1/rift.h:226:3: note: previous declaration of ‘RiftState’ with type ‘RiftState’
+  226 | } RiftState;
+      |   ^~~~~~~~~
+src/core/../../include/rift1/rift.h:401:16: error: redefinition of ‘struct RiftTransition’
+  401 | typedef struct RiftTransition {
+      |                ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:229:16: note: originally defined here
+  229 | typedef struct RiftTransition {
+      |                ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:406:3: error: conflicting types for ‘RiftTransition’; have ‘struct RiftTransition’
+  406 | } RiftTransition;
+      |   ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:234:3: note: previous declaration of ‘RiftTransition’ with type ‘RiftTransition’
+  234 | } RiftTransition;
+      |   ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:409:16: error: redefinition of ‘struct RiftAutomaton’
+  409 | typedef struct RiftAutomaton {
+      |                ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:237:16: note: originally defined here
+  237 | typedef struct RiftAutomaton {
+      |                ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:425:3: error: conflicting types for ‘RiftAutomaton’; have ‘struct RiftAutomaton’
+  425 | } RiftAutomaton;
+      |   ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:253:3: note: previous declaration of ‘RiftAutomaton’ with type ‘RiftAutomaton’
+  253 | } RiftAutomaton;
+      |   ^~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:428:16: error: redefinition of ‘struct RiftToken’
+  428 | typedef struct RiftToken {
+      |                ^~~~~~~~~
+src/core/../../include/rift1/rift.h:256:16: note: originally defined here
+  256 | typedef struct RiftToken {
+      |                ^~~~~~~~~
+src/core/../../include/rift1/rift.h:436:3: error: conflicting types for ‘RiftToken’; have ‘struct RiftToken’
+  436 | } RiftToken;
+      |   ^~~~~~~~~
+src/core/../../include/rift1/rift.h:264:3: note: previous declaration of ‘RiftToken’ with type ‘RiftToken’
+  264 | } RiftToken;
+      |   ^~~~~~~~~
+src/core/../../include/rift1/rift.h:439:16: error: redefinition of ‘struct RiftEngine’
+  439 | typedef struct RiftEngine {
+      |                ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:267:16: note: originally defined here
+  267 | typedef struct RiftEngine {
+      |                ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:447:3: error: conflicting types for ‘RiftEngine’; have ‘struct RiftEngine’
+  447 | } RiftEngine;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:275:3: note: previous declaration of ‘RiftEngine’ with type ‘RiftEngine’
+  275 | } RiftEngine;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:450:16: error: redefinition of ‘struct RiftConfig’
+  450 | typedef struct RiftConfig {
+      |                ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:278:16: note: originally defined here
+  278 | typedef struct RiftConfig {
+      |                ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:456:3: error: conflicting types for ‘RiftConfig’; have ‘struct RiftConfig’
+  456 | } RiftConfig;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:284:3: note: previous declaration of ‘RiftConfig’ with type ‘RiftConfig’
+  284 | } RiftConfig;
+      |   ^~~~~~~~~~
+src/core/../../include/rift1/rift.h:459:16: error: redefinition of ‘struct RiftIR’
+  459 | typedef struct RiftIR {
+      |                ^~~~~~
+src/core/../../include/rift1/rift.h:287:16: note: originally defined here
+  287 | typedef struct RiftIR {
+      |                ^~~~~~
+src/core/../../include/rift1/rift.h:466:3: error: conflicting types for ‘RiftIR’; have ‘struct RiftIR’
+  466 | } RiftIR;
+      |   ^~~~~~
+src/core/../../include/rift1/rift.h:294:3: note: previous declaration of ‘RiftIR’ with type ‘RiftIR’
+  294 | } RiftIR;
+      |   ^~~~~~
+src/core/../../include/rift1/rift.h:471:13: error: conflicting types for ‘rift_config_create’; have ‘RiftConfig *(void)’
+  471 | RiftConfig* rift_config_create(void);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:127:13: note: previous declaration of ‘rift_config_create’ with type ‘RiftConfig *(void)’
+  127 | RiftConfig* rift_config_create(void);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:472:6: error: conflicting types for ‘rift_config_destroy’; have ‘void(RiftConfig *)’
+  472 | void rift_config_destroy(RiftConfig* config);
+      |      ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:128:6: note: previous declaration of ‘rift_config_destroy’ with type ‘void(RiftConfig *)’
+  128 | void rift_config_destroy(RiftConfig* config);
+      |      ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:473:12: error: conflicting types for ‘rift_config_load’; have ‘RiftResult(RiftConfig *, const char *)’
+  473 | RiftResult rift_config_load(RiftConfig* config, const char* config_file);
+      |            ^~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:129:12: note: previous declaration of ‘rift_config_load’ with type ‘RiftResult(RiftConfig *, const char *)’
+  129 | RiftResult rift_config_load(RiftConfig* config, const char* config_file);
+      |            ^~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:474:12: error: conflicting types for ‘rift_config_save’; have ‘RiftResult(RiftConfig *, const char *)’
+  474 | RiftResult rift_config_save(RiftConfig* config, const char* config_file);
+      |            ^~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:130:12: note: previous declaration of ‘rift_config_save’ with type ‘RiftResult(RiftConfig *, const char *)’
+  130 | RiftResult rift_config_save(RiftConfig* config, const char* config_file);
+      |            ^~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:477:14: error: conflicting types for ‘rift_parse_pattern’; have ‘RiftPattern *(const char *)’
+  477 | RiftPattern* rift_parse_pattern(const char* pattern_string);
+      |              ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:133:14: note: previous declaration of ‘rift_parse_pattern’ with type ‘RiftPattern *(const char *)’
+  133 | RiftPattern* rift_parse_pattern(const char* pattern_string);
+      |              ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:478:6: error: conflicting types for ‘rift_pattern_destroy’; have ‘void(RiftPattern *)’
+  478 | void rift_pattern_destroy(RiftPattern* pattern);
+      |      ^~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:134:6: note: previous declaration of ‘rift_pattern_destroy’ with type ‘void(RiftPattern *)’
+  134 | void rift_pattern_destroy(RiftPattern* pattern);
+      |      ^~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:479:12: error: conflicting types for ‘rift_pattern_compile’; have ‘RiftResult(RiftPattern *)’
+  479 | RiftResult rift_pattern_compile(RiftPattern* pattern);
+      |            ^~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:135:12: note: previous declaration of ‘rift_pattern_compile’ with type ‘RiftResult(RiftPattern *)’
+  135 | RiftResult rift_pattern_compile(RiftPattern* pattern);
+      |            ^~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:482:16: error: conflicting types for ‘rift_automaton_create’; have ‘RiftAutomaton *(void)’
+  482 | RiftAutomaton* rift_automaton_create(void);
+      |                ^~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:138:16: note: previous declaration of ‘rift_automaton_create’ with type ‘RiftAutomaton *(void)’
+  138 | RiftAutomaton* rift_automaton_create(void);
+      |                ^~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:483:6: error: conflicting types for ‘rift_automaton_destroy’; have ‘void(RiftAutomaton *)’
+  483 | void rift_automaton_destroy(RiftAutomaton* automaton);
+      |      ^~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:139:6: note: previous declaration of ‘rift_automaton_destroy’ with type ‘void(RiftAutomaton *)’
+  139 | void rift_automaton_destroy(RiftAutomaton* automaton);
+      |      ^~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:484:12: error: conflicting types for ‘rift_automaton_add_state’; have ‘RiftState *(RiftAutomaton *, const char *, _Bool)’
+  484 | RiftState* rift_automaton_add_state(RiftAutomaton* automaton,
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:140:12: note: previous declaration of ‘rift_automaton_add_state’ with type ‘RiftState *(RiftAutomaton *, const char *, _Bool)’
+  140 | RiftState* rift_automaton_add_state(RiftAutomaton* automaton,
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:487:12: error: conflicting types for ‘rift_automaton_add_transition’; have ‘RiftResult(RiftAutomaton *, RiftState *, RiftState *, const char *)’
+  487 | RiftResult rift_automaton_add_transition(RiftAutomaton* automaton,
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:143:12: note: previous declaration of ‘rift_automaton_add_transition’ with type ‘RiftResult(RiftAutomaton *, RiftState *, RiftState *, const char *)’
+  143 | RiftResult rift_automaton_add_transition(RiftAutomaton* automaton,
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:493:13: error: conflicting types for ‘rift_engine_create’; have ‘RiftEngine *(void)’
+  493 | RiftEngine* rift_engine_create(void);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:149:13: note: previous declaration of ‘rift_engine_create’ with type ‘RiftEngine *(void)’
+  149 | RiftEngine* rift_engine_create(void);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:494:6: error: conflicting types for ‘rift_engine_destroy’; have ‘void(RiftEngine *)’
+  494 | void rift_engine_destroy(RiftEngine* engine);
+      |      ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:150:6: note: previous declaration of ‘rift_engine_destroy’ with type ‘void(RiftEngine *)’
+  150 | void rift_engine_destroy(RiftEngine* engine);
+      |      ^~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:495:12: error: conflicting types for ‘rift_engine_process_input’; have ‘RiftResult(RiftEngine *, const char *)’
+  495 | RiftResult rift_engine_process_input(RiftEngine* engine, const char* input);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:151:12: note: previous declaration of ‘rift_engine_process_input’ with type ‘RiftResult(RiftEngine *, const char *)’
+  151 | RiftResult rift_engine_process_input(RiftEngine* engine, const char* input);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:496:12: error: conflicting types for ‘rift_engine_next_token’; have ‘RiftToken *(RiftEngine *)’
+  496 | RiftToken* rift_engine_next_token(RiftEngine* engine);
+      |            ^~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:152:12: note: previous declaration of ‘rift_engine_next_token’ with type ‘RiftToken *(RiftEngine *)’
+  152 | RiftToken* rift_engine_next_token(RiftEngine* engine);
+      |            ^~~~~~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:499:12: error: conflicting types for ‘rift_token_create’; have ‘RiftToken *(const char *, const char *, size_t,  size_t)’ {aka ‘RiftToken *(const char *, const char *, long unsigned int,  long unsigned int)’}
+  499 | RiftToken* rift_token_create(const char* type, const char* value,
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:155:12: note: previous declaration of ‘rift_token_create’ with type ‘RiftToken *(const char *, const char *, size_t,  size_t)’ {aka ‘RiftToken *(const char *, const char *, long unsigned int,  long unsigned int)’}
+  155 | RiftToken* rift_token_create(const char* type, const char* value,
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:501:6: error: conflicting types for ‘rift_token_destroy’; have ‘void(RiftToken *)’
+  501 | void rift_token_destroy(RiftToken* token);
+      |      ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:157:6: note: previous declaration of ‘rift_token_destroy’ with type ‘void(RiftToken *)’
+  157 | void rift_token_destroy(RiftToken* token);
+      |      ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:504:9: error: conflicting types for ‘rift_ir_create’; have ‘RiftIR *(const char *)’
+  504 | RiftIR* rift_ir_create(const char* source_file);
+      |         ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:160:9: note: previous declaration of ‘rift_ir_create’ with type ‘RiftIR *(const char *)’
+  160 | RiftIR* rift_ir_create(const char* source_file);
+      |         ^~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:505:6: error: conflicting types for ‘rift_ir_destroy’; have ‘void(RiftIR *)’
+  505 | void rift_ir_destroy(RiftIR* ir);
+      |      ^~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:161:6: note: previous declaration of ‘rift_ir_destroy’ with type ‘void(RiftIR *)’
+  161 | void rift_ir_destroy(RiftIR* ir);
+      |      ^~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:506:12: error: conflicting types for ‘rift_ir_add_token’; have ‘RiftResult(RiftIR *, RiftToken *)’
+  506 | RiftResult rift_ir_add_token(RiftIR* ir, RiftToken* token);
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:162:12: note: previous declaration of ‘rift_ir_add_token’ with type ‘RiftResult(RiftIR *, RiftToken *)’
+  162 | RiftResult rift_ir_add_token(RiftIR* ir, RiftToken* token);
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:507:12: error: conflicting types for ‘rift_ir_write_file’; have ‘RiftResult(RiftIR *, const char *)’
+  507 | RiftResult rift_ir_write_file(RiftIR* ir, const char* output_file);
+      |            ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:163:12: note: previous declaration of ‘rift_ir_write_file’ with type ‘RiftResult(RiftIR *, const char *)’
+  163 | RiftResult rift_ir_write_file(RiftIR* ir, const char* output_file);
+      |            ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:508:12: error: conflicting types for ‘rift_ir_read_file’; have ‘RiftResult(RiftIR *, const char *)’
+  508 | RiftResult rift_ir_read_file(RiftIR* ir, const char* input_file);
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:164:12: note: previous declaration of ‘rift_ir_read_file’ with type ‘RiftResult(RiftIR *, const char *)’
+  164 | RiftResult rift_ir_read_file(RiftIR* ir, const char* input_file);
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:511:12: error: conflicting types for ‘rift_process_file’; have ‘RiftResult(const char *, const char *, RiftConfig *)’
+  511 | RiftResult rift_process_file(const char* input_file, const char* output_file,
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:167:12: note: previous declaration of ‘rift_process_file’ with type ‘RiftResult(const char *, const char *, RiftConfig *)’
+  167 | RiftResult rift_process_file(const char* input_file, const char* output_file,
+      |            ^~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:517:13: error: conflicting types for ‘rift_result_string’; have ‘const char *(RiftResult)’
+  517 | const char* rift_result_string(RiftResult result);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/../../include/rift1/rift.h:173:13: note: previous declaration of ‘rift_result_string’ with type ‘const char *(RiftResult)’
+  173 | const char* rift_result_string(RiftResult result);
+      |             ^~~~~~~~~~~~~~~~~~
+src/core/rift1_parsing.c:18:5: error: unknown type name ‘RiftASTNode’
+   18 |     RiftASTNode* parse_tree;
+      |     ^~~~~~~~~~~
+src/core/rift1_parsing.c: In function ‘rift1_process’:
+src/core/rift1_parsing.c:70:31: error: implicit declaration of function ‘rift1_parse_tokens’ [-Werror=implicit-function-declaration]
+   70 |     RiftResult parse_result = rift1_parse_tokens(engine);
+      |                               ^~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+make: *** [Makefile:78: build/core_rift1_parsing.o] Error 1
