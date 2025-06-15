@@ -125,7 +125,7 @@ config:
 	@echo "debug_mode=false" >> .riftrc
 	@echo "verbose=true" >> .riftrc
 	@echo "log_level=INFO" >> .riftrc
-	@echo "stage=1" >> .riftrc
+	@echo "stage=0" >> .riftrc
 	@echo "✅ Default configuration created: .riftrc"
 
 .DEFAULT_GOAL := all
