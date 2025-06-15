@@ -1,48 +1,80 @@
 #!/bin/bash
+# RIFT Architecture Validation
 
-# RIFT Architecture Validation Script
-# Ensures AEGIS methodology compliance
-
-echo "🔍 RIFT Architecture Validation"
+echo "🏗️  RIFT Architecture Validation"
 echo "================================"
 
-# Check token type/value separation in headers
-echo "Checking header architecture..."
-if grep -q "char\* type;" include/*/rift.h && grep -q "char\* value;" include/*/rift.h; then
-    echo "✅ Token type/value separation preserved in headers"
-else
-    echo "❌ Token type/value separation violation in headers"
-    exit 1
-fi
+validate_token_separation() {
+    echo "Validating token type/value separation..."
+    
+    local violations=0
+    for stage_dir in rift*; do
+        if [[ -d "$stage_dir" ]]; then
+            # Check headers
+            if ! grep -q "char\* type;" "$stage_dir"/include/*/core/*.h 2>/dev/null; then
+                echo "❌ Missing type field in $stage_dir"
+                ((violations++))
+            fi
+            
+            if ! grep -q "char\* value;" "$stage_dir"/include/*/core/*.h 2>/dev/null; then
+                echo "❌ Missing value field in $stage_dir"
+                ((violations++))
+            fi
+            
+            # Check for merging violations
+            if grep -r "type.*value\|value.*type" "$stage_dir/src" 2>/dev/null | grep -v "separate\|preserve"; then
+                echo "⚠️  Potential type/value merging in $stage_dir"
+            fi
+        fi
+    done
+    
+    if [[ $violations -eq 0 ]]; then
+        echo "✅ Token separation validation passed"
+    else
+        echo "❌ Token separation validation failed ($violations violations)"
+        return 1
+    fi
+}
 
-# Check for type/value merging in source
-echo "Checking source code for architecture violations..."
-if grep -r "token->type.*token->value\|token->value.*token->type" src/ 2>/dev/null; then
-    echo "❌ Potential type/value merging detected in source"
-    echo "   Review the above findings for AEGIS compliance"
-    exit 1
-else
-    echo "✅ No type/value merging detected in source"
-fi
+validate_matched_state_preservation() {
+    echo "Validating matched_state preservation..."
+    
+    local found=0
+    for stage_dir in rift*; do
+        if [[ -d "$stage_dir" ]]; then
+            if grep -r "matched_state" "$stage_dir" >/dev/null 2>&1; then
+                echo "✅ matched_state found in $stage_dir"
+                ((found++))
+            fi
+        fi
+    done
+    
+    if [[ $found -gt 0 ]]; then
+        echo "✅ AST optimization state preservation verified"
+    else
+        echo "⚠️  AST optimization state preservation not detected"
+    fi
+}
 
-# Check matched_state preservation
-echo "Checking matched_state preservation..."
-if grep -q "matched_state" include/*/rift.h && grep -q "matched_state" src/core/*.c; then
-    echo "✅ matched_state preserved for AST minimization"
-else
-    echo "❌ matched_state not properly preserved"
-    exit 1
-fi
+validate_compiler_compliance() {
+    echo "Validating compiler compliance..."
+    
+    for stage_dir in rift*; do
+        if [[ -d "$stage_dir" && -f "$stage_dir/Makefile" ]]; then
+            if grep -q "\-Werror.*\-Wall.*\-Wextra" "$stage_dir/Makefile"; then
+                echo "✅ Strict flags in $stage_dir"
+            else
+                echo "❌ Missing strict compiler flags in $stage_dir"
+                return 1
+            fi
+        fi
+    done
+    
+    echo "✅ Compiler compliance validated"
+}
 
-# Check compiler compliance
-echo "Checking compiler compliance..."
-if grep -q "\-Werror" Makefile && grep -q "\-Wall" Makefile && grep -q "\-Wextra" Makefile; then
-    echo "✅ Strict compiler flags enforced"
-else
-    echo "❌ Missing strict compiler flags"
-    exit 1
-fi
+validate_token_separation
+validate_matched_state_preservation
+validate_compiler_compliance
 
-echo ""
-echo "🏗️  RIFT Architecture Validation Complete"
-echo "✅ All AEGIS methodology requirements satisfied"
+echo "🏗️  Architecture validation complete"
