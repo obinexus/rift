@@ -5,7 +5,7 @@
  * rift_core Module Header
  * RIFT1 - AEGIS Framework
  * OBINexus Computing
- * 
+ *
  * Auto-generated header for QA compliance
  */
 
