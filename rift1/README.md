@@ -1,10 +1,10 @@
-# RIFT Stage 0: Enhanced Architecture Implementation
+# RIFT Stage 1: Enhanced Architecture Implementation
 
 Part of the OBINexus RIFT POC implementing AST-Aware bytecode generation with AEGIS methodology and Zero Trust governance.
 
 ## Architecture Overview
 
-RIFT Stage 0 implements the **AEGIS** (Automaton Engine for Generative Interpretation & Syntax) framework using formal automaton theory for systematic language processing.
+RIFT Stage 1 implements the **AEGIS** (Automaton Engine for Generative Interpretation & Syntax) framework using formal automaton theory for systematic language processing.
 
 ### Core Components
 
@@ -40,13 +40,13 @@ make bootstrap
 
 ```bash
 # Basic usage
-./bin/rift0.exe input.rift
+./bin/rift1.exe input.rift
 
 # With options
-./bin/rift0.exe --verbose --output ./out input.rift
+./bin/rift1.exe --verbose --output ./out input.rift
 
 # Show help
-./bin/rift0.exe --help
+./bin/rift1.exe --help
 ```
 
 ## Development Workflow
@@ -71,10 +71,10 @@ make verify-architecture
 ## Directory Structure
 
 ```
-rift0/
+rift1/
 ├── src/core/          # Core AEGIS implementation
 ├── src/cli/           # Command-line interface
-├── include/rift0/    # Public API headers
+├── include/rift1/    # Public API headers
 ├── tests/qa_mocks/    # QA testing framework
 ├── scripts/           # Utility scripts
 │   ├── build/         # Build automation
