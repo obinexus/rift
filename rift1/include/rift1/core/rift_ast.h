@@ -1,50 +1,55 @@
-#ifndef RIFT1_AST_H
-#define RIFT1_AST_H
 
-#include "rift_errors.h"
-#include <stdbool.h>
-#include <stddef.h>
 
-/**
- * RIFT1 AST Definitions
- * OBINexus AEGIS Framework - Stage 1
- * 
- * Abstract Syntax Tree structures and operations
- */
 
-// Forward declarations
-typedef struct RiftASTNode RiftASTNode;
+// ===== include/rift1/core/rift_ast.h =====
+#pragma once
 
-// AST Node Types - PROPER ENUM DEFINITION
+#include "rift_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// ===== AST Node Types =====
 typedef enum {
-    RIFT_AST_NODE_UNKNOWN = 0,
-    RIFT_AST_NODE_LITERAL = 1,
-    RIFT_AST_NODE_PATTERN = 2,
-    RIFT_AST_NODE_EXPRESSION = 3,
-    RIFT_AST_NODE_SEQUENCE = 4,
-    RIFT_AST_NODE_CHOICE = 5
+    AST_NODE_UNKNOWN = 0,
+    AST_NODE_PROGRAM = 1,
+    AST_NODE_STATEMENT = 2,
+    AST_NODE_EXPRESSION = 3,
+    AST_NODE_TERMINAL = 4,
+    AST_NODE_IDENTIFIER = 5,
+    AST_NODE_LITERAL = 6,
+    AST_NODE_BINARY_OP = 7,
+    AST_NODE_UNARY_OP = 8,
+    AST_NODE_ASSIGNMENT = 9,
+    AST_NODE_FUNCTION_CALL = 10,
+    AST_NODE_BLOCK = 11
 } RiftASTNodeType;
 
-// AST Node Structure - COMPLETE DEFINITION
+// ===== AST Node Structure =====
 struct RiftASTNode {
-    RiftASTNodeType type;
+    RiftASTNodeType node_type;
     char* value;
-    bool matched_state;              // AEGIS: AST minimization support
-    struct RiftASTNode* parent;
-    struct RiftASTNode** children;
-    size_t children_count;
-    size_t children_capacity;
+    RiftToken* source_token;
+    
+    // Tree structure
+    RiftASTNode** children;
+    size_t child_count;
+    size_t child_capacity;
+    RiftASTNode* parent;
+    
+    // Metadata
+    size_t depth;
+    bool visited;
 };
 
-// Function declarations - FIXED SIGNATURES
+// ===== AST Functions =====
 RiftASTNode* rift_ast_node_create(RiftASTNodeType type, const char* value);
+void rift_ast_node_destroy(RiftASTNode* node);
 RiftResult rift_ast_node_add_child(RiftASTNode* parent, RiftASTNode* child);
-RiftResult rift_ast_node_destroy(RiftASTNode* node);
-RiftResult rift_ast_optimize(RiftASTNode* root);
+RiftResult rift_ast_node_remove_child(RiftASTNode* parent, size_t index);
+void rift_ast_print(RiftASTNode* root, int indent);
 
-// AST utility functions
-const char* rift_ast_node_type_to_string(RiftASTNodeType type);
-bool rift_ast_node_is_leaf(const RiftASTNode* node);
-size_t rift_ast_node_depth(const RiftASTNode* node);
-
-#endif // RIFT1_AST_H
+#ifdef __cplusplus
+}
+#endif

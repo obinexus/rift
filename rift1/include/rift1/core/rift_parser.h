@@ -1,109 +1,61 @@
+// ===== include/rift1/core/rift_parser.h =====
 #pragma once
-// RIFT Stage 1 Parser API - AEGIS Architecture
-// OBINexus Computing - TokenMemory → Parser Pipeline
-// Part of: riftlang.exe → .so.a → rift.exe → gosilang toolchain
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "rift1/core/rift_types.h"     // Basic types: RiftResult, RiftConfig, RiftToken
-#include "rift1/core/rift_ast.h"       // AST node definitions
-#include "rift1/core/rift_token_memory.h" // Token memory management
+#include "rift_types.h"
+#include "rift_ast.h"
+#include "rift_token_memory.h"
+#include "rift_automaton.h"
 
-// Forward declarations - AEGIS Engine Components
+// ===== Forward Declarations =====
 typedef struct Rift1ParseEngine Rift1ParseEngine;
-typedef struct RiftAutomaton RiftAutomaton;
-typedef struct RiftPattern RiftPattern;
 
-// ===== RIFT Stage 1 Parser Engine Management =====
+// ===== Parse Modes =====
+typedef enum {
+    RIFT_PARSE_DEFAULT = 0,
+    RIFT_PARSE_BOTTOM_UP = 1,
+    RIFT_PARSE_TOP_DOWN = 2
+} RiftParseMode;
 
-/**
- * Create new RIFT Stage 1 parsing engine with AEGIS automaton
- * @return Initialized parse engine or NULL on failure
- */
+// ===== Engine Management =====
 Rift1ParseEngine* rift1_engine_create(void);
-
-/**
- * Destroy RIFT Stage 1 parsing engine and cleanup AEGIS components
- * @param engine Engine to destroy (safe to pass NULL)
- */
 void rift1_engine_destroy(Rift1ParseEngine* engine);
 
-// ===== TokenMemory Integration =====
+// ===== Configuration =====
+RiftResult rift1_engine_set_parse_mode(Rift1ParseEngine* engine, RiftParseMode mode);
+RiftResult rift1_engine_load_tokenmemory(Rift1ParseEngine* engine, RiftTokenMemory* memory);
 
-/**
- * Load token memory into parser engine for Stage 0 → Stage 1 processing
- * @param engine Parse engine
- * @param memory Token memory from Stage 0 (.rift.0)
- * @return RIFT_SUCCESS or error code
- */
-RiftResult rift1_engine_load_tokenmemory(Rift1ParseEngine* engine, 
-                                        RiftTokenMemory* memory);
-
-// ===== AEGIS Pattern-Based Parsing =====
-
-/**
- * Parse loaded tokens using AEGIS automaton pattern matching
- * @param engine Parse engine with loaded tokens
- * @return RIFT_SUCCESS or parsing error
- */
+// ===== Core Processing =====
+RiftResult rift1_process(Rift1ParseEngine* engine, const char* input_file, const char* output_file);
 RiftResult rift1_parse_tokens(Rift1ParseEngine* engine);
-
-/**
- * Generate AST from parsed tokens through AEGIS transformation
- * @param engine Parse engine with completed parsing
- * @return RIFT_SUCCESS or AST generation error
- */
 RiftResult rift1_generate_ast(Rift1ParseEngine* engine);
 
-// ===== Stage Pipeline Integration =====
+// ===== Pipeline Integration =====
+RiftResult rift1_process_stage0_to_stage1(const char* rift0_file, const char* rift1_file, RiftConfig* config);
 
-/**
- * Complete Stage 1 processing: input → tokenload → parse → AST → output
- * @param engine Parse engine
- * @param input_file .rift.0 file from Stage 0
- * @param output_file .rift.1 file for Stage 3
- * @return RIFT_SUCCESS or processing error
- */
-RiftResult rift1_process(Rift1ParseEngine* engine, 
-                        const char* input_file, 
-                        const char* output_file);
+// ===== Parser Strategy Functions =====
+RiftResult rift1_parse_bottom_up(Rift1ParseEngine* engine);
+RiftResult rift1_parse_top_down(Rift1ParseEngine* engine);
 
-/**
- * Convenience function: Stage 0 → Stage 1 direct processing
- * @param rift0_file Input .rift.0 file
- * @param rift1_file Output .rift.1 file
- * @param config RIFT configuration (can be NULL for defaults)
- * @return RIFT_SUCCESS or processing error
- */
-RiftResult rift1_process_stage0_to_stage1(const char* rift0_file, 
-                                         const char* rift1_file, 
-                                         RiftConfig* config);
+// ===== Grammar Production Functions =====
+RiftASTNode* rift1_parse_program(Rift1ParseEngine* engine);
+RiftASTNode* rift1_parse_statement(Rift1ParseEngine* engine);
+RiftASTNode* rift1_parse_keyword_statement(Rift1ParseEngine* engine);
+RiftASTNode* rift1_parse_assignment_or_call(Rift1ParseEngine* engine);
+RiftASTNode* rift1_parse_expression_statement(Rift1ParseEngine* engine);
 
-// ===== Zero Trust Governance Integration =====
+// ===== Stack Management =====
+RiftResult rift1_push_stack_frame(Rift1ParseEngine* engine, RiftStackFrame* frame);
+RiftStackFrame* rift1_pop_stack_frame(Rift1ParseEngine* engine);
+RiftResult rift1_attempt_reductions(Rift1ParseEngine* engine);
 
-/**
- * Verify cryptographic signature of Stage 0 output before processing
- * @param rift0_file Stage 0 file to verify
- * @return RIFT_SUCCESS if signature valid, error otherwise
- */
-RiftResult rift1_verify_stage0_signature(const char* rift0_file);
-
-/**
- * Sign Stage 1 output with cryptographic signature for Zero Trust pipeline
- * @param rift1_file Stage 1 file to sign
- * @return RIFT_SUCCESS if signing successful, error otherwise
- */
-RiftResult rift1_sign_stage1_output(const char* rift1_file);
+// ===== Token Classification =====
+RiftTokenType rift_classify_token_type(Rift1ParseEngine* engine, const char* lexeme);
+RiftState* rift_automaton_match_regex(RiftAutomaton* automaton, const char* input);
 
 #ifdef __cplusplus
 }
 #endif
-
-// ===== OBINexus Computing Metadata =====
-// Architecture: AEGIS pattern-based transformation with Zero Trust governance
-// Pipeline Stage: 1 (Parsing/Grammar Analysis)
-// Security Level: Standard
-// Dependencies: librift1-types, librift1-tokenmemory, librift1-ast
-// Build: nlink → polybuild integration required
