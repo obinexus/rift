@@ -1,3 +1,4 @@
+#include "include/core/rift.h"
 #include "rift0/core/r_extension/uml/r_uml_patterns.h"
 #include "rift0/core/r_extension/governance/r_governance_validation.h"
 #include <stdlib.h>

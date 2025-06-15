@@ -1,6 +1,6 @@
+#include "include/core/rift.h""
 // RIFT Configuration CLI Main
-#include "../../../../include/project-root/config/rift_config_advanced.h"
-#include "../../../../include/rift.h"
+#include "include/core/rift.h""
 
 // Configuration CLI main function
 int main(int argc, char* argv[]) {

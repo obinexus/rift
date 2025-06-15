@@ -1,3 +1,4 @@
+#include "include/core/rift.h""
 
 // cli/command/config_handler.c
 #include "config_handler.h"

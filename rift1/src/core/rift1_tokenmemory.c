@@ -1,5 +1,5 @@
+#include "include/core/rift.h"
 // src/core/rift1_tokenmemory.c - TokenMemory Implementation
-#include "../../include/rift1/rift.h"
 #include <stdlib.h>
 #include <string.h>
 

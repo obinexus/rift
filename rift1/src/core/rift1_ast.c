@@ -1,10 +1,10 @@
+#include "include/core/rift.h"
 // src/core/rift1_ast.c - AST Implementation
-#include "../../include/rift1/rift.h"
 #include <stdlib.h>
 #include <string.h>
 
-RiftASTNode* rift_ast_node_create(int type, const char* value) {
-    RiftASTNode* node = calloc(1, sizeof(RiftASTNode));
+RiftASTNode* rift_ast_node_create(int type __attribute__((unused)), const char* value __attribute__((unused))) {
+    RiftASTNode* node = calloc(1, sizeof(struct RiftASTNode));
     if (!node) return NULL;
     
     // TODO: Implement full AST node creation

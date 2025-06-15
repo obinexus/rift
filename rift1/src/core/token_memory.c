@@ -1,6 +1,6 @@
+#include "include/core/rift.h"
 // src/core/tokenmemory.c - TokenMemory Bridge Implementation
 // OBINexus AEGIS Framework - Stage 0 → Stage 1 Token Processing
-#include "../../include/rift1/rift.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -225,7 +225,7 @@ RiftResult rift_tokenmemory_enhance_tokens(RiftTokenMemory* memory) {
 // ===== AST NODE IMPLEMENTATION =====
 
 RiftASTNode* rift_ast_node_create(RiftASTNodeType type, const char* value) {
-    RiftASTNode* node = calloc(1, sizeof(RiftASTNode));
+    RiftASTNode* node = calloc(1, sizeof(struct RiftASTNode));
     if (!node) return NULL;
     
     node->type = type;

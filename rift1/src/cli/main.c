@@ -1,7 +1,7 @@
+#include "include/core/rift.h""
 // RIFT Stage 1 CLI Implementation
 // OBINexus Computing - AEGIS Framework
 
-#include "../../include/rift1/rift.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>

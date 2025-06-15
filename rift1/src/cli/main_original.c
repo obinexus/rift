@@ -1,5 +1,5 @@
+#include "include/core/rift.h""
 // Fixed CLI main.c with proper argument parsing
-#include "../../include/rift.h"
 #include <getopt.h>
 
 static void print_usage(const char* program_name) {

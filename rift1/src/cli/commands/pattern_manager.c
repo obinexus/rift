@@ -1,3 +1,4 @@
+#include "include/core/rift.h""
 // cli/command/pattern_manager.c
 #include "cli/command/pattern_manager.h"
 

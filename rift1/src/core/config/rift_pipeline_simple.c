@@ -1,7 +1,7 @@
+#include "include/core/rift.h"
 // RIFT Simple Pipeline Implementation
 // Basic implementation for advanced configuration testing
 #include "../../../include/project-root/config/rift_config_advanced.h"
-#include "../../../include/rift.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
