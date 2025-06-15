@@ -12,8 +12,18 @@ RiftASTNode* rift_ast_node_create(RiftASTNodeType type __attribute__((unused)), 
 }
 RiftResult rift_ast_node_destroy(RiftASTNode* node) {
     if (!node) {
-        return RIFT_ERROR_INVALID_PARAMETER;
+        return RIFT_ERROR_NULL_POINTER;
     }
+    // Recursively destroy children
+    for (size_t i = 0; i < node->children_count; i++) {
+        rift_ast_node_destroy(node->children[i]);
+    }
+    free(node->children);
+    free(node->value);
+    free(node);
+    node = NULL; // Avoid dangling pointer
+    
+    return RIFT_SUCCESS;
 }
 
 
