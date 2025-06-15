@@ -5,7 +5,7 @@
  * pattern_manager Module Header
  * RIFT1 - AEGIS Framework
  * OBINexus Computing
- * 
+ *
  * Auto-generated header for QA compliance
  */
 
@@ -15,6 +15,7 @@
 // (Add function prototypes and structures specific to this module)
 
 // Function prototypes extracted from source:
-void rift_pattern_syntax_destroy(RiftPatternSyntax* syntax) {;
+void rift_pattern_syntax_destroy(RiftPatternSyntax *syntax) {
+  ;
 
 #endif // RIFT_PATTERN_MANAGER_H

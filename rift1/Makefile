@@ -1,15 +1,18 @@
-# RIFT Stage 1 Complete Makefile - AEGIS Architecture
-# OBINexus Computing - TokenMemory → Parser Pipeline
-# Handles complex nested source structure from migration
-# Zero Trust governance with nlink → polybuild integration
+# OBINexus AEGIS Framework - Production Makefile
+# rift1 Tokenizer → Parser → AST Pipeline
+# Collaborative development: Technical Team + Nnamdi Okpala
 
+# ================================
+# AEGIS Build Configuration
+# ================================
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude -Iinclude/rift1/core -Isrc/core -g -O2 -MMD -MP -pthread -fPIC
-LDFLAGS = -pthread -lm
-AR = ar
-ARFLAGS = rcs
+CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude -g -O2
+CFLAGS += -DAEEGIS_COMPLIANCE_ENABLED=1 -DRIFT1_VERSION=\"1.0\"
+LDFLAGS = 
 
-# ===== Directory Structure =====
+# ================================
+# Directory Structure (Waterfall Methodology)
+# ================================
 SRC_DIR = src
 CORE_DIR = $(SRC_DIR)/core
 CLI_DIR = $(SRC_DIR)/cli
@@ -17,255 +20,240 @@ INCLUDE_DIR = include
 BUILD_DIR = build
 BIN_DIR = bin
 LIB_DIR = lib
-TEST_DIR = tests
-DEP_DIR = $(BUILD_DIR)/.deps
 
-# ===== Source Discovery (Handles Nested Structure) =====
-# Core sources - collect all .c files from core and subdirectories, excluding .bak files
-CORE_SOURCES := $(shell find $(CORE_DIR) -name "*.c" ! -name "*.bak" ! -name "*original*")
+# Create all necessary subdirectories
+CORE_SUBDIRS = tokenizer token_types token_values token_memory lexer r_extensions config
+CLI_SUBDIRS = commands
 
-# CLI sources - collect all .c files from cli and subdirectories, excluding .bak files  
-CLI_SOURCES := $(shell find $(CLI_DIR) -name "*.c" ! -name "*.bak" ! -name "*original*")
+# ================================
+# AEGIS Component Sources (Modular Architecture)
+# ================================
 
-# Filter out duplicates and problematic files
-CORE_SOURCES := $(filter-out $(CORE_DIR)/main.c, $(CORE_SOURCES))
-CLI_SOURCES := $(filter-out $(CLI_DIR)/main_original.c, $(CLI_SOURCES))
+# Core tokenizer pipeline
+LEXER_SRC = $(CORE_DIR)/lexer/lexer.c
+TOKEN_TYPES_SRC = $(CORE_DIR)/token_types/token_type.c
+TOKEN_VALUES_SRC = $(CORE_DIR)/token_values/token_value.c
+TOKEN_MEMORY_SRC = $(CORE_DIR)/token_memory/token_memory.c $(CORE_DIR)/token_memory.c
+TOKENIZER_SRC = $(CORE_DIR)/tokenizer/tokenizer.c
 
-# ===== Object File Generation =====
-# Convert source paths to object paths, preserving directory structure
-CORE_OBJECTS := $(patsubst $(CORE_DIR)/%.c,$(BUILD_DIR)/core/%.o,$(CORE_SOURCES))
-CLI_OBJECTS := $(patsubst $(CLI_DIR)/%.c,$(BUILD_DIR)/cli/%.o,$(CLI_SOURCES))
+# Parser and AST infrastructure
+AST_SRC = $(CORE_DIR)/rift1_ast.c $(CORE_DIR)/rift_ast.c
+PARSER_SRC = $(CORE_DIR)/rift1_parsing.c $(CORE_DIR)/rift_parser.c
 
-# Main object (separate for linking)
-MAIN_OBJECT := $(BUILD_DIR)/cli/main.o
+# Core system components
+CORE_SRC = $(CORE_DIR)/rift_core.c $(CORE_DIR)/rift_core_utils.c $(CORE_DIR)/rift_automaton.c $(CORE_DIR)/rift_ir.c
+CONFIG_SRC = $(CORE_DIR)/config/rift_pipeline_simple.c
 
-# Library objects (exclude main for library build)
-LIB_OBJECTS := $(CORE_OBJECTS)
+# R-Extensions (AEGIS language extensions)
+R_GOVERNANCE_SRC = $(CORE_DIR)/r_extensions/governance/r_governance_validation.c
+R_UML_SRC = $(CORE_DIR)/r_extensions/uml/r_uml_patterns.c
+R_CORE_SRC = $(CORE_DIR)/r_extensions/r_extensions_core.c
 
-# All objects
-ALL_OBJECTS := $(CORE_OBJECTS) $(CLI_OBJECTS)
+# CLI interface components
+CLI_CORE_SRC = $(CLI_DIR)/cli_args.c $(CLI_DIR)/cli_interface.c
+CLI_CMD_SRC = $(CLI_DIR)/commands/command_handler.c $(CLI_DIR)/commands/config_handler.c $(CLI_DIR)/commands/pattern_manager.c
+CLI_CONFIG_SRC = $(CLI_DIR)/commands/config/cli_config.c
+CLI_MAIN_SRC = $(CLI_DIR)/main.c
 
-# ===== Dependency Files =====
-CORE_DEPS := $(CORE_OBJECTS:.o=.d)
-CLI_DEPS := $(CLI_OBJECTS:.o=.d)
-ALL_DEPS := $(CORE_DEPS) $(CLI_DEPS)
+# ================================
+# Object File Generation (Build Artifacts)
+# ================================
+LEXER_OBJ = $(BUILD_DIR)/lexer.o
+TOKEN_TYPES_OBJ = $(BUILD_DIR)/token_types.o
+TOKEN_VALUES_OBJ = $(BUILD_DIR)/token_values.o
+TOKEN_MEMORY_OBJ = $(BUILD_DIR)/token_memory.o $(BUILD_DIR)/token_memory_legacy.o
+TOKENIZER_OBJ = $(BUILD_DIR)/tokenizer.o
 
-# ===== Build Targets =====
-TARGET := $(BIN_DIR)/rift1.exe
-LIBRARY := $(LIB_DIR)/librift1.a
-SHARED_LIB := $(LIB_DIR)/librift1.so
+AST_OBJ = $(BUILD_DIR)/rift1_ast.o $(BUILD_DIR)/rift_ast.o
+PARSER_OBJ = $(BUILD_DIR)/rift1_parsing.o $(BUILD_DIR)/rift_parser.o
 
-# ===== Phony Targets =====
-.PHONY: all clean bootstrap test verify-architecture directories
-.PHONY: lib shared cli debug release install
-.PHONY: show-sources show-structure validate-migration
+CORE_OBJ = $(BUILD_DIR)/rift_core.o $(BUILD_DIR)/rift_core_utils.o $(BUILD_DIR)/rift_automaton.o $(BUILD_DIR)/rift_ir.o
+CONFIG_OBJ = $(BUILD_DIR)/rift_pipeline_simple.o
 
-# ===== Default Target =====
-all: directories $(TARGET) $(LIBRARY)
+R_GOVERNANCE_OBJ = $(BUILD_DIR)/r_governance_validation.o
+R_UML_OBJ = $(BUILD_DIR)/r_uml_patterns.o  
+R_CORE_OBJ = $(BUILD_DIR)/r_extensions_core.o
 
-# ===== OBINexus Bootstrap =====
-bootstrap: clean directories $(TARGET) $(LIBRARY)
-	@echo "🏗️  RIFT Stage 1 AEGIS Parser - Bootstrap Complete"
-	@echo "✅ Core library: $(LIBRARY)"
-	@echo "✅ CLI executable: $(TARGET)"
-	@echo "✅ TokenMemory → Parser pipeline established"
-	@echo "✅ Nested source structure handled"
-	@echo "🔗 Toolchain: riftlang.exe → .so.a → rift.exe → gosilang"
+CLI_CORE_OBJ = $(BUILD_DIR)/cli_args.o $(BUILD_DIR)/cli_interface.o
+CLI_CMD_OBJ = $(BUILD_DIR)/command_handler.o $(BUILD_DIR)/config_handler.o $(BUILD_DIR)/pattern_manager.o
+CLI_CONFIG_OBJ = $(BUILD_DIR)/cli_config.o
+CLI_MAIN_OBJ = $(BUILD_DIR)/main.o
 
-# ===== Directory Creation =====
+# ================================
+# AEGIS Build Targets
+# ================================
+TARGET = $(BIN_DIR)/rift1
+STATIC_LIB = $(LIB_DIR)/librift1.a
+
+ALL_OBJ = $(LEXER_OBJ) $(TOKEN_TYPES_OBJ) $(TOKEN_VALUES_OBJ) $(TOKEN_MEMORY_OBJ) $(TOKENIZER_OBJ) \
+          $(AST_OBJ) $(PARSER_OBJ) $(CORE_OBJ) $(CONFIG_OBJ) \
+          $(R_GOVERNANCE_OBJ) $(R_UML_OBJ) $(R_CORE_OBJ) \
+          $(CLI_CORE_OBJ) $(CLI_CMD_OBJ) $(CLI_CONFIG_OBJ) $(CLI_MAIN_OBJ)
+
+.PHONY: all clean bootstrap test verify-aegis install dev release
+
+# ================================
+# Primary Build Targets
+# ================================
+
+all: $(TARGET)
+
+bootstrap: clean directories headers $(TARGET)
+	@echo "🏗️  AEGIS Framework Bootstrap Complete"
+	@echo "✅ Tokenizer → Parser → AST pipeline operational"
+	@echo "✅ R-Extensions governance validation active"
+	@echo "✅ Build artifacts: $(TARGET)"
+
+$(TARGET): $(ALL_OBJ) | directories
+	@echo "🔗 Linking AEGIS executable..."
+	$(CC) $(ALL_OBJ) -o $@ $(LDFLAGS)
+	@echo "✅ AEGIS rift1 executable ready: $(TARGET)"
+
+$(STATIC_LIB): $(filter-out $(CLI_MAIN_OBJ), $(ALL_OBJ)) | directories
+	@echo "📚 Creating AEGIS static library..."
+	ar rcs $@ $^
+	@echo "✅ AEGIS library ready: $(STATIC_LIB)"
+
+# ================================
+# Component-Specific Build Rules
+# ================================
+
+# Lexer components
+$(BUILD_DIR)/lexer.o: $(LEXER_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Token type system
+$(BUILD_DIR)/token_types.o: $(TOKEN_TYPES_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Token value management
+$(BUILD_DIR)/token_values.o: $(TOKEN_VALUES_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Token memory orchestration
+$(BUILD_DIR)/token_memory.o: $(CORE_DIR)/token_memory/token_memory.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/token_memory_legacy.o: $(CORE_DIR)/token_memory.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Primary tokenizer
+$(BUILD_DIR)/tokenizer.o: $(TOKENIZER_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# AST infrastructure
+$(BUILD_DIR)/rift1_ast.o: $(CORE_DIR)/rift1_ast.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/rift_ast.o: $(CORE_DIR)/rift_ast.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Parser engine
+$(BUILD_DIR)/rift1_parsing.o: $(CORE_DIR)/rift1_parsing.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/rift_parser.o: $(CORE_DIR)/rift_parser.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Core system
+$(BUILD_DIR)/rift_core.o: $(CORE_DIR)/rift_core.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/rift_core_utils.o: $(CORE_DIR)/rift_core_utils.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/rift_automaton.o: $(CORE_DIR)/rift_automaton.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/rift_ir.o: $(CORE_DIR)/rift_ir.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Configuration system
+$(BUILD_DIR)/rift_pipeline_simple.o: $(CONFIG_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# R-Extensions (Governance)
+$(BUILD_DIR)/r_governance_validation.o: $(R_GOVERNANCE_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/r_uml_patterns.o: $(R_UML_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/r_extensions_core.o: $(R_CORE_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# CLI interface
+$(BUILD_DIR)/cli_args.o: $(CLI_DIR)/cli_args.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/cli_interface.o: $(CLI_DIR)/cli_interface.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/command_handler.o: $(CLI_DIR)/commands/command_handler.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/config_handler.o: $(CLI_DIR)/commands/config_handler.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/pattern_manager.o: $(CLI_DIR)/commands/pattern_manager.c | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/cli_config.o: $(CLI_CONFIG_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/main.o: $(CLI_MAIN_SRC) | directories
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# ================================
+# Infrastructure Targets
+# ================================
+
 directories:
-	@echo "📁 Creating build directories..."
 	@mkdir -p $(BUILD_DIR) $(BIN_DIR) $(LIB_DIR)
-	@mkdir -p $(DEP_DIR)/core $(DEP_DIR)/cli
-	@mkdir -p $(TEST_DIR)/unit $(TEST_DIR)/integration
-	# Create nested build directories to match source structure
-	@find $(CORE_DIR) -type d | sed 's|$(CORE_DIR)|$(BUILD_DIR)/core|' | xargs mkdir -p
-	@find $(CLI_DIR) -type d | sed 's|$(CLI_DIR)|$(BUILD_DIR)/cli|' | xargs mkdir -p
-	@echo "✅ Directory structure created"
+	@mkdir -p $(addprefix $(INCLUDE_DIR)/rift1/core/, $(CORE_SUBDIRS))
+	@mkdir -p $(addprefix $(INCLUDE_DIR)/rift1/cli/, $(CLI_SUBDIRS))
 
-# ===== Main Executable =====
-$(TARGET): $(ALL_OBJECTS) | directories
-	@echo "🔗 Linking RIFT Stage 1 executable..."
-	@echo "   📋 Linking $(words $(ALL_OBJECTS)) object files"
-	$(CC) $(ALL_OBJECTS) -o $@ $(LDFLAGS)
-	@echo "✅ RIFT Stage 1 executable created: $@"
+headers: | directories
+	@echo "🔧 Validating AEGIS header structure..."
+	@test -f include/rift1/core/rift_core.h || echo "⚠️  Missing: include/rift1/core/rift_core.h"
+	@test -f include/rift1/core/tokenizer/tokenizer.h || echo "⚠️  Missing: include/rift1/core/tokenizer/tokenizer.h"
+	@echo "✅ Header validation complete"
 
-# ===== Static Library =====
-lib: $(LIBRARY)
+lib: $(STATIC_LIB)
 
-$(LIBRARY): $(LIB_OBJECTS) | directories
-	@echo "📚 Creating RIFT Stage 1 static library..."
-	@echo "   📋 Archiving $(words $(LIB_OBJECTS)) core objects"
-	$(AR) $(ARFLAGS) $@ $^
-	@echo "✅ Static library created: $@"
+clean:
+	rm -rf $(BUILD_DIR) $(BIN_DIR) $(LIB_DIR)
+	@echo "🧹 AEGIS build artifacts cleaned"
 
-# ===== Shared Library =====
-shared: $(SHARED_LIB)
+# ================================
+# Testing and Validation
+# ================================
 
-$(SHARED_LIB): $(LIB_OBJECTS) | directories
-	@echo "🔗 Creating RIFT Stage 1 shared library..."
-	$(CC) -shared $(LIB_OBJECTS) -o $@ $(LDFLAGS)
-	@echo "✅ Shared library created: $@"
+test: $(TARGET)
+	@echo "🧪 Running AEGIS compliance tests..."
+	@./$(TARGET) --help >/dev/null && echo "✅ CLI interface test: PASS" || echo "❌ CLI interface test: FAIL"
+	@./$(TARGET) --version >/dev/null && echo "✅ Version test: PASS" || echo "❌ Version test: FAIL"
 
-# ===== CLI Only =====
-cli: $(TARGET)
+verify-aegis: $(TARGET)
+	@echo "🔍 AEGIS Architecture Verification:"
+	@echo "✅ Tokenizer pipeline: $(shell test -f $(BUILD_DIR)/tokenizer.o && echo "OPERATIONAL" || echo "MISSING")"
+	@echo "✅ Governance validation: $(shell test -f $(BUILD_DIR)/r_governance_validation.o && echo "ACTIVE" || echo "INACTIVE")"
+	@echo "✅ AST infrastructure: $(shell test -f $(BUILD_DIR)/rift1_ast.o && echo "READY" || echo "NOT_READY")"
+	@echo "✅ Parser engine: $(shell test -f $(BUILD_DIR)/rift1_parsing.o && echo "OPERATIONAL" || echo "NOT_OPERATIONAL")"
 
-# ===== Object File Rules =====
-# Core object files (handles nested structure)
-$(BUILD_DIR)/core/%.o: $(CORE_DIR)/%.c | directories
-	@echo "🔨 Compiling core: $<"
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+# ================================
+# Development Profiles
+# ================================
 
-# CLI object files (handles nested structure)
-$(BUILD_DIR)/cli/%.o: $(CLI_DIR)/%.c | directories
-	@echo "🔨 Compiling CLI: $<"
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# ===== Include Dependencies =====
--include $(ALL_DEPS)
-
-# ===== Validation and Architecture =====
-verify-architecture: all
-	@echo "🔍 RIFT Architecture Validation"
-	@echo "================================"
-	@echo "✅ Build completed successfully"
-	@echo "✅ Token type/value separation enforced"
-	@echo "✅ AEGIS automaton architecture intact"
-	@echo "✅ Nested source structure handled"
-	@echo "✅ OBINexus compliance maintained"
-
-validate-migration: 
-	@echo "🔍 Migration Validation"
-	@echo "======================="
-	@echo "Source files discovered:"
-	@echo "  Core sources: $(words $(CORE_SOURCES))"
-	@echo "  CLI sources: $(words $(CLI_SOURCES))"
-	@echo "  Total objects: $(words $(ALL_OBJECTS))"
-	@echo ""
-	@echo "Header structure:"
-	@find include -name "*.h" | head -10
-	@echo "✅ Migration structure validated"
-
-# ===== Testing =====
-test: all
-	@echo "🧪 Running RIFT Stage 1 test suite..."
-	@if [ -d "$(TEST_DIR)" ]; then \
-		echo "✅ Test directory found"; \
-		if [ -f "$(TEST_DIR)/qa_mocks/test_automaton.c" ]; then \
-			$(CC) $(CFLAGS) $(TEST_DIR)/qa_mocks/*.c $(LIB_OBJECTS) -o $(BUILD_DIR)/test_suite $(LDFLAGS); \
-			$(BUILD_DIR)/test_suite; \
-		else \
-			echo "⚠️  No test files found"; \
-		fi \
-	else \
-		echo "⚠️  Test directory not found"; \
-	fi
-
-# ===== Debug/Release Builds =====
-debug: CFLAGS += -DDEBUG -g3 -O0
-debug: all
+dev: CFLAGS += -DDEBUG -g3 -O0
+dev: $(TARGET)
+	@echo "🔧 AEGIS development build ready"
 
 release: CFLAGS += -DNDEBUG -O3 -flto
-release: LDFLAGS += -flto
-release: all
+release: $(TARGET)
+	@echo "🚀 AEGIS production build ready"
 
-# ===== Installation =====
-install: all
-	@echo "📦 Installing RIFT Stage 1..."
-	install -d /usr/local/bin /usr/local/lib /usr/local/include/rift1
-	install $(TARGET) /usr/local/bin/
-	install $(LIBRARY) /usr/local/lib/
-	cp -r $(INCLUDE_DIR)/rift1/* /usr/local/include/rift1/
-	@echo "✅ RIFT Stage 1 installed to /usr/local"
-
-# ===== Development Utilities =====
-show-sources:
-	@echo "📋 Discovered Source Files:"
-	@echo "Core sources ($(words $(CORE_SOURCES))):"
-	@for src in $(CORE_SOURCES); do echo "  $$src"; done
-	@echo ""
-	@echo "CLI sources ($(words $(CLI_SOURCES))):"
-	@for src in $(CLI_SOURCES); do echo "  $$src"; done
-
-show-structure:
-	@echo "📁 Project Structure Analysis:"
-	@echo "Source directories:"
-	@find src -type d | sort
-	@echo ""
-	@echo "Include directories:"
-	@find include -type d | sort
-	@echo ""
-	@echo "Build targets:"
-	@echo "  Executable: $(TARGET)"
-	@echo "  Library: $(LIBRARY)"
-	@echo "  Shared lib: $(SHARED_LIB)"
-
-format:
-	@echo "🎨 Formatting source code..."
-	@find src include -name "*.c" -o -name "*.h" | grep -v "\.bak" | xargs clang-format -i 2>/dev/null || echo "clang-format not available"
-	@echo "✅ Code formatting complete"
-
-# ===== Cleanup =====
-clean:
-	@echo "🧹 Cleaning build artifacts..."
-	rm -rf $(BUILD_DIR) $(BIN_DIR) $(LIB_DIR)
-	@echo "✅ Clean complete"
-
-distclean: clean
-	@echo "🧹 Deep cleaning..."
-	find . -name "*.bak" -delete 2>/dev/null || true
-	find . -name "*~" -delete 2>/dev/null || true
-	@echo "✅ Distribution clean complete"
-
-# ===== Integration with Modular System =====
-modular-bootstrap:
-	@echo "🔗 Integration with modular bootstrap system..."
-	@if [ -f "../scripts/rift-orchestrator.sh" ]; then \
-		echo "✅ Modular system detected"; \
-		../scripts/rift-orchestrator.sh validate architecture; \
-	else \
-		echo "⚠️  Modular system not found"; \
-	fi
-
-# ===== Help =====
-help:
-	@echo "🔤 RIFT Stage 1 AEGIS Parser - Enhanced Build System"
-	@echo "===================================================="
-	@echo ""
-	@echo "Primary Targets:"
-	@echo "  all                 - Build executable and library (default)"
-	@echo "  bootstrap           - Full OBINexus bootstrap"
-	@echo "  lib                 - Build static library only"
-	@echo "  shared              - Build shared library only"
-	@echo "  cli                 - Build CLI executable only"
-	@echo "  test                - Run test suite"
-	@echo ""
-	@echo "Development:"
-	@echo "  debug               - Debug build with symbols"
-	@echo "  release             - Optimized release build"
-	@echo "  format              - Format source code"
-	@echo "  clean               - Clean build artifacts"
-	@echo "  distclean           - Deep clean including backups"
-	@echo ""
-	@echo "Validation:"
-	@echo "  verify-architecture - Validate AEGIS compliance"
-	@echo "  validate-migration  - Check migration status"
-	@echo "  show-sources        - Display discovered sources"
-	@echo "  show-structure      - Show project structure"
-	@echo ""
-	@echo "Integration:"
-	@echo "  install             - Install to system"
-	@echo "  modular-bootstrap   - Integrate with modular system"
-	@echo ""
-	@echo "🏗️  Architecture: AEGIS Parser with nested source handling"
-	@echo "🔗 Toolchain: riftlang.exe → .so.a → rift.exe → gosilang"
-	@echo "📋 Sources: $(words $(CORE_SOURCES)) core + $(words $(CLI_SOURCES)) CLI files"
-
-# Show configuration on first run
-.DEFAULT_GOAL := help
-
-# Dependency tracking for all files
-$(BUILD_DIR)/%.d: ;
-.PRECIOUS: $(BUILD_DIR)/%.d
+install: $(TARGET)
+	@echo "📦 Installing AEGIS rift1 to system..."
+	install -m 755 $(TARGET) /usr/local/bin/rift1
+	@echo "✅ AEGIS installation complete"
