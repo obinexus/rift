@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // CLI command structure
 typedef struct {
@@ -13,6 +14,9 @@ typedef struct {
     char* config_file;
     bool verbose;
     bool debug;
+    RiftConfig* rift_config;
+    RiftEngine* engine;
+    RiftAutomaton* automaton;
 } CliOptions;
 
 void print_usage(const char* program_name) {
@@ -74,15 +78,41 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Error: Input file required\n");
         print_usage(argv[0]);
         return 1;
-    }
-    
-    opts.input_file = argv[optind];
-    
     // Generate default output file if not specified
     if (!opts.output_file) {
-        // TODO: Generate output filename based on input
-        opts.output_file = "output.rift.1";
+        size_t input_len = strlen(opts.input_file);
+        opts.output_file = malloc(input_len + 8); // +8 for ".rift.1\0"
+        if (!opts.output_file) {
+            fprintf(stderr, "Error: Memory allocation failed\n");
+            return 1;
+        }
+        strncpy(opts.output_file, opts.input_file, input_len);
+        strcat(opts.output_file, ".rift.1");
     }
+    
+    // Initialize RIFT components
+    opts.rift_config = rift_config_create();
+    if (!opts.rift_config) {
+        fprintf(stderr, "Error: Failed to create RIFT configuration\n");
+        return 1;
+    }
+    
+    opts.automaton = rift_automaton_create();
+    if (!opts.automaton) {
+        fprintf(stderr, "Error: Failed to create RIFT automaton\n");
+        rift_config_destroy(opts.rift_config);
+        return 1;
+    }
+    
+    opts.engine = rift_engine_create();
+    if (!opts.engine) {
+        fprintf(stderr, "Error: Failed to create RIFT engine\n");
+        rift_automaton_destroy(opts.automaton);
+        rift_config_destroy(opts.rift_config);
+        return 1;
+    }
+    
+    opts.engine->automaton = opts.automaton;
     
     if (opts.verbose) {
         printf("🚀 RIFT Stage 1 Processing\n");
@@ -90,7 +120,30 @@ int main(int argc, char* argv[]) {
         printf("Output: %s\n", opts.output_file);
     }
     
-    // TODO: Implement stage processing
+    // Process the input file
+    RiftResult result = rift_process_file(opts.input_file, opts.output_file, opts.rift_config);
+    if (result != RIFT_SUCCESS) {
+        fprintf(stderr, "Error: Processing failed - %s\n", rift_result_string(result));
+        rift_engine_destroy(opts.engine);
+        rift_automaton_destroy(opts.automaton);
+        rift_config_destroy(opts.rift_config);
+        return 1;
+    }
+    
+    if (opts.verbose) {
+        printf("✅ Stage 1 processing complete\n");
+    }
+    
+    // Cleanup
+    rift_engine_destroy(opts.engine);
+    rift_automaton_destroy(opts.automaton);
+    rift_config_destroy(opts.rift_config);
+    if (opts.output_file != opts.input_file) {
+        free(opts.output_file);
+    }
+    
+    return 0;
+}
     printf("✅ Stage 1 processing complete\n");
     
     return 0;
