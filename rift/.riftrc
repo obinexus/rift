@@ -1,49 +1,76 @@
-# RIFT x PoLiC Zero Trust Configuration - IMMUTABLE
-# OBINexus Computing - Constitutional Validation Required
-# This file must remain chmod 444 for build system compliance
+# RIFT Configuration File
+# RIFT: RIFT Is a Flexible Translator
+# OBINexus Computing Framework - Production Configuration
 
-[trust_root]
-config_signature = "sha256:rift_polic_integration_v2"
-immutable_enforcement = true
-policy_validation_required = true
-dependency_tracking_mandatory = true
-constitutional_compliance = true
+[core]
+version = "4.0.0"
+strict_mode = true
+debug_mode = false
+optimization_level = "O2"
 
-[pipeline_stages]
-# RIFT.0 → Lexical stream tokenization + MMD validation
-stage_0_enabled = true
-stage_0_output_format = "token_stream"
-stage_0_mmd_required = true
-stage_0_security_policy = "polic_tokenizer_sandbox"
+[pipeline]
+default_threads = 32
+enable_parallel_stages = true
+stage_isolation = strict
+memory_guard = full
 
-# RIFT.1 → AST structuring with truth table linkage
-stage_1_enabled = true  
-stage_1_output_format = "abstract_syntax_tree"
-stage_1_truth_table_linkage = true
-stage_1_security_policy = "polic_parser_sandbox"
+[parsing]
+dual_mode = true
+bottom_up_enabled = true
+top_down_enabled = true
+thread_safety = true
+okapi_algorithm = true
 
-# Additional stages follow same pattern...
+[validation]
+semantic_checking = strict
+type_safety = enforced
+scope_validation = comprehensive
+truth_tuples = enabled
 
-[build_constraints]
-# Enforce MMD dependency tracking per compilation unit
-mmd_dependency_tracking = true
-dependency_file_pattern = "obj/{module_name}/{source_file}.d"
-object_file_extension = ".aobj"
-include_path_prefix = "include/rift"
-library_link_required = "-lrift"
+[bytecode]
+architecture = "amd_ryzen"
+trust_tagging = enabled
+sha256_signatures = true
+aegis_compliance = required
+detached_model = true
 
-[polic_integration]
-# PoLiC security framework configuration
-polic_enabled = true
-sandbox_enforcement = true
-vm_hooks_enabled = true
-stack_protection = true
-policy_decorators = true
-inline_policy_injection = true
+[security]
+memory_tagging = enabled
+bounds_checking = strict
+overflow_protection = full
+governance_hooks = ["policy.validate", "token.memcheck", "ast.integrity", "bytecode.trust"]
+
+[output]
+container_format = "rbc"
+metadata_embedding = true
+debug_symbols = true
+introspection = enabled
+
+[cli]
+modular_interface = true
+command_abstraction = void
+incremental_processing = true
+
+[development]
+unit_testing = enabled
+integration_testing = enabled
+benchmarking = enabled
+coverage_tracking = true
+
+[logging]
+log_level = "info"
+file_logging = true
+timestamp_format = "ISO8601"
+structured_logging = true
+
+[build]
+cmake_minimum = "3.16"
+c_standard = "c11"
+warning_level = "pedantic"
+sanitizers = ["address", "undefined"]
 
 [governance]
-# OBINexus governance compliance
-milestone_based_investment = true
-no_ghosting_policy = true
-session_continuity_required = true
-waterfall_methodology = true
+policy_enforcement = strict
+audit_trail = enabled
+compliance_validation = continuous
+detachment_tracking = true
