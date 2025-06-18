@@ -1,0 +1,87 @@
+-- RIFT common pipeline configuration loaded
+-- Configuring RIFT pipeline stages...
+-- RIFT common pipeline configuration loaded
+[31mCMake Error at rift-0/CMakeLists.txt:126 (install):
+  install TARGETS given target "_static" which does not exist.
+
+[0m
+--  configuration complete
+-- Added subdirectory: rift-0
+-- RIFT common pipeline configuration loaded
+[31mCMake Error at rift-1/CMakeLists.txt:105 (target_compile_definitions):
+  Cannot specify compile definitions for target "_static" which is not built
+  by this project.
+
+[0m
+[31mCMake Error at rift-1/CMakeLists.txt:132 (install):
+  install TARGETS given target "_static" which does not exist.
+
+[0m
+--  configuration complete
+-- Added subdirectory: rift-1
+-- RIFT common pipeline configuration loaded
+[31mCMake Error at rift-2/CMakeLists.txt:126 (install):
+  install TARGETS given target "_static" which does not exist.
+
+[0m
+--  configuration complete
+-- Added subdirectory: rift-2
+-- RIFT common pipeline configuration loaded
+[31mCMake Error at rift-3/CMakeLists.txt:126 (install):
+  install TARGETS given target "_static" which does not exist.
+
+[0m
+--  configuration complete
+-- Added subdirectory: rift-3
+-- RIFT common pipeline configuration loaded
+[31mCMake Error at rift-4/CMakeLists.txt:105 (target_compile_definitions):
+  Cannot specify compile definitions for target "_static" which is not built
+  by this project.
+
+[0m
+[31mCMake Error at rift-4/CMakeLists.txt:132 (install):
+  install TARGETS given target "_static" which does not exist.
+
+[0m
+--  configuration complete
+-- Added subdirectory: rift-4
+-- RIFT common pipeline configuration loaded
+[31mCMake Error at rift-5/CMakeLists.txt:126 (install):
+  install TARGETS given target "_static" which does not exist.
+
+[0m
+--  configuration complete
+-- Added subdirectory: rift-5
+-- RIFT common pipeline configuration loaded
+[31mCMake Error at rift-6/CMakeLists.txt:126 (install):
+  install TARGETS given target "_static" which does not exist.
+
+[0m
+--  configuration complete
+-- Added subdirectory: rift-6
+-- Configuring core components...
+-- Added subdirectory: src/core
+-- Added subdirectory: src/cli
+-- Added subdirectory: src/config
+-- Test framework initialized
+-- Added subdirectory: tests
+[0mCMake Error: File /mnt/c/Users/OBINexus/Projects/github/rift/docs/Doxyfile.in does not exist.[0m
+[31mCMake Error at CMakeLists.txt:114 (configure_file):
+  configure_file Problem configuring file
+
+[0m
+-- RIFT Compiler Root Configuration Summary:
+--   Project: RIFT_Compiler
+--   Version: 4.0.0
+--   Build Type: 
+--   C Standard: 11
+--   Source Directory: /mnt/c/Users/OBINexus/Projects/github/rift
+--   Binary Directory: /mnt/c/Users/OBINexus/Projects/github/rift/build
+--   Install Prefix: /usr/local
+--   OpenSSL Version: 3.0.15
+--   AEGIS Compliance: ENABLED
+--   Zero Trust Governance: ENABLED
+-- Release mode: Optimized for production deployment
+-- RIFT root configuration complete - ready for compilation
+-- Configuring incomplete, errors occurred!
+See also "/mnt/c/Users/OBINexus/Projects/github/rift/build/CMakeFiles/CMakeOutput.log".
