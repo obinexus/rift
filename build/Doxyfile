@@ -1,0 +1,19 @@
+# Doxyfile.in - RIFT Compiler Documentation Configuration
+# OBINexus Computing Framework
+
+PROJECT_NAME           = "RIFT Compiler Pipeline"
+PROJECT_NUMBER         = 4.0.0
+PROJECT_BRIEF          = "RIFT: RIFT Is a Flexible Translator - OBINexus Computing"
+OUTPUT_DIRECTORY       = /mnt/c/Users/OBINexus/Projects/github/rift/build/docs
+INPUT                  = /mnt/c/Users/OBINexus/Projects/github/rift/include /mnt/c/Users/OBINexus/Projects/github/rift/src
+FILE_PATTERNS          = *.h *.c *.md
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES

@@ -1,0 +1,2 @@
+/usr/bin/ar qc /mnt/c/Users/OBINexus/Projects/github/rift/lib/librift-4_static.a "CMakeFiles/rift-4_static.dir/src/core/bytecode.c.o"
+/usr/bin/ranlib /mnt/c/Users/OBINexus/Projects/github/rift/lib/librift-4_static.a
