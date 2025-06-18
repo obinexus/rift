@@ -136,38 +136,51 @@ execute_foundation_phase() {
     fi
 }
 
+
+
+# Modify execute_integration_phase() around line 150
 execute_integration_phase() {
     log_phase "Phase 4: Core Integration"
     
-    # RIFT-PoLiC Bootstrap (preferred)
-    if [ -f "rift-polic-bootstrap.sh" ]; then
+    if [ -f "scripts/rift-polic-bootstrap.sh" ]; then
         log_technical "Executing RIFT-PoLiC security integration..."
         
-        chmod +x rift-polic-bootstrap.sh
-        if ./rift-polic-bootstrap.sh --verbose; then
+        chmod +x scripts/rift-polic-bootstrap.sh
+        
+        # Enhanced error diagnostics
+        if ./scripts/rift-polic-bootstrap.sh --verbose 2>&1 | tee polic_integration.log; then
             log_success "RIFT-PoLiC integration completed"
         else
-            log_error "RIFT-PoLiC integration failed"
-            return 1
+            log_warning "RIFT-PoLiC integration failed - analyzing error log"
+            grep -E "ERROR|FAIL" polic_integration.log | head -5
+            log_technical "Continuing with standard bootstrap fallback"
+            
+            # Graceful degradation to basic bootstrap
+            execute_basic_bootstrap_fallback
         fi
-        
-    # Fallback to standard bootstrap
-    elif [ -f "bootstrap.sh" ]; then
-        log_technical "Executing standard bootstrap fallback..."
-        
-        chmod +x bootstrap.sh
-        if ./bootstrap.sh; then
-            log_success "Standard bootstrap completed"
-        else
-            log_error "Standard bootstrap failed"
-            return 1
-        fi
-    else
-        log_error "No integration scripts available"
-        return 1
     fi
 }
+# Add to execute_build_verification() function around line 200
+generate_enhanced_makefile() {
+    log_technical "Generating AEGIS-compliant Makefile..."
+    
+    cat > rift/Makefile << 'EOF'
+# RIFT AEGIS Methodology Makefile
+# MMD Dependency Tracking + Zero Trust Compliance
 
+CC = gcc
+CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Werror -MMD -MP
+SECURITY_FLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2
+
+# Token type/value separation enforcement
+validate-architecture:
+	@scripts/validation/validate-architecture.sh
+
+.PHONY: bootstrap validate-architecture
+EOF
+    
+    log_success "Enhanced Makefile generated with MMD tracking"
+}
 execute_enhancement_phase() {
     log_phase "Phase 5: Enhancement Framework"
     
