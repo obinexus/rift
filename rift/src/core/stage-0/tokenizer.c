@@ -1,4 +1,3 @@
-// Stage 0 Tokenizer Implementation - Stub for build system validation
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
