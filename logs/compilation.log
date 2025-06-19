@@ -1,3 +1,25 @@
 make[1]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
-make[1]: *** No targets specified and no makefile found.  Stop.
+make[2]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Entering directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+make[3]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
+[ 64%] Built target rift-5_static
+[ 85%] Built target rift-0_static
+[ 92%] Built target rift-4_static
+[ 92%] Built target rift-1_static
+[ 92%] Built target rift-3_static
+[ 92%] Built target rift-6_static
+[100%] Built target rift-2_static
+make[2]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
 make[1]: Leaving directory '/mnt/c/Users/OBINexus/Projects/github/rift/build'
