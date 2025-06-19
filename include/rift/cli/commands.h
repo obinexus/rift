@@ -1,359 +1,337 @@
 /*
- * =================================================================
- * RIFT CLI Core Command Interface Headers
+ * rift/include/rift/cli/commands.h
+ * RIFT CLI Commands Framework Header
  * OBINexus Computing Framework - AEGIS Methodology
- * Technical Implementation: Systematic Waterfall Development
- * =================================================================
+ * Technical Lead: Nnamdi Michael Okpala
  */
 
 #ifndef RIFT_CLI_COMMANDS_H
 #define RIFT_CLI_COMMANDS_H
 
-#include <stdbool.h>
-#include <rift/core/common.h>
+#include "rift/core/common.h"
+#include <stdio.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// =================================================================
-// COMMAND ENUMERATION AND TYPES
-// =================================================================
+// AEGIS CLI Framework Version
+#define RIFT_CLI_COMMANDS_VERSION_MAJOR 1
+#define RIFT_CLI_COMMANDS_VERSION_MINOR 0
+#define RIFT_CLI_COMMANDS_VERSION_PATCH 0
 
-/**
- * Enumeration of all supported CLI commands
- * Maps to individual stage executables and governance functions
- */
-typedef enum {
-    RIFT_CMD_NONE = 0,
-    RIFT_CMD_HELP,
-    RIFT_CMD_VERSION,
-    RIFT_CMD_CONFIG,
-    
-    // Pipeline stage commands
-    RIFT_CMD_COMPILE,           // Complete pipeline execution
-    RIFT_CMD_TOKENIZE,          // Stage 0: Tokenization
-    RIFT_CMD_PARSE,             // Stage 1: Parsing
-    RIFT_CMD_ANALYZE,           // Stage 2: Semantic Analysis
-    RIFT_CMD_VALIDATE,          // Stage 3: Validation
-    RIFT_CMD_GENERATE,          // Stage 4: Bytecode Generation
-    RIFT_CMD_VERIFY,            // Stage 5: Verification
-    RIFT_CMD_EMIT,              // Stage 6: Emission
-    
-    // AEGIS governance commands
-    RIFT_CMD_GOVERNANCE,        // Governance validation umbrella
-    RIFT_CMD_VALIDATE_MEMORY,   // Memory alignment validation
-    RIFT_CMD_VALIDATE_TOKENS,   // Token schema validation
-    RIFT_CMD_VALIDATE_AEGIS     // Complete AEGIS compliance
-} rift_command_t;
+// Command Result Codes
+#define RIFT_CLI_SUCCESS 0
+#define RIFT_CLI_ERROR_INVALID_ARGS -1
+#define RIFT_CLI_ERROR_FILE_NOT_FOUND -2
+#define RIFT_CLI_ERROR_EXECUTION_FAILED -3
+#define RIFT_CLI_ERROR_INSUFFICIENT_MEMORY -4
+#define RIFT_CLI_ERROR_PERMISSION_DENIED -5
 
-/**
- * Command execution context structure
- * Contains all necessary parameters for command execution
- */
+// CLI Command Function Signature
+typedef int (*rift_cli_command_func_t)(int argc, char* argv[]);
+
+// Command Registration Structure
 typedef struct {
-    const char *input_file;
-    const char *output_file;
-    const char *config_file;
-    bool verbose_mode;
-    bool debug_mode;
-    bool validate_only;
-    int memory_alignment;
-    void *stage_specific_data;
-} rift_command_context_t;
+    const char* name;
+    const char* description;
+    const char* usage;
+    rift_cli_command_func_t handler;
+    bool requires_input_file;
+    bool requires_output_file;
+    bool supports_verbose;
+} rift_cli_command_t;
 
-// =================================================================
-// PIPELINE STAGE COMMAND INTERFACE
-// =================================================================
+/*
+ * Core CLI Command Functions
+ * These functions implement the individual RIFT pipeline stage commands
+ */
 
 /**
- * Execute tokenization stage
- * Converts RIFT source code into token stream using AEGIS automaton engine
+ * rift_cli_cmd_tokenize - Tokenization command implementation
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param input_source Input source code or file path
- * @param output_path Output JSON token file path
- * @param verbose Enable verbose output
- * @return RIFT_SUCCESS on success, error code on failure
+ * Executes the tokenization stage of the RIFT pipeline.
+ * Processes input source code and generates token stream output.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_tokenize(const char *input_source, 
-                                    const char *output_path,
-                                    bool verbose);
+int rift_cli_cmd_tokenize(int argc, char* argv[]);
 
 /**
- * Execute parsing stage  
- * Converts token stream into Abstract Syntax Tree using dual-mode parser
+ * rift_cli_cmd_parse - Parser command implementation
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param input_tokens Path to JSON token file
- * @param output_ast Path to output AST JSON file
- * @param verbose Enable verbose output
- * @return RIFT_SUCCESS on success, error code on failure
+ * Executes the parsing stage to generate Abstract Syntax Tree.
+ * Takes token stream input and produces AST output.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_parse(const char *input_tokens,
-                                 const char *output_ast,
-                                 bool verbose);
+int rift_cli_cmd_parse(int argc, char* argv[]);
 
 /**
- * Execute semantic analysis stage
- * Enriches AST with type information and semantic validation
+ * rift_cli_cmd_analyze - Semantic analysis command implementation
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param input_ast Path to input AST JSON file
- * @param output_semantic_ast Path to output semantic AST file
- * @param verbose Enable verbose output
- * @return RIFT_SUCCESS on success, error code on failure
+ * Performs semantic analysis on AST to generate typed AST.
+ * Implements type checking and symbol resolution.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_analyze(const char *input_ast,
-                                   const char *output_semantic_ast,
-                                   bool verbose);
+int rift_cli_cmd_analyze(int argc, char* argv[]);
 
 /**
- * Execute validation stage
- * Performs comprehensive validation of semantic AST
+ * rift_cli_cmd_validate - Validation command implementation
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param input_semantic_ast Path to input semantic AST file
- * @param output_validated_ast Path to output validated AST file
- * @param verbose Enable verbose output
- * @return RIFT_SUCCESS on success, error code on failure
+ * Validates AST against governance policies and constraints.
+ * Ensures AEGIS compliance throughout the pipeline.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_validate(const char *input_semantic_ast,
-                                    const char *output_validated_ast,
-                                    bool verbose);
+int rift_cli_cmd_validate(int argc, char* argv[]);
 
 /**
- * Execute bytecode generation stage
- * Converts validated AST into RIFT bytecode format
+ * rift_cli_cmd_generate - Code generation command implementation
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param input_validated_ast Path to input validated AST file
- * @param output_bytecode Path to output bytecode (.rbc) file
- * @param verbose Enable verbose output
- * @return RIFT_SUCCESS on success, error code on failure
+ * Generates bytecode from validated AST.
+ * Implements optimization passes and code generation.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_generate(const char *input_validated_ast,
-                                    const char *output_bytecode,
-                                    bool verbose);
+int rift_cli_cmd_generate(int argc, char* argv[]);
 
 /**
- * Execute verification stage
- * Verifies bytecode integrity and security properties
+ * rift_cli_cmd_verify - Verification command implementation
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param input_bytecode Path to input bytecode file
- * @param output_verified_bytecode Path to output verified bytecode file
- * @param verbose Enable verbose output
- * @return RIFT_SUCCESS on success, error code on failure
+ * Verifies generated bytecode for correctness and security.
+ * Implements bytecode validation and integrity checks.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_verify(const char *input_bytecode,
-                                  const char *output_verified_bytecode,
-                                  bool verbose);
+int rift_cli_cmd_verify(int argc, char* argv[]);
 
 /**
- * Execute emission stage
- * Emits final bytecode container with metadata and signatures
+ * rift_cli_cmd_emit - Emission command implementation
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param input_verified_bytecode Path to input verified bytecode file
- * @param output_final Path to final output container file
- * @param verbose Enable verbose output
- * @return RIFT_SUCCESS on success, error code on failure
+ * Emits final executable code from verified bytecode.
+ * Handles target-specific code generation and optimization.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_emit(const char *input_verified_bytecode,
-                                const char *output_final,
-                                bool verbose);
-
-// =================================================================
-// CONFIGURATION MANAGEMENT INTERFACE
-// =================================================================
+int rift_cli_cmd_emit(int argc, char* argv[]);
 
 /**
- * Execute configuration management commands
- * Handles .riftrc and pkg.riftrc governance configuration
+ * rift_cli_cmd_compile - Full compilation pipeline command
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param config_file Path to configuration file
- * @param argc Number of additional arguments
- * @param argv Additional command arguments
- * @return RIFT_SUCCESS on success, error code on failure
+ * Executes the complete RIFT compilation pipeline.
+ * Orchestrates all stages from tokenization to emission.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_config(const char *config_file,
-                                  int argc,
-                                  char **argv);
-
-// =================================================================
-// AEGIS GOVERNANCE COMMAND INTERFACE
-// =================================================================
+int rift_cli_cmd_compile(int argc, char* argv[]);
 
 /**
- * Validate memory alignment compliance
- * Ensures 4096-bit classical memory alignment requirements
+ * rift_cli_cmd_governance - Governance operations command
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param alignment_bits Required alignment in bits
- * @return RIFT_SUCCESS on compliance, error code on failure
+ * Handles governance-related operations and validation.
+ * Implements AEGIS policy management and compliance checking.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_validate_memory_alignment(int alignment_bits);
+int rift_cli_cmd_governance(int argc, char* argv[]);
+
+/*
+ * Command Registration and Management Functions
+ */
 
 /**
- * Validate token schema compliance
- * Ensures token_type, token_value, token_memory triplet enforcement
+ * rift_cli_register_commands - Register all CLI commands
  * 
- * @return RIFT_SUCCESS on compliance, error code on failure
+ * Initializes the command registry with all available RIFT commands.
+ * Must be called before command execution.
+ * 
+ * Returns: RIFT_SUCCESS on success, error code on failure
  */
-rift_result_t rift_command_validate_token_schema(void);
+int rift_cli_register_commands(void);
 
 /**
- * Validate complete AEGIS governance compliance
- * Comprehensive validation of all AEGIS methodology requirements
+ * rift_cli_find_command - Find command by name
+ * @command_name: Name of command to find
  * 
- * @param config_file Path to governance configuration file
- * @return RIFT_SUCCESS on full compliance, error code on failure
+ * Locates a registered command by its name.
+ * 
+ * Returns: Pointer to command structure, or NULL if not found
  */
-rift_result_t rift_command_validate_aegis_compliance(const char *config_file);
-
-// =================================================================
-// UTILITY AND HELPER FUNCTIONS
-// =================================================================
+const rift_cli_command_t* rift_cli_find_command(const char* command_name);
 
 /**
- * Convert command string to command enum
+ * rift_cli_execute_command - Execute a command by name
+ * @command_name: Name of command to execute
+ * @argc: Argument count
+ * @argv: Argument vector
  * 
- * @param command_str String representation of command
- * @return Corresponding rift_command_t enum value
+ * Executes the specified command with given arguments.
+ * 
+ * Returns: Command result code
  */
-rift_command_t rift_parse_command_string(const char *command_str);
+int rift_cli_execute_command(const char* command_name, int argc, char* argv[]);
 
 /**
- * Get human-readable command description
+ * rift_cli_list_commands - List all available commands
+ * @output: File pointer for output (stdout, stderr, etc.)
  * 
- * @param command Command enum value
- * @return String description of command
+ * Prints a formatted list of all registered commands with descriptions.
  */
-const char *rift_command_description(rift_command_t command);
+void rift_cli_list_commands(FILE* output);
+
+/*
+ * Utility Functions for Command Implementation
+ */
 
 /**
- * Validate command context for execution
+ * rift_cli_parse_common_options - Parse common CLI options
+ * @argc: Argument count
+ * @argv: Argument vector
+ * @input_file: Pointer to store input file path
+ * @output_file: Pointer to store output file path
+ * @verbose: Pointer to store verbose flag
  * 
- * @param context Command execution context
- * @param command Command to validate context for
- * @return RIFT_SUCCESS if context is valid, error code otherwise
+ * Parses common options like input file, output file, verbose mode.
+ * 
+ * Returns: Number of arguments consumed, or negative error code
  */
-rift_result_t rift_validate_command_context(const rift_command_context_t *context,
-                                            rift_command_t command);
+int rift_cli_parse_common_options(int argc, char* argv[], 
+                                 char** input_file, char** output_file, 
+                                 bool* verbose);
 
 /**
- * Initialize default command context
+ * rift_cli_validate_input_file - Validate input file accessibility
+ * @filename: Input file path to validate
  * 
- * @param context Context structure to initialize
+ * Checks if input file exists and is readable.
+ * 
+ * Returns: RIFT_CLI_SUCCESS if valid, error code otherwise
  */
-void rift_init_command_context(rift_command_context_t *context);
+int rift_cli_validate_input_file(const char* filename);
 
 /**
- * Cleanup command context resources
+ * rift_cli_validate_output_file - Validate output file writability
+ * @filename: Output file path to validate
  * 
- * @param context Context structure to cleanup
+ * Checks if output file can be created or written to.
+ * 
+ * Returns: RIFT_CLI_SUCCESS if valid, error code otherwise
  */
-void rift_cleanup_command_context(rift_command_context_t *context);
-
-// =================================================================
-// ERROR HANDLING AND LOGGING
-// =================================================================
+int rift_cli_validate_output_file(const char* filename);
 
 /**
- * Log command execution start
+ * rift_cli_print_usage - Print command usage information
+ * @command: Command structure containing usage information
+ * @output: File pointer for output
  * 
- * @param command Command being executed
- * @param context Execution context
+ * Prints formatted usage information for a command.
  */
-void rift_log_command_start(rift_command_t command,
-                            const rift_command_context_t *context);
+void rift_cli_print_usage(const rift_cli_command_t* command, FILE* output);
 
 /**
- * Log command execution completion
+ * rift_cli_print_error - Print formatted error message
+ * @command_name: Name of command that generated error
+ * @error_code: Error code to display
+ * @additional_message: Additional error context (optional)
  * 
- * @param command Command that completed
- * @param result Execution result
- * @param duration_ms Execution duration in milliseconds
+ * Prints standardized error message format.
  */
-void rift_log_command_complete(rift_command_t command,
-                               rift_result_t result,
-                               uint64_t duration_ms);
+void rift_cli_print_error(const char* command_name, int error_code, 
+                         const char* additional_message);
+
+/*
+ * Pipeline Orchestration Functions
+ */
 
 /**
- * Get error string for command execution failure
+ * rift_cli_pipeline_validate_stage_input - Validate pipeline stage input
+ * @stage_number: Pipeline stage number (0-6)
+ * @input_data: Input data to validate
+ * @input_size: Size of input data
  * 
- * @param command Command that failed
- * @param result Error result code
- * @return Human-readable error description
- */
-const char *rift_command_error_string(rift_command_t command,
-                                      rift_result_t result);
-
-// =================================================================
-// STAGE INTEGRATION VERIFICATION
-// =================================================================
-
-/**
- * Verify all stage libraries are properly linked
- * Ensures rift-{0..6}_static libraries are accessible
+ * Validates that input data is appropriate for the specified pipeline stage.
  * 
- * @return RIFT_SUCCESS if all stages linked, error code otherwise
+ * Returns: RIFT_CLI_SUCCESS if valid, error code otherwise
  */
-rift_result_t rift_verify_stage_linkage(void);
+int rift_cli_pipeline_validate_stage_input(int stage_number, 
+                                          const void* input_data, 
+                                          size_t input_size);
 
 /**
- * Get version information for all linked stages
+ * rift_cli_pipeline_execute_stage - Execute individual pipeline stage
+ * @stage_number: Pipeline stage number (0-6)
+ * @input_file: Input file path
+ * @output_file: Output file path
+ * @options: Stage-specific options (optional)
  * 
- * @param version_buffer Buffer to store version information
- * @param buffer_size Size of version buffer
- * @return RIFT_SUCCESS on success, error code on failure
+ * Executes a specific pipeline stage with given input/output.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_get_stage_versions(char *version_buffer, size_t buffer_size);
+int rift_cli_pipeline_execute_stage(int stage_number, 
+                                   const char* input_file, 
+                                   const char* output_file,
+                                   const char* options);
 
 /**
- * Validate pipeline integrity
- * Ensures all stages can communicate properly through unified interface
+ * rift_cli_pipeline_execute_full - Execute complete pipeline
+ * @input_file: Initial input file (source code)
+ * @output_file: Final output file (executable)
+ * @intermediate_dir: Directory for intermediate files
+ * @options: Pipeline options
  * 
- * @return RIFT_SUCCESS if pipeline integrity verified, error code otherwise
+ * Executes the complete RIFT compilation pipeline from source to executable.
+ * 
+ * Returns: RIFT_CLI_SUCCESS on success, error code on failure
  */
-rift_result_t rift_validate_pipeline_integrity(void);
+int rift_cli_pipeline_execute_full(const char* input_file,
+                                  const char* output_file,
+                                  const char* intermediate_dir,
+                                  const char* options);
+
+/*
+ * Version and Information Functions
+ */
+
+/**
+ * rift_cli_get_version - Get CLI framework version
+ * @major: Pointer to store major version
+ * @minor: Pointer to store minor version
+ * @patch: Pointer to store patch version
+ */
+void rift_cli_get_version(int* major, int* minor, int* patch);
+
+/**
+ * rift_cli_print_version_info - Print version and build information
+ * @output: File pointer for output
+ * 
+ * Prints comprehensive version and build information.
+ */
+void rift_cli_print_version_info(FILE* output);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* RIFT_CLI_COMMANDS_H */
-
-/*
- * =================================================================
- * IMPLEMENTATION NOTES
- * =================================================================
- * 
- * This header defines the complete command interface for the unified
- * RIFT CLI implementation. Key architectural decisions:
- * 
- * 1. **Command Enumeration**: All commands are enumerated for type safety
- *    and systematic dispatch handling.
- * 
- * 2. **Context Structure**: Command context encapsulates all execution
- *    parameters, enabling consistent parameter passing across stages.
- * 
- * 3. **Stage Integration**: Functions verify that all rift-{0..6}_static
- *    libraries are properly linked and accessible.
- * 
- * 4. **AEGIS Compliance**: Dedicated functions for governance validation
- *    ensure systematic enforcement of AEGIS methodology requirements.
- * 
- * 5. **Error Handling**: Comprehensive error reporting and logging
- *    support systematic debugging and operational monitoring.
- * 
- * 6. **Pipeline Integrity**: Validation functions ensure end-to-end
- *    pipeline operation and stage communication integrity.
- * 
- * Implementation files required:
- * - src/cli/commands/tokenize.c
- * - src/cli/commands/parse.c
- * - src/cli/commands/analyze.c
- * - src/cli/commands/validate.c
- * - src/cli/commands/generate.c
- * - src/cli/commands/verify.c
- * - src/cli/commands/emit.c
- * - src/cli/commands/config.c
- * - src/cli/commands/governance.c
- * - src/cli/commands/utils.c
- * 
- * =================================================================
- */
