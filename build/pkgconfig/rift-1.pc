@@ -1,0 +1,11 @@
+# RIFT Stage 1 pkg-config file
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: rift-1
+Description: RIFT Stage 1 - parser
+Version: 1.0.0
+Libs: -L${libdir} -lrift-1
+Cflags: -I${includedir}/rift/core/stage-1 -I${includedir}/rift/core -DRIFT_PARSER_ENABLED

@@ -1,0 +1,11 @@
+# RIFT Stage 3 pkg-config file
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: rift-3
+Description: RIFT Stage 3 - validator
+Version: 1.0.0
+Libs: -L${libdir} -lrift-3
+Cflags: -I${includedir}/rift/core/stage-3 -I${includedir}/rift/core -DRIFT_VALIDATOR_ENABLED

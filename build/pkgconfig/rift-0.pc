@@ -1,0 +1,11 @@
+# RIFT Stage 0 pkg-config file
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: rift-0
+Description: RIFT Stage 0 - tokenizer
+Version: 1.0.0
+Libs: -L${libdir} -lrift-0
+Cflags: -I${includedir}/rift/core/stage-0 -I${includedir}/rift/core -DRIFT_TOKENIZER_ENABLED

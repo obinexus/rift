@@ -10,242 +10,14 @@
 │       └── librift-6.a
 ├── bin
 ├── build
-│   ├── CMakeCache.txt
-│   ├── CMakeDoxyfile.in
-│   ├── CMakeDoxygenDefaults.cmake
-│   ├── CMakeFiles
-│   │   ├── 3.25.1
-│   │   │   ├── CMakeCCompiler.cmake
-│   │   │   ├── CMakeCXXCompiler.cmake
-│   │   │   ├── CMakeDetermineCompilerABI_C.bin
-│   │   │   ├── CMakeDetermineCompilerABI_CXX.bin
-│   │   │   ├── CMakeSystem.cmake
-│   │   │   ├── CompilerIdC
-│   │   │   │   ├── a.out
-│   │   │   │   ├── CMakeCCompilerId.c
-│   │   │   │   └── tmp
-│   │   │   └── CompilerIdCXX
-│   │   │       ├── a.out
-│   │   │       ├── CMakeCXXCompilerId.cpp
-│   │   │       └── tmp
-│   │   ├── cmake.check_cache
-│   │   ├── CMakeDirectoryInformation.cmake
-│   │   ├── CMakeOutput.log
-│   │   ├── CMakeRuleHashes.txt
-│   │   ├── docs.dir
-│   │   │   ├── build.make
-│   │   │   ├── cmake_clean.cmake
-│   │   │   ├── compiler_depend.make
-│   │   │   ├── compiler_depend.ts
-│   │   │   ├── DependInfo.cmake
-│   │   │   └── progress.make
-│   │   ├── Makefile2
-│   │   ├── Makefile.cmake
-│   │   ├── pkgRedirects
-│   │   ├── progress.marks
-│   │   └── TargetDirectories.txt
-│   ├── cmake_install.cmake
-│   ├── CTestTestfile.cmake
-│   ├── docs
-│   ├── Doxyfile
-│   ├── generated
-│   │   ├── rift-0_cli.c
-│   │   ├── rift-1_cli.c
-│   │   ├── rift-2_cli.c
-│   │   ├── rift-3_cli.c
-│   │   ├── rift-4_cli.c
-│   │   ├── rift-5_cli.c
-│   │   └── rift-6_cli.c
-│   ├── Makefile
-│   ├── pkgconfig
-│   │   ├── rift-0.pc
-│   │   ├── rift-1.pc
-│   │   ├── rift-2.pc
-│   │   ├── rift-3.pc
-│   │   ├── rift-4.pc
-│   │   ├── rift-5.pc
-│   │   └── rift-6.pc
-│   ├── rift-0
-│   │   ├── CMakeFiles
-│   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   ├── progress.marks
-│   │   │   └── rift-0_static.dir
-│   │   │       ├── build.make
-│   │   │       ├── cmake_clean.cmake
-│   │   │       ├── cmake_clean_target.cmake
-│   │   │       ├── compiler_depend.internal
-│   │   │       ├── compiler_depend.make
-│   │   │       ├── compiler_depend.ts
-│   │   │       ├── DependInfo.cmake
-│   │   │       ├── depend.make
-│   │   │       ├── flags.make
-│   │   │       ├── link.txt
-│   │   │       ├── progress.make
-│   │   │       └── src
-│   │   │           └── core
-│   │   │               ├── tokenizer.c.o
-│   │   │               └── tokenizer.c.o.d
-│   │   ├── cmake_install.cmake
-│   │   └── Makefile
-│   ├── rift-1
-│   │   ├── CMakeFiles
-│   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   ├── progress.marks
-│   │   │   └── rift-1_static.dir
-│   │   │       ├── build.make
-│   │   │       ├── cmake_clean.cmake
-│   │   │       ├── cmake_clean_target.cmake
-│   │   │       ├── compiler_depend.internal
-│   │   │       ├── compiler_depend.make
-│   │   │       ├── compiler_depend.ts
-│   │   │       ├── DependInfo.cmake
-│   │   │       ├── depend.make
-│   │   │       ├── flags.make
-│   │   │       ├── link.txt
-│   │   │       ├── progress.make
-│   │   │       └── src
-│   │   │           └── core
-│   │   │               ├── parser.c.o
-│   │   │               └── parser.c.o.d
-│   │   ├── cmake_install.cmake
-│   │   └── Makefile
-│   ├── rift-2
-│   │   ├── CMakeFiles
-│   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   ├── progress.marks
-│   │   │   └── rift-2_static.dir
-│   │   │       ├── build.make
-│   │   │       ├── cmake_clean.cmake
-│   │   │       ├── cmake_clean_target.cmake
-│   │   │       ├── compiler_depend.internal
-│   │   │       ├── compiler_depend.make
-│   │   │       ├── compiler_depend.ts
-│   │   │       ├── DependInfo.cmake
-│   │   │       ├── depend.make
-│   │   │       ├── flags.make
-│   │   │       ├── link.txt
-│   │   │       ├── progress.make
-│   │   │       └── src
-│   │   │           └── core
-│   │   │               ├── semantic.c.o
-│   │   │               └── semantic.c.o.d
-│   │   ├── cmake_install.cmake
-│   │   └── Makefile
-│   ├── rift-3
-│   │   ├── CMakeFiles
-│   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   ├── progress.marks
-│   │   │   └── rift-3_static.dir
-│   │   │       ├── build.make
-│   │   │       ├── cmake_clean.cmake
-│   │   │       ├── cmake_clean_target.cmake
-│   │   │       ├── compiler_depend.internal
-│   │   │       ├── compiler_depend.make
-│   │   │       ├── compiler_depend.ts
-│   │   │       ├── DependInfo.cmake
-│   │   │       ├── depend.make
-│   │   │       ├── flags.make
-│   │   │       ├── link.txt
-│   │   │       ├── progress.make
-│   │   │       └── src
-│   │   │           └── core
-│   │   │               ├── validator.c.o
-│   │   │               └── validator.c.o.d
-│   │   ├── cmake_install.cmake
-│   │   └── Makefile
-│   ├── rift-4
-│   │   ├── CMakeFiles
-│   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   ├── progress.marks
-│   │   │   └── rift-4_static.dir
-│   │   │       ├── build.make
-│   │   │       ├── cmake_clean.cmake
-│   │   │       ├── cmake_clean_target.cmake
-│   │   │       ├── compiler_depend.internal
-│   │   │       ├── compiler_depend.make
-│   │   │       ├── compiler_depend.ts
-│   │   │       ├── DependInfo.cmake
-│   │   │       ├── depend.make
-│   │   │       ├── flags.make
-│   │   │       ├── link.txt
-│   │   │       ├── progress.make
-│   │   │       └── src
-│   │   │           └── core
-│   │   │               ├── bytecode.c.o
-│   │   │               └── bytecode.c.o.d
-│   │   ├── cmake_install.cmake
-│   │   └── Makefile
-│   ├── rift-5
-│   │   ├── CMakeFiles
-│   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   ├── progress.marks
-│   │   │   └── rift-5_static.dir
-│   │   │       ├── build.make
-│   │   │       ├── cmake_clean.cmake
-│   │   │       ├── cmake_clean_target.cmake
-│   │   │       ├── compiler_depend.internal
-│   │   │       ├── compiler_depend.make
-│   │   │       ├── compiler_depend.ts
-│   │   │       ├── DependInfo.cmake
-│   │   │       ├── depend.make
-│   │   │       ├── flags.make
-│   │   │       ├── link.txt
-│   │   │       ├── progress.make
-│   │   │       └── src
-│   │   │           └── core
-│   │   │               ├── verifier.c.o
-│   │   │               └── verifier.c.o.d
-│   │   ├── cmake_install.cmake
-│   │   └── Makefile
-│   ├── rift-6
-│   │   ├── CMakeFiles
-│   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   ├── progress.marks
-│   │   │   └── rift-6_static.dir
-│   │   │       ├── build.make
-│   │   │       ├── cmake_clean.cmake
-│   │   │       ├── cmake_clean_target.cmake
-│   │   │       ├── compiler_depend.internal
-│   │   │       ├── compiler_depend.make
-│   │   │       ├── compiler_depend.ts
-│   │   │       ├── DependInfo.cmake
-│   │   │       ├── depend.make
-│   │   │       ├── flags.make
-│   │   │       ├── link.txt
-│   │   │       ├── progress.make
-│   │   │       └── src
-│   │   │           └── core
-│   │   │               ├── emitter.c.o
-│   │   │               └── emitter.c.o.d
-│   │   ├── cmake_install.cmake
-│   │   └── Makefile
-│   ├── RiftConfigVersion.cmake
-│   ├── src
-│   │   ├── cli
-│   │   │   ├── CMakeFiles
-│   │   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   │   └── progress.marks
-│   │   │   ├── cmake_install.cmake
-│   │   │   └── Makefile
-│   │   ├── config
-│   │   │   ├── CMakeFiles
-│   │   │   │   ├── CMakeDirectoryInformation.cmake
-│   │   │   │   └── progress.marks
-│   │   │   ├── cmake_install.cmake
-│   │   │   └── Makefile
-│   │   └── core
-│   │       ├── CMakeFiles
-│   │       │   ├── CMakeDirectoryInformation.cmake
-│   │       │   └── progress.marks
-│   │       ├── cmake_install.cmake
-│   │       └── Makefile
-│   └── tests
-│       ├── CMakeFiles
-│       │   ├── CMakeDirectoryInformation.cmake
-│       │   └── progress.marks
-│       ├── cmake_install.cmake
-│       ├── CTestTestfile.cmake
-│       └── Makefile
+│   └── pkgconfig
+│       ├── rift-0.pc
+│       ├── rift-1.pc
+│       ├── rift-2.pc
+│       ├── rift-3.pc
+│       ├── rift-4.pc
+│       ├── rift-5.pc
+│       └── rift-6.pc
 ├── cmake
 │   ├── common
 │   │   ├── compiler_pipeline.cmake
@@ -265,27 +37,22 @@
 │       ├── config
 │       ├── core
 │       │   ├── common.h
-│       │   └── stage-0
-│       │       └── tokenizer.h
+│       │   ├── stage-0
+│       │   │   └── tokenizer.h
+│       │   └── stage-1
+│       │       └── parser.h
 │       └── governance
 │           └── policy.h
 ├── integrated_cmake_pkgconfig.cmake
 ├── intergrated_cmake_pkgconfig.cmake
 ├── lib
-│   ├── librift-0.a
-│   ├── librift-0_static.a
-│   ├── librift-1.a
-│   ├── librift-1_static.a
-│   ├── librift-2.a
-│   ├── librift-2_static.a
-│   ├── librift-3.a
-│   ├── librift-3_static.a
-│   ├── librift-4.a
-│   ├── librift-4_static.a
-│   ├── librift-5.a
-│   ├── librift-5_static.a
-│   ├── librift-6.a
-│   └── librift-6_static.a
+│   ├── rift-0.a
+│   ├── rift-1.a
+│   ├── rift-2.a
+│   ├── rift-3.a
+│   ├── rift-4.a
+│   ├── rift-5.a
+│   └── rift-6.a
 ├── logs
 │   ├── bootstrap_execution_20250618_235357.log
 │   ├── build_recovery.log
@@ -296,6 +63,27 @@
 ├── Makefile
 ├── Makefile.old
 ├── obj
+│   ├── stage-0
+│   │   ├── tokenizer.d
+│   │   └── tokenizer.o
+│   ├── stage-1
+│   │   ├── parser.d
+│   │   └── parser.o
+│   ├── stage-2
+│   │   ├── semantic.d
+│   │   └── semantic.o
+│   ├── stage-3
+│   │   ├── validator.d
+│   │   └── validator.o
+│   ├── stage-4
+│   │   ├── bytecode.d
+│   │   └── bytecode.o
+│   ├── stage-5
+│   │   ├── verifier.d
+│   │   └── verifier.o
+│   └── stage-6
+│       ├── emitter.d
+│       └── emitter.o
 ├── rift
 │   ├── bin
 │   ├── build
@@ -319,7 +107,8 @@
 │   ├── include
 │   │   └── rift
 │   │       ├── cli
-│   │       │   └── cli.h
+│   │       │   ├── cli.h
+│   │       │   └── commands.h
 │   │       ├── config
 │   │       │   └── config.h
 │   │       ├── core
@@ -327,6 +116,7 @@
 │   │       │   │   └── bytecode.h
 │   │       │   ├── cli
 │   │       │   │   └── cli.h
+│   │       │   ├── common.h
 │   │       │   ├── config
 │   │       │   │   └── config.h
 │   │       │   ├── core
@@ -344,12 +134,19 @@
 │   │       │   ├── semantic
 │   │       │   │   └── semantic.h
 │   │       │   ├── stage-0
+│   │       │   │   └── tokenizer.h
 │   │       │   ├── stage-1
+│   │       │   │   └── parser.h
 │   │       │   ├── stage-2
+│   │       │   │   └── semantic.h
 │   │       │   ├── stage-3
+│   │       │   │   └── validator.h
 │   │       │   ├── stage-4
+│   │       │   │   └── bytecode.h
 │   │       │   ├── stage-5
+│   │       │   │   └── verifier.h
 │   │       │   ├── stage-6
+│   │       │   │   └── emitter.h
 │   │       │   ├── tokenizer
 │   │       │   │   └── tokenizer.h
 │   │       │   ├── token_type
@@ -361,7 +158,8 @@
 │   │       │   └── verifier
 │   │       │       └── verifier.h
 │   │       ├── governance
-│   │       │   └── governance.h
+│   │       │   ├── governance.h
+│   │       │   └── policy.h
 │   │       ├── lexer
 │   │       ├── rift.h
 │   │       ├── tokenizer
@@ -563,12 +361,19 @@
 │   │   │   ├── semantic
 │   │   │   │   └── semantic.c
 │   │   │   ├── stage-0
+│   │   │   │   └── tokenizer.c
 │   │   │   ├── stage-1
+│   │   │   │   └── parser.c
 │   │   │   ├── stage-2
+│   │   │   │   └── semantic.c
 │   │   │   ├── stage-3
+│   │   │   │   └── validator.c
 │   │   │   ├── stage-4
+│   │   │   │   └── bytecode.c
 │   │   │   ├── stage-5
+│   │   │   │   └── verifier.c
 │   │   │   ├── stage-6
+│   │   │   │   └── emitter.c
 │   │   │   ├── tokenizer
 │   │   │   │   └── tokenizer.c
 │   │   │   ├── token_type
@@ -753,6 +558,7 @@
 │   ├── demo_pipeline_standardized.sh
 │   ├── deployment
 │   │   └── deploy.sh
+│   ├── deployment_script.sh
 │   ├── examples
 │   │   ├── rift-dual
 │   │   │   ├── rift_input_parser_fix
@@ -795,19 +601,12 @@
 │   │   ├── Makefile
 │   │   ├── obj
 │   │   │   ├── cli
-│   │   │   │   └── cli.d
 │   │   │   ├── command
-│   │   │   │   └── command.d
 │   │   │   ├── core
-│   │   │   │   └── core.d
 │   │   │   ├── lexer
-│   │   │   │   └── lexer.d
 │   │   │   ├── tokenizer
-│   │   │   │   └── tokenizer.d
 │   │   │   ├── token_type
-│   │   │   │   └── token_type.d
 │   │   │   └── token_value
-│   │   │       └── token_value.d
 │   │   ├── scripts
 │   │   │   └── validation
 │   │   │       └── validate-architecture.sh
@@ -868,8 +667,12 @@
 │   │   └── config.c
 │   └── core
 │       ├── CMakeLists.txt
-│       └── stage-0
-│           └── tokenizer.c
+│       ├── stage-0
+│       │   └── tokenizer.c
+│       ├── stage-1
+│       │   └── parser.c
+│       └── stage-2
+│           └── semantic.c
 ├── Testing
 │   └── Temporary
 │       ├── CTestCostData.txt
@@ -881,4 +684,4 @@
 └── tools
     └── setup.sh
 
-463 directories, 419 files
+419 directories, 266 files
