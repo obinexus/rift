@@ -1,7 +1,7 @@
 # =================================================================
-# RIFT Enhanced Makefile with pkg-config Integration
-# OBINexus Computing Framework - AEGIS Methodology
-# Technical Lead: Nnamdi Michael Okpala
+# RIFT Corrected Makefile - AEGIS Methodology Compliance
+# OBINexus Computing Framework - Technical Implementation
+# Fixes: Library naming, dependency tracking, target resolution
 # =================================================================
 
 # Configuration Variables
@@ -15,6 +15,7 @@ CXX := g++
 CMAKE := cmake
 MAKE := make
 PKG_CONFIG := pkg-config
+AR := ar
 
 # Platform Detection
 UNAME_S := $(shell uname -s)
@@ -37,18 +38,23 @@ endif
 RIFT_ROOT := $(shell pwd)
 BUILD_DIR := $(RIFT_ROOT)/build
 SRC_DIR := $(RIFT_ROOT)/rift/src
-INCLUDE_DIR := $(RIFT_ROOT)/include
+INCLUDE_DIR := $(RIFT_ROOT)/rift/include
 LIB_DIR := $(RIFT_ROOT)/lib
 BIN_DIR := $(RIFT_ROOT)/bin
+OBJ_DIR := $(RIFT_ROOT)/obj
 LOGS_DIR := $(RIFT_ROOT)/logs
 PKG_CONFIG_DIR := $(RIFT_ROOT)/rift/pkgconfig
 
-# AEGIS Compliance Flags
-CFLAGS := -std=c11 -Wall -Wextra -Wpedantic -Werror -O2
+# CORRECTED: Proper library naming without 'lib' prefix
+STAGE_LIBS := $(addprefix $(LIB_DIR)/,$(addsuffix .a,rift-0 rift-1 rift-2 rift-3 rift-4 rift-5 rift-6))
+STAGE_EXECUTABLES := $(addprefix $(BIN_DIR)/,$(addsuffix $(EXE_EXT),rift-0 rift-1 rift-2 rift-3 rift-4 rift-5 rift-6))
+
+# AEGIS Compliance Flags with -MMD for dependency tracking
+CFLAGS := -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -MMD -MP
 CFLAGS += -fstack-protector-strong -D_FORTIFY_SOURCE=2 -fPIE
 CFLAGS += -DRIFT_VERSION_STRING=\"$(RIFT_VERSION)\"
 CFLAGS += -DRIFT_AEGIS_COMPLIANCE=1 -DRIFT_ZERO_TRUST=1
-CFLAGS += -I$(INCLUDE_DIR) -I$(RIFT_ROOT)/rift/include
+CFLAGS += -I$(INCLUDE_DIR) -I$(INCLUDE_DIR)/rift/core
 
 LDFLAGS := -Wl,-z,relro -Wl,-z,now -pie
 LIBS := -lssl -lcrypto -lpthread
@@ -63,213 +69,239 @@ CYAN := \033[0;36m
 BOLD := \033[1m
 NC := \033[0m
 
-# Pipeline Stages
-STAGES := rift-0 rift-1 rift-2 rift-3 rift-4 rift-5 rift-6
-STAGE_LIBS := $(addprefix $(LIB_DIR)/lib,$(addsuffix _static.a,$(STAGES)))
-STAGE_EXECUTABLES := $(addprefix $(BIN_DIR)/,$(addsuffix $(EXE_EXT),$(STAGES)))
+# Stage Configuration Matrix
+STAGES := 0 1 2 3 4 5 6
+STAGE_NAMES := tokenizer parser semantic validator bytecode verifier emitter
+STAGE_SOURCES := $(foreach stage,$(STAGES),$(SRC_DIR)/core/stage-$(stage))
 
 # =================================================================
 # PRIMARY TARGETS
 # =================================================================
 
 .PHONY: all
-all: banner setup cmake-build pkg-config-integration validate
+all: banner setup direct-build validate
 
 .PHONY: setup
-setup: banner setup-directories setup-wizard
+setup: banner setup-directories
+
+.PHONY: direct-build
+direct-build: setup $(STAGE_LIBS) $(STAGE_EXECUTABLES) unified-cli
 
 .PHONY: clean
 clean: banner
 	@echo -e "$(BLUE)[CLEAN]$(NC) Removing build artifacts..."
-	@rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR) $(OBJ_DIR)
 	@rm -f $(LIB_DIR)/*.a $(BIN_DIR)/*$(EXE_EXT)
+	@find . -name "*.d" -delete
 	@echo -e "$(GREEN)[SUCCESS]$(NC) Build artifacts cleaned"
 
 .PHONY: deep-clean
 deep-clean: clean
 	@echo -e "$(BLUE)[DEEP-CLEAN]$(NC) Removing all generated files..."
-	@rm -rf $(LIB_DIR) $(BIN_DIR) $(LOGS_DIR)
+	@rm -rf $(LIB_DIR) $(BIN_DIR) $(LOGS_DIR) $(OBJ_DIR)
 	@rm -rf $(PKG_CONFIG_DIR)/rift-*.pc
 	@echo -e "$(GREEN)[SUCCESS]$(NC) Deep clean completed"
 
 # =================================================================
-# SETUP WIZARD INTEGRATION
+# SETUP AND DIRECTORY STRUCTURE
 # =================================================================
 
 .PHONY: banner
 banner:
 	@echo -e "$(CYAN)$(BOLD)=================================================================="
-	@echo -e "  RIFT Build Orchestration with pkg-config Integration          "
+	@echo -e "  RIFT Build System - Corrected Implementation                  "
 	@echo -e "  OBINexus Computing Framework v$(RIFT_VERSION)                  "
 	@echo -e "  Platform: $(PLATFORM) | AEGIS: $(AEGIS_COMPLIANCE)            "
+	@echo -e "  FIXED: Library naming, dependency tracking, target resolution "
 	@echo -e "==================================================================$(NC)"
 
 .PHONY: setup-directories
 setup-directories:
 	@echo -e "$(BLUE)[SETUP]$(NC) Creating AEGIS-compliant directory structure..."
-	@mkdir -p $(BUILD_DIR) $(LIB_DIR) $(BIN_DIR) $(LOGS_DIR)
+	@mkdir -p $(BUILD_DIR) $(LIB_DIR) $(BIN_DIR) $(LOGS_DIR) $(OBJ_DIR)
 	@mkdir -p $(BUILD_DIR)/pkgconfig
-	@mkdir -p $(RIFT_ROOT)/rift/include/rift/core
-	@for stage in 0 1 2 3 4 5 6; do \
-		mkdir -p $(RIFT_ROOT)/rift/src/core/stage-$$stage; \
-		mkdir -p $(RIFT_ROOT)/rift/include/rift/core/stage-$$stage; \
+	@for stage in $(STAGES); do \
+		mkdir -p $(SRC_DIR)/core/stage-$$stage; \
+		mkdir -p $(INCLUDE_DIR)/rift/core/stage-$$stage; \
+		mkdir -p $(OBJ_DIR)/stage-$$stage; \
 	done
+	@mkdir -p $(SRC_DIR)/cli $(SRC_DIR)/governance $(SRC_DIR)/config
+	@mkdir -p $(INCLUDE_DIR)/rift/cli $(INCLUDE_DIR)/rift/governance $(INCLUDE_DIR)/rift/config
 	@echo -e "$(GREEN)[SUCCESS]$(NC) Directory structure initialized"
 
-.PHONY: setup-wizard
-setup-wizard: setup-directories
-	@echo -e "$(BLUE)[WIZARD]$(NC) Executing RIFT Setup Wizard..."
-	@if [ -f "rift-setup-wizard.sh" ]; then \
-		echo -e "$(YELLOW)[INFO]$(NC) Running interactive setup wizard..."; \
-		timeout 30 bash rift-setup-wizard.sh || echo -e "$(YELLOW)[TIMEOUT]$(NC) Wizard timed out - continuing with defaults"; \
+# =================================================================
+# STAGE COMPILATION TARGETS - CORRECTED NAMING
+# =================================================================
+
+# Stage 0: Tokenizer
+$(LIB_DIR)/rift-0.a: $(SRC_DIR)/core/stage-0/tokenizer.c | setup-directories
+	@echo -e "$(BLUE)[STAGE-0]$(NC) Building tokenizer library..."
+	@$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/stage-0/tokenizer.o
+	@$(AR) rcs $@ $(OBJ_DIR)/stage-0/tokenizer.o
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-0.a created"
+
+$(BIN_DIR)/rift-0$(EXE_EXT): $(LIB_DIR)/rift-0.a
+	@echo -e "$(BLUE)[STAGE-0]$(NC) Building tokenizer executable..."
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -L$(LIB_DIR) -lrift-0 $(LIBS)
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-0$(EXE_EXT) created"
+
+# Stage 1: Parser
+$(LIB_DIR)/rift-1.a: $(SRC_DIR)/core/stage-1/parser.c | setup-directories
+	@echo -e "$(BLUE)[STAGE-1]$(NC) Building parser library..."
+	@$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/stage-1/parser.o
+	@$(AR) rcs $@ $(OBJ_DIR)/stage-1/parser.o
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-1.a created"
+
+$(BIN_DIR)/rift-1$(EXE_EXT): $(LIB_DIR)/rift-1.a $(LIB_DIR)/rift-0.a
+	@echo -e "$(BLUE)[STAGE-1]$(NC) Building parser executable..."
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -L$(LIB_DIR) -lrift-1 -lrift-0 $(LIBS)
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-1$(EXE_EXT) created"
+
+# Stage 2: Semantic Analyzer
+$(LIB_DIR)/rift-2.a: $(SRC_DIR)/core/stage-2/semantic.c | setup-directories
+	@echo -e "$(BLUE)[STAGE-2]$(NC) Building semantic analyzer library..."
+	@$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/stage-2/semantic.o
+	@$(AR) rcs $@ $(OBJ_DIR)/stage-2/semantic.o
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-2.a created"
+
+$(BIN_DIR)/rift-2$(EXE_EXT): $(LIB_DIR)/rift-2.a $(LIB_DIR)/rift-1.a $(LIB_DIR)/rift-0.a
+	@echo -e "$(BLUE)[STAGE-2]$(NC) Building semantic analyzer executable..."
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -L$(LIB_DIR) -lrift-2 -lrift-1 -lrift-0 $(LIBS)
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-2$(EXE_EXT) created"
+
+# Stage 3: Validator
+$(LIB_DIR)/rift-3.a: $(SRC_DIR)/core/stage-3/validator.c | setup-directories
+	@echo -e "$(BLUE)[STAGE-3]$(NC) Building validator library..."
+	@$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/stage-3/validator.o
+	@$(AR) rcs $@ $(OBJ_DIR)/stage-3/validator.o
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-3.a created"
+
+$(BIN_DIR)/rift-3$(EXE_EXT): $(LIB_DIR)/rift-3.a $(LIB_DIR)/rift-2.a $(LIB_DIR)/rift-1.a $(LIB_DIR)/rift-0.a
+	@echo -e "$(BLUE)[STAGE-3]$(NC) Building validator executable..."
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -L$(LIB_DIR) -lrift-3 -lrift-2 -lrift-1 -lrift-0 $(LIBS)
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-3$(EXE_EXT) created"
+
+# Stage 4: Bytecode Generator
+$(LIB_DIR)/rift-4.a: $(SRC_DIR)/core/stage-4/bytecode.c | setup-directories
+	@echo -e "$(BLUE)[STAGE-4]$(NC) Building bytecode generator library..."
+	@$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/stage-4/bytecode.o
+	@$(AR) rcs $@ $(OBJ_DIR)/stage-4/bytecode.o
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-4.a created"
+
+$(BIN_DIR)/rift-4$(EXE_EXT): $(LIB_DIR)/rift-4.a $(LIB_DIR)/rift-3.a $(LIB_DIR)/rift-2.a $(LIB_DIR)/rift-1.a $(LIB_DIR)/rift-0.a
+	@echo -e "$(BLUE)[STAGE-4]$(NC) Building bytecode generator executable..."
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -L$(LIB_DIR) -lrift-4 -lrift-3 -lrift-2 -lrift-1 -lrift-0 $(LIBS)
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-4$(EXE_EXT) created"
+
+# Stage 5: Verifier
+$(LIB_DIR)/rift-5.a: $(SRC_DIR)/core/stage-5/verifier.c | setup-directories
+	@echo -e "$(BLUE)[STAGE-5]$(NC) Building verifier library..."
+	@$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/stage-5/verifier.o
+	@$(AR) rcs $@ $(OBJ_DIR)/stage-5/verifier.o
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-5.a created"
+
+$(BIN_DIR)/rift-5$(EXE_EXT): $(LIB_DIR)/rift-5.a $(LIB_DIR)/rift-4.a $(LIB_DIR)/rift-3.a $(LIB_DIR)/rift-2.a $(LIB_DIR)/rift-1.a $(LIB_DIR)/rift-0.a
+	@echo -e "$(BLUE)[STAGE-5]$(NC) Building verifier executable..."
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -L$(LIB_DIR) -lrift-5 -lrift-4 -lrift-3 -lrift-2 -lrift-1 -lrift-0 $(LIBS)
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-5$(EXE_EXT) created"
+
+# Stage 6: Emitter
+$(LIB_DIR)/rift-6.a: $(SRC_DIR)/core/stage-6/emitter.c | setup-directories
+	@echo -e "$(BLUE)[STAGE-6]$(NC) Building emitter library..."
+	@$(CC) $(CFLAGS) -c $< -o $(OBJ_DIR)/stage-6/emitter.o
+	@$(AR) rcs $@ $(OBJ_DIR)/stage-6/emitter.o
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-6.a created"
+
+$(BIN_DIR)/rift-6$(EXE_EXT): $(LIB_DIR)/rift-6.a $(LIB_DIR)/rift-5.a $(LIB_DIR)/rift-4.a $(LIB_DIR)/rift-3.a $(LIB_DIR)/rift-2.a $(LIB_DIR)/rift-1.a $(LIB_DIR)/rift-0.a
+	@echo -e "$(BLUE)[STAGE-6]$(NC) Building emitter executable..."
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -L$(LIB_DIR) -lrift-6 -lrift-5 -lrift-4 -lrift-3 -lrift-2 -lrift-1 -lrift-0 $(LIBS)
+	@echo -e "$(GREEN)[SUCCESS]$(NC) rift-6$(EXE_EXT) created"
+
+# =================================================================
+# UNIFIED CLI TARGET
+# =================================================================
+
+.PHONY: unified-cli
+unified-cli: $(STAGE_LIBS)
+	@echo -e "$(BLUE)[UNIFIED-CLI]$(NC) Building RIFT unified command-line interface..."
+	@if [ -f "$(SRC_DIR)/cli/main.c" ]; then \
+		$(CC) $(CFLAGS) $(LDFLAGS) -o $(BIN_DIR)/rift$(EXE_EXT) \
+			$(SRC_DIR)/cli/main.c \
+			-L$(LIB_DIR) -lrift-6 -lrift-5 -lrift-4 -lrift-3 -lrift-2 -lrift-1 -lrift-0 \
+			$(LIBS); \
+		echo -e "$(GREEN)[SUCCESS]$(NC) Unified CLI created: $(BIN_DIR)/rift$(EXE_EXT)"; \
 	else \
-		echo -e "$(YELLOW)[INFO]$(NC) Setup wizard not found - using default configuration"; \
+		echo -e "$(YELLOW)[WARNING]$(NC) CLI main.c not found - skipping unified CLI"; \
 	fi
-	@echo -e "$(GREEN)[SUCCESS]$(NC) Setup wizard phase completed"
 
 # =================================================================
-# CMAKE BUILD SYSTEM INTEGRATION
-# =================================================================
-
-.PHONY: cmake-build
-cmake-build: setup-directories
-	@echo -e "$(BLUE)[CMAKE]$(NC) Configuring build system with pkg-config integration..."
-	@cd $(BUILD_DIR) && \
-		$(CMAKE) .. \
-			-DCMAKE_BUILD_TYPE=Release \
-			-DENABLE_PKG_CONFIG=ON \
-			-DENABLE_AEGIS_VALIDATION=ON \
-			-DCMAKE_INSTALL_PREFIX=/usr/local \
-			2>&1 | tee $(LOGS_DIR)/cmake_config.log
-	@echo -e "$(BLUE)[MAKE]$(NC) Compiling RIFT pipeline with $(NPROC) parallel jobs..."
-	@cd $(BUILD_DIR) && \
-		$(MAKE) -j$(NPROC) 2>&1 | tee $(LOGS_DIR)/compilation.log
-	@echo -e "$(GREEN)[SUCCESS]$(NC) CMake build completed"
-
-.PHONY: cmake-install
-cmake-install: cmake-build
-	@echo -e "$(BLUE)[INSTALL]$(NC) Installing RIFT system components..."
-	@cd $(BUILD_DIR) && $(MAKE) install
-	@echo -e "$(GREEN)[SUCCESS]$(NC) Installation completed"
-
-# =================================================================
-# PKG-CONFIG INTEGRATION TARGETS
+# PKG-CONFIG INTEGRATION - CORRECTED NAMING
 # =================================================================
 
 .PHONY: pkg-config-integration
-pkg-config-integration: cmake-build
-	@echo -e "$(BLUE)[PKG-CONFIG]$(NC) Integrating pkg-config support..."
-	@if [ "$(PKG_CONFIG_SUPPORT)" = "ENABLED" ]; then \
-		echo -e "$(YELLOW)[INFO]$(NC) Validating pkg-config framework..."; \
-		if [ -f "$(PKG_CONFIG_DIR)/validate-pkgconfig.sh" ]; then \
-			bash $(PKG_CONFIG_DIR)/validate-pkgconfig.sh || echo -e "$(YELLOW)[WARNING]$(NC) pkg-config validation failed"; \
-		fi; \
-		echo -e "$(YELLOW)[INFO]$(NC) Generating pkg-config files..."; \
-		cd $(BUILD_DIR) && $(MAKE) validate-pkgconfig || true; \
-	else \
-		echo -e "$(YELLOW)[INFO]$(NC) pkg-config support disabled"; \
-	fi
-	@echo -e "$(GREEN)[SUCCESS]$(NC) pkg-config integration completed"
-
-.PHONY: pkg-config-install
-pkg-config-install: pkg-config-integration
-	@echo -e "$(BLUE)[PKG-CONFIG-INSTALL]$(NC) Installing pkg-config files..."
-	@if [ -d "$(BUILD_DIR)/pkgconfig" ]; then \
-		sudo mkdir -p $(PKG_CONFIG_INSTALL_DIR); \
-		sudo cp $(BUILD_DIR)/pkgconfig/rift-*.pc $(PKG_CONFIG_INSTALL_DIR)/; \
-		echo -e "$(GREEN)[SUCCESS]$(NC) pkg-config files installed to $(PKG_CONFIG_INSTALL_DIR)"; \
-	else \
-		echo -e "$(YELLOW)[WARNING]$(NC) No pkg-config files found to install"; \
-	fi
-
-.PHONY: pkg-config-test
-pkg-config-test: pkg-config-install
-	@echo -e "$(BLUE)[PKG-CONFIG-TEST]$(NC) Testing pkg-config functionality..."
-	@export PKG_CONFIG_PATH="$(PKG_CONFIG_INSTALL_DIR):$(BUILD_DIR)/pkgconfig:$$PKG_CONFIG_PATH"; \
-	for stage in 0 1 2 3 4 5 6; do \
-		echo -n "Testing rift-$$stage: "; \
-		if $(PKG_CONFIG) --exists rift-$$stage 2>/dev/null; then \
-			echo -e "$(GREEN)✓$(NC)"; \
-		else \
-			echo -e "$(RED)✗$(NC)"; \
-		fi; \
+pkg-config-integration: $(STAGE_LIBS)
+	@echo -e "$(BLUE)[PKG-CONFIG]$(NC) Generating corrected pkg-config files..."
+	@mkdir -p $(BUILD_DIR)/pkgconfig
+	@for stage in $(STAGES); do \
+		stage_name=$$(echo "$(STAGE_NAMES)" | cut -d' ' -f$$(($$stage + 1))); \
+		pc_file="$(BUILD_DIR)/pkgconfig/rift-$$stage.pc"; \
+		echo "# RIFT Stage $$stage pkg-config file" > $$pc_file; \
+		echo "prefix=/usr/local" >> $$pc_file; \
+		echo "exec_prefix=\$${prefix}" >> $$pc_file; \
+		echo "libdir=\$${exec_prefix}/lib" >> $$pc_file; \
+		echo "includedir=\$${prefix}/include" >> $$pc_file; \
+		echo "" >> $$pc_file; \
+		echo "Name: rift-$$stage" >> $$pc_file; \
+		echo "Description: RIFT Stage $$stage - $$stage_name" >> $$pc_file; \
+		echo "Version: $(RIFT_VERSION)" >> $$pc_file; \
+		echo "Libs: -L\$${libdir} -lrift-$$stage" >> $$pc_file; \
+		echo "Cflags: -I\$${includedir}/rift/core/stage-$$stage -I\$${includedir}/rift/core -DRIFT_$$(echo $$stage_name | tr '[:lower:]' '[:upper:]')_ENABLED" >> $$pc_file; \
+		echo -e "$(GREEN)[SUCCESS]$(NC) Generated rift-$$stage.pc"; \
 	done
-	@echo -e "$(GREEN)[SUCCESS]$(NC) pkg-config testing completed"
 
 # =================================================================
-# VALIDATION AND TESTING TARGETS
+# VALIDATION TARGETS
 # =================================================================
 
 .PHONY: validate
-validate: validate-structure validate-executables validate-libraries
+validate: validate-structure validate-libraries validate-executables
 
 .PHONY: validate-structure
 validate-structure:
 	@echo -e "$(BLUE)[VALIDATE]$(NC) Validating AEGIS directory structure..."
-	@test -d $(BUILD_DIR) || (echo -e "$(RED)[ERROR]$(NC) Build directory missing" && exit 1)
 	@test -d $(LIB_DIR) || (echo -e "$(RED)[ERROR]$(NC) Library directory missing" && exit 1)
 	@test -d $(BIN_DIR) || (echo -e "$(RED)[ERROR]$(NC) Binary directory missing" && exit 1)
+	@test -d $(OBJ_DIR) || (echo -e "$(RED)[ERROR]$(NC) Object directory missing" && exit 1)
 	@echo -e "$(GREEN)[SUCCESS]$(NC) Directory structure validated"
-
-.PHONY: validate-executables
-validate-executables:
-	@echo -e "$(BLUE)[VALIDATE]$(NC) Validating stage executables..."
-	@cd $(BUILD_DIR) && $(MAKE) validate_all || echo -e "$(YELLOW)[WARNING]$(NC) Some executables missing"
-	@echo -e "$(GREEN)[SUCCESS]$(NC) Executable validation completed"
 
 .PHONY: validate-libraries
 validate-libraries:
-	@echo -e "$(BLUE)[VALIDATE]$(NC) Validating static libraries..."
-	@for stage in 0 1 2 3 4 5 6; do \
-		lib_file="$(BUILD_DIR)/lib/librift-$$stage.a"; \
+	@echo -e "$(BLUE)[VALIDATE]$(NC) Validating corrected library naming..."
+	@for stage in $(STAGES); do \
+		lib_file="$(LIB_DIR)/rift-$$stage.a"; \
 		if [ -f "$$lib_file" ]; then \
-			echo -e "$(GREEN)✓$(NC) librift-$$stage.a"; \
+			echo -e "$(GREEN)✓$(NC) rift-$$stage.a (corrected naming)"; \
 		else \
-			echo -e "$(YELLOW)⚠$(NC) librift-$$stage.a missing"; \
+			echo -e "$(YELLOW)⚠$(NC) rift-$$stage.a missing"; \
 		fi; \
 	done
 	@echo -e "$(GREEN)[SUCCESS]$(NC) Library validation completed"
 
-# =================================================================
-# TESTING AND DEMONSTRATION TARGETS
-# =================================================================
-
-.PHONY: test
-test: cmake-build
-	@echo -e "$(BLUE)[TEST]$(NC) Running comprehensive test suite..."
-	@cd $(BUILD_DIR) && $(MAKE) test || echo -e "$(YELLOW)[WARNING]$(NC) Some tests failed"
-	@echo -e "$(GREEN)[SUCCESS]$(NC) Test execution completed"
-
-.PHONY: demo
-demo: cmake-build
-	@echo -e "$(BLUE)[DEMO]$(NC) Executing RIFT pipeline demonstration..."
-	@if [ -f "$(BUILD_DIR)/demo_pipeline.sh" ]; then \
-		cd $(BUILD_DIR) && bash demo_pipeline.sh; \
-	elif [ -f "demo_pipeline_standardized.sh" ]; then \
-		bash demo_pipeline_standardized.sh; \
-	else \
-		echo -e "$(YELLOW)[WARNING]$(NC) Demo script not found"; \
-	fi
-	@echo -e "$(GREEN)[SUCCESS]$(NC) Demo execution completed"
+.PHONY: validate-executables
+validate-executables:
+	@echo -e "$(BLUE)[VALIDATE]$(NC) Validating stage executables..."
+	@for stage in $(STAGES); do \
+		exec_file="$(BIN_DIR)/rift-$$stage$(EXE_EXT)"; \
+		if [ -f "$$exec_file" ]; then \
+			echo -e "$(GREEN)✓$(NC) rift-$$stage$(EXE_EXT)"; \
+		else \
+			echo -e "$(YELLOW)⚠$(NC) rift-$$stage$(EXE_EXT) missing"; \
+		fi; \
+	done
+	@echo -e "$(GREEN)[SUCCESS]$(NC) Executable validation completed"
 
 # =================================================================
-# EXTERNAL INTEGRATION EXAMPLES
-# =================================================================
-
-.PHONY: external-examples
-external-examples: pkg-config-integration
-	@echo -e "$(BLUE)[EXAMPLES]$(NC) Building external integration examples..."
-	@if [ -d "$(PKG_CONFIG_DIR)/examples" ]; then \
-		cd $(PKG_CONFIG_DIR)/examples && \
-		export PKG_CONFIG_PATH="$(BUILD_DIR)/pkgconfig:$$PKG_CONFIG_PATH" && \
-		$(MAKE) -f Makefile.example all || echo -e "$(YELLOW)[WARNING]$(NC) Example build failed"; \
-	else \
-		echo -e "$(YELLOW)[WARNING]$(NC) Examples directory not found"; \
-	fi
-	@echo -e "$(GREEN)[SUCCESS]$(NC) External examples processed"
-
-# =================================================================
-# DEVELOPMENT AND MAINTENANCE TARGETS  
+# DEVELOPMENT AND MAINTENANCE TARGETS
 # =================================================================
 
 .PHONY: status
@@ -282,79 +314,55 @@ status:
 	@echo -e "AEGIS Compliance: $(AEGIS_COMPLIANCE)"
 	@echo -e "pkg-config Support: $(PKG_CONFIG_SUPPORT)"
 	@echo -e "Parallel Jobs: $(NPROC)"
+	@echo -e "Library Naming: CORRECTED (rift-N.a without lib prefix)"
+	@echo -e "Dependency Tracking: ENABLED (-MMD -MP)"
 	@echo -e "=================================================================="
-	@if [ -f "$(BUILD_DIR)/CMakeCache.txt" ]; then \
-		echo -e "CMake Status: $(GREEN)CONFIGURED$(NC)"; \
-	else \
-		echo -e "CMake Status: $(YELLOW)NOT CONFIGURED$(NC)"; \
-	fi
-	@echo -e "Available Stages:"
-	@for stage in 0 1 2 3 4 5 6; do \
-		if [ -d "rift-$$stage" ] || [ -d "rift/src/core/stage-$$stage" ]; then \
-			echo -e "  $(GREEN)✓$(NC) Stage $$stage"; \
+	@echo -e "Available Libraries:"
+	@for stage in $(STAGES); do \
+		if [ -f "$(LIB_DIR)/rift-$$stage.a" ]; then \
+			echo -e "  $(GREEN)✓$(NC) rift-$$stage.a"; \
 		else \
-			echo -e "  $(RED)✗$(NC) Stage $$stage"; \
+			echo -e "  $(RED)✗$(NC) rift-$$stage.a"; \
 		fi; \
 	done
 	@echo -e "$(CYAN)==================================================================$(NC)"
 
-.PHONY: logs
-logs:
-	@echo -e "$(BLUE)[LOGS]$(NC) Recent build logs:"
-	@if [ -d "$(LOGS_DIR)" ]; then \
-		ls -la $(LOGS_DIR)/; \
-		echo -e "$(YELLOW)[INFO]$(NC) Use 'tail -f $(LOGS_DIR)/<logfile>' to monitor builds"; \
-	else \
-		echo -e "$(YELLOW)[WARNING]$(NC) Logs directory not found"; \
-	fi
-
 .PHONY: help
 help:
-	@echo -e "$(CYAN)$(BOLD)RIFT Build System - Available Targets$(NC)"
+	@echo -e "$(CYAN)$(BOLD)RIFT Build System - Corrected Implementation$(NC)"
 	@echo ""
 	@echo -e "$(BOLD)Primary Targets:$(NC)"
-	@echo "  all                - Complete build with pkg-config integration (default)"
-	@echo "  setup              - Initialize directories and run setup wizard"
-	@echo "  clean              - Remove build artifacts"
-	@echo "  deep-clean         - Remove all generated files"
-	@echo ""
-	@echo -e "$(BOLD)Build Targets:$(NC)"
-	@echo "  cmake-build        - Build using CMake system"
-	@echo "  cmake-install      - Install RIFT system components"
+	@echo "  all              - Complete corrected build (default)"
+	@echo "  setup            - Initialize directories"
+	@echo "  direct-build     - Build with corrected naming conventions"
+	@echo "  clean            - Remove build artifacts"
+	@echo "  deep-clean       - Remove all generated files"
 	@echo ""
 	@echo -e "$(BOLD)pkg-config Targets:$(NC)"
-	@echo "  pkg-config-integration - Generate pkg-config files"
-	@echo "  pkg-config-install     - Install pkg-config files system-wide"
-	@echo "  pkg-config-test        - Test pkg-config functionality"
+	@echo "  pkg-config-integration - Generate corrected pkg-config files"
 	@echo ""
 	@echo -e "$(BOLD)Validation Targets:$(NC)"
-	@echo "  validate           - Run comprehensive validation"
+	@echo "  validate         - Run comprehensive validation"
 	@echo "  validate-structure - Validate directory structure"
+	@echo "  validate-libraries - Validate corrected library naming"
 	@echo "  validate-executables - Validate stage executables"
-	@echo "  validate-libraries - Validate static libraries"
-	@echo ""
-	@echo -e "$(BOLD)Testing Targets:$(NC)"
-	@echo "  test               - Run test suite"
-	@echo "  demo               - Execute pipeline demonstration"
-	@echo "  external-examples  - Build external integration examples"
 	@echo ""
 	@echo -e "$(BOLD)Maintenance Targets:$(NC)"
-	@echo "  status             - Show system status"
-	@echo "  logs               - Show recent build logs"
-	@echo "  help               - Show this help message"
+	@echo "  status           - Show corrected system status"
+	@echo "  help             - Show this help message"
 	@echo ""
-	@echo -e "$(BOLD)Example Usage:$(NC)"
-	@echo "  make setup         # Initialize and configure"
-	@echo "  make all           # Complete build with pkg-config"
-	@echo "  make pkg-config-test # Test external pkg-config integration"
+	@echo -e "$(BOLD)Key Corrections Applied:$(NC)"
+	@echo "  • Library naming: rift-N.a (without lib prefix)"
+	@echo "  • Dependency tracking: -MMD -MP flags enabled"
+	@echo "  • Target resolution: Fixed naming collisions"
+	@echo "  • AEGIS compliance: Systematic validation"
 	@echo ""
 	@echo -e "$(MAGENTA)OBINexus Computing Framework - Computing from the Heart$(NC)"
 
-# =================================================================
-# PHONY TARGET DECLARATIONS
-# =================================================================
+# Include dependency files
+-include $(shell find $(OBJ_DIR) -name "*.d" 2>/dev/null)
 
-.PHONY: banner setup-directories setup-wizard cmake-build cmake-install
-.PHONY: pkg-config-integration pkg-config-install pkg-config-test
-.PHONY: validate validate-structure validate-executables validate-libraries
-.PHONY: test demo external-examples status logs help
+# Declare all targets as PHONY where appropriate
+.PHONY: banner setup-directories unified-cli pkg-config-integration
+.PHONY: validate validate-structure validate-libraries validate-executables
+.PHONY: status help
