@@ -16,11 +16,17 @@
 │   ├── CMakeFiles
 │   │   ├── 3.25.1
 │   │   │   ├── CMakeCCompiler.cmake
+│   │   │   ├── CMakeCXXCompiler.cmake
 │   │   │   ├── CMakeDetermineCompilerABI_C.bin
+│   │   │   ├── CMakeDetermineCompilerABI_CXX.bin
 │   │   │   ├── CMakeSystem.cmake
-│   │   │   └── CompilerIdC
+│   │   │   ├── CompilerIdC
+│   │   │   │   ├── a.out
+│   │   │   │   ├── CMakeCCompilerId.c
+│   │   │   │   └── tmp
+│   │   │   └── CompilerIdCXX
 │   │   │       ├── a.out
-│   │   │       ├── CMakeCCompilerId.c
+│   │   │       ├── CMakeCXXCompilerId.cpp
 │   │   │       └── tmp
 │   │   ├── cmake.check_cache
 │   │   ├── CMakeDirectoryInformation.cmake
@@ -224,16 +230,19 @@
 │       └── Makefile
 ├── cmake
 │   ├── common
-│   │   └── compiler_pipeline.cmake
+│   │   ├── compiler_pipeline.cmake
+│   │   └── executable_enhancement.cmake
 │   └── modules
 │       └── FindRIFT.cmake
 ├── CMakeLists.txt
+├── CMakeLists.txt.old
 ├── demo_output
 ├── docs
 │   └── Doxyfile.in
 ├── include
 │   └── rift
 │       ├── cli
+│       │   └── commands.h
 │       ├── config
 │       └── core
 ├── lib
@@ -315,6 +324,8 @@
 │   │       │   │   └── validator.h
 │   │       │   └── verifier
 │   │       │       └── verifier.h
+│   │       ├── governance
+│   │       │   └── governance.h
 │   │       ├── lexer
 │   │       ├── rift.h
 │   │       ├── tokenizer
@@ -454,39 +465,64 @@
 │   │   ├── cli
 │   │   │   ├── cli.c
 │   │   │   ├── command
-│   │   │   └── main.c
+│   │   │   ├── commands
+│   │   │   ├── config
+│   │   │   │   └── config_loader.c
+│   │   │   ├── governance
+│   │   │   ├── main.c
+│   │   │   └── pipeline
+│   │   ├── commands
+│   │   │   ├── analyze.c
+│   │   │   ├── compile.c
+│   │   │   ├── emit.c
+│   │   │   ├── generate.c
+│   │   │   ├── governance.c
+│   │   │   ├── parse.c
+│   │   │   ├── tokenize.c
+│   │   │   ├── validate.c
+│   │   │   └── verify.c
 │   │   ├── config
 │   │   │   └── config.c
-│   │   └── core
-│   │       ├── bytecode
-│   │       │   └── bytecode.c
-│   │       ├── cli
-│   │       │   └── cli.c
+│   │   ├── core
+│   │   │   ├── bytecode
+│   │   │   │   └── bytecode.c
+│   │   │   ├── cli
+│   │   │   │   └── cli.c
+│   │   │   ├── config
+│   │   │   │   └── config.c
+│   │   │   ├── core
+│   │   │   │   └── core.c
+│   │   │   ├── emitter
+│   │   │   │   └── emitter.c
+│   │   │   ├── governance
+│   │   │   │   └── governance.c
+│   │   │   ├── lexer
+│   │   │   │   └── lexer.c
+│   │   │   ├── parser
+│   │   │   │   └── parser.c
+│   │   │   ├── rift.c
+│   │   │   ├── semantic
+│   │   │   │   └── semantic.c
+│   │   │   ├── tokenizer
+│   │   │   │   └── tokenizer.c
+│   │   │   ├── token_type
+│   │   │   │   └── token_type.c
+│   │   │   ├── token_value
+│   │   │   │   └── token_value.c
+│   │   │   ├── validator
+│   │   │   │   └── validator.c
+│   │   │   └── verifier
+│   │   │       └── verifier.c
+│   │   └── governance
 │   │       ├── config
-│   │       │   └── config.c
-│   │       ├── core
-│   │       │   └── core.c
-│   │       ├── emitter
-│   │       │   └── emitter.c
-│   │       ├── governance
-│   │       │   └── governance.c
-│   │       ├── lexer
-│   │       │   └── lexer.c
-│   │       ├── parser
-│   │       │   └── parser.c
-│   │       ├── rift.c
-│   │       ├── semantic
-│   │       │   └── semantic.c
-│   │       ├── tokenizer
-│   │       │   └── tokenizer.c
-│   │       ├── token_type
-│   │       │   └── token_type.c
-│   │       ├── token_value
-│   │       │   └── token_value.c
-│   │       ├── validator
-│   │       │   └── validator.c
-│   │       └── verifier
-│   │           └── verifier.c
+│   │       ├── config.c
+│   │       ├── memory.c
+│   │       ├── policy
+│   │       ├── tokens.c
+│   │       ├── validation
+│   │       ├── validation.c
+│   │       ├── waterfall.c
+│   │       └── zero_trust.c
 │   └── tests
 │       ├── benchmark
 │       ├── integration
@@ -631,7 +667,7 @@
 │       ├── integration
 │       └── unit
 │           └── test_emitter.c
-├── rift_tree.txt
+├── rifttree.txt
 ├── scripts
 │   ├── bash_syntax_fix.sh
 │   ├── bootstrap
@@ -648,6 +684,7 @@
 │   │   └── build-all.sh
 │   ├── components
 │   │   └── rift-artifacts.sh
+│   ├── demo_pipeline_standardized.sh
 │   ├── deployment
 │   │   └── deploy.sh
 │   ├── examples
@@ -755,9 +792,13 @@
 │       └── validate_obinexus.sh
 ├── src
 │   ├── cli
-│   │   └── CMakeLists.txt
+│   │   ├── CMakeLists.txt
+│   │   └── main.c
+│   ├── commands
+│   │   └── tokenize.c
 │   ├── config
-│   │   └── CMakeLists.txt
+│   │   ├── CMakeLists.txt
+│   │   └── config.c
 │   └── core
 │       └── CMakeLists.txt
 ├── Testing
@@ -769,4 +810,4 @@
     ├── integration
     └── unit
 
-424 directories, 346 files
+437 directories, 374 files

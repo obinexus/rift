@@ -39,6 +39,39 @@ YELLOW := \033[1;33m
 RED := \033[0;31m
 NC := \033[0m
 
+# Ensure directories exist
+# =================================================================
+# UNIFIED CLI TARGETS - AEGIS METHODOLOGY
+# =================================================================
+
+# Unified CLI binary target
+RIFT_CLI_EXECUTABLE = bin/rift.exe
+RIFT_CLI_SOURCES = \
+    rift/src/cli/main.c \
+    rift/src/commands/*.c \
+    rift/src/governance/*.c
+
+# CLI compilation with complete stage linkage
+$(RIFT_CLI_EXECUTABLE): $(STATIC_LIB) $(RIFT_CLI_SOURCES) | directories
+	@echo "🚀 Building RIFT Unified CLI..."
+	$(CC) $(CFLAGS) $(RIFT_CLI_SOURCES) -o $@ \
+		-Llib -lrfi \
+		-Irift-0/include -Irift-1/include -Irift-2/include \
+		-Irift-3/include -Irift-4/include -Irift-5/include -Irift-6/include \
+		-Irift/include \
+		-lssl -lcrypto -lpthread
+	@echo "✅ RIFT CLI ready: $@"
+
+# CLI-specific targets
+cli: $(RIFT_CLI_EXECUTABLE)
+
+cli-test: $(RIFT_CLI_EXECUTABLE)
+	@echo "🧪 RIFT CLI Functional Testing..."
+	./$(RIFT_CLI_EXECUTABLE) --version
+	./$(RIFT_CLI_EXECUTABLE) validate-memory --alignment 4096
+	./$(RIFT_CLI_EXECUTABLE) validate-tokens --schema-check
+	./$(RIFT_CLI_EXECUTABLE) validate-governance --config .riftrc
+	@echo "✅ CLI functional tests passed"
 # Default target
 .PHONY: all
 all: banner setup cmake-build

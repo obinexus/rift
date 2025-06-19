@@ -3,7 +3,21 @@
 # OBINexus Computing Framework - AEGIS Methodology Compliance
 # Technical Architecture: Systematic Waterfall Development
 # =================================================================
+# Add CLI subdirectory after stage libraries
+add_subdirectory(rift-0)
+add_subdirectory(rift-1) 
+add_subdirectory(rift-2)
+add_subdirectory(rift-3)
+add_subdirectory(rift-4)
+add_subdirectory(rift-5)
+add_subdirectory(rift-6)
 
+# Add unified CLI - depends on all stage libraries
+add_subdirectory(rift/cli)  # Contains our unified CLI CMakeLists.txt
+
+# Governance configuration generation
+configure_file(governance/templates/riftrc.in ${CMAKE_BINARY_DIR}/.riftrc @ONLY)
+configure_file(governance/templates/pkg.riftrc.in ${CMAKE_BINARY_DIR}/pkg.riftrc @ONLY)
 cmake_minimum_required(VERSION 3.16)
 
 # Master CLI Configuration
