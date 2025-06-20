@@ -3,11 +3,13 @@
 ├── CMakeLists.txt
 ├── docs
 ├── examples
+│   └── lexem-calculation-demo.c
 ├── include
 │   └── rift-0
 │       ├── cli
 │       └── core
-│           └── tokenizer.h
+│           ├── tokenizer.h
+│           └── tokenizer_rules.h
 ├── rift-0.txt
 ├── src
 │   └── core
@@ -18,4 +20,4 @@
     └── unit
         └── test_tokenizer.c
 
-14 directories, 5 files
+14 directories, 7 files
