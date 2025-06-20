@@ -1,8 +1,8 @@
 # =================================================================
 # RIFT Governance-Integrated Makefile - AEGIS Methodology Compliance
-# OBINexus Computing Framework - Restructured Architecture
-# Systematic Phase-Gated Build Process with Governance Validation
-# FIXED: Line 244 syntax error and restructured project organization
+# OBINexus Computing Framework - CORRECTED LIBRARY NAMING
+# Systematic Phase-Gated Build Process with GNU Linker Compatibility
+# FIXED: Library naming convention to follow standard lib*.a pattern
 # =================================================================
 
 # Configuration Variables - AEGIS Standards
@@ -95,18 +95,20 @@ CYAN := \033[0;36m
 BOLD := \033[1m
 NC := \033[0m
 
-# Stage Configuration Matrix
+# Stage Configuration Matrix - CORRECTED NAMING
 STAGES := 0 1 2 3 4 5 6
 STAGE_NAMES := tokenizer parser semantic validator bytecode optimizer emitter
-STAGE_LIBS_STATIC := $(addprefix $(LIB_DIR)/rift-,$(addsuffix .a,$(STAGES)))
-STAGE_LIBS_SHARED := $(addprefix $(LIB_DIR)/rift-,$(addsuffix .so,$(STAGES)))
+
+# CORRECTED: Library naming to follow GNU linker conventions
+STAGE_LIBS_STATIC := $(addprefix $(LIB_DIR)/librift-,$(addsuffix .a,$(STAGES)))
+STAGE_LIBS_SHARED := $(addprefix $(LIB_DIR)/librift-,$(addsuffix .so,$(STAGES)))
 STAGE_PKGCONFIG := $(addprefix $(BUILD_DIR)/pkgconfig/rift-,$(addsuffix .pc,$(STAGES)))
 
 # =================================================================
 # PRIMARY TARGETS WITH GOVERNANCE INTEGRATION
 # =================================================================
 
-.PHONY: all governance-validated-build setup clean validate-governance banner help
+.PHONY: all governance-validated-build setup clean validate-governance banner help migration
 
 all: banner setup direct-build validate
 
@@ -115,6 +117,26 @@ governance-validated-build: phase-gate-5 direct-build
 setup: banner setup-directories setup-source-structure
 
 direct-build: setup $(STAGE_LIBS_STATIC) $(STAGE_LIBS_SHARED) $(STAGE_PKGCONFIG) unified-cli
+
+# =================================================================
+# LIBRARY MIGRATION SUPPORT
+# =================================================================
+
+.PHONY: migration
+migration: banner
+	@echo -e "$(BLUE)[MIGRATION]$(NC) Performing library naming convention migration..."
+	@echo -e "$(BLUE)[MIGRATION]$(NC) Renaming existing libraries to GNU standard..."
+	@for stage in $(STAGES); do \
+		if [ -f "$(LIB_DIR)/rift-$$stage.a" ]; then \
+			echo -e "$(BLUE)[MIGRATION]$(NC) Moving rift-$$stage.a to librift-$$stage.a"; \
+			mv "$(LIB_DIR)/rift-$$stage.a" "$(LIB_DIR)/librift-$$stage.a"; \
+		fi; \
+		if [ -f "$(LIB_DIR)/rift-$$stage.so" ]; then \
+			echo -e "$(BLUE)[MIGRATION]$(NC) Moving rift-$$stage.so to librift-$$stage.so"; \
+			mv "$(LIB_DIR)/rift-$$stage.so" "$(LIB_DIR)/librift-$$stage.so"; \
+		fi; \
+	done
+	@echo -e "$(GREEN)[MIGRATION]$(NC) Library migration completed"
 
 # =================================================================
 # RESTRUCTURED DIRECTORY SETUP
@@ -166,11 +188,12 @@ install-pkgconfig: $(STAGE_PKGCONFIG)
 	@echo -e "$(GREEN)[INSTALL]$(NC) pkg-config files installed"
 
 # =================================================================
-# RIFT STAGE LIBRARY BUILD SYSTEM
+# RIFT STAGE LIBRARY BUILD SYSTEM - CORRECTED NAMING
 # =================================================================
 
-$(LIB_DIR)/rift-%.a: $(OBJ_DIR)/stage-%
-	@echo -e "$(BLUE)[STAGE $*]$(NC) Creating static library rift-$*.a..."
+# CORRECTED: Stage Library Targets with proper lib* naming
+$(LIB_DIR)/librift-%.a: $(OBJ_DIR)/stage-%
+	@echo -e "$(BLUE)[STAGE $*]$(NC) Creating static library librift-$*.a..."
 	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
 		find $(OBJ_DIR)/stage-$* -name "*.o" -exec $(AR) rcs $@ {} +; \
 	else \
@@ -180,10 +203,10 @@ $(LIB_DIR)/rift-%.a: $(OBJ_DIR)/stage-%
 		$(CC) $(CFLAGS) -c $(OBJ_DIR)/stage-$*/placeholder.c -o $(OBJ_DIR)/stage-$*/placeholder.o; \
 		$(AR) rcs $@ $(OBJ_DIR)/stage-$*/placeholder.o; \
 	fi
-	@echo -e "$(GREEN)[STAGE $*]$(NC) Static library rift-$*.a created"
+	@echo -e "$(GREEN)[STAGE $*]$(NC) Static library librift-$*.a created"
 
-$(LIB_DIR)/rift-%.so: $(OBJ_DIR)/stage-%
-	@echo -e "$(BLUE)[STAGE $*]$(NC) Creating shared library rift-$*.so..."
+$(LIB_DIR)/librift-%.so: $(OBJ_DIR)/stage-%
+	@echo -e "$(BLUE)[STAGE $*]$(NC) Creating shared library librift-$*.so..."
 	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
 		$(CC) -shared -o $@ $$(find $(OBJ_DIR)/stage-$* -name "*.o") $(LIBS); \
 	else \
@@ -193,7 +216,7 @@ $(LIB_DIR)/rift-%.so: $(OBJ_DIR)/stage-%
 		$(CC) $(CFLAGS) -fPIC -c $(OBJ_DIR)/stage-$*/placeholder.c -o $(OBJ_DIR)/stage-$*/placeholder.o; \
 		$(CC) -shared -o $@ $(OBJ_DIR)/stage-$*/placeholder.o $(LIBS); \
 	fi
-	@echo -e "$(GREEN)[STAGE $*]$(NC) Shared library rift-$*.so created"
+	@echo -e "$(GREEN)[STAGE $*]$(NC) Shared library librift-$*.so created"
 
 $(OBJ_DIR)/stage-%:
 	@mkdir -p $@
@@ -215,7 +238,7 @@ $(OBJ_DIR)/gov/%.o: $(CORE_GOV_DIR)/*/%.c | setup-directories
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) $(GOVERNANCE_CFLAGS) -MMD -MP -c $< -o $@
 
-# Governance Validator Target - FIXED: Removed heredoc, using proper command syntax
+# Governance Validator Target
 $(GOVERNANCE_VALIDATOR): $(GOVERNANCE_OBJECTS) | setup-directories
 	@echo -e "$(BLUE)[GOVERNANCE]$(NC) Building governance validator..."
 	@if [ -n "$(GOVERNANCE_SOURCES)" ] && [ -f "$(word 1,$(GOVERNANCE_SOURCES))" ]; then \
@@ -237,7 +260,7 @@ $(GOVERNANCE_VALIDATOR): $(GOVERNANCE_OBJECTS) | setup-directories
 	@echo -e "$(GREEN)[GOVERNANCE]$(NC) Governance validator built successfully"
 
 # =================================================================
-# CLI BUILD SYSTEM - FIXED: Proper command structure without heredoc
+# CLI BUILD SYSTEM
 # =================================================================
 
 # CLI Object Compilation Rules
@@ -262,15 +285,15 @@ $(OBJ_DIR)/core/%.o: $(CORE_CONFIG_DIR)/%.c | setup-directories
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
-# Unified CLI Target - FIXED: Removed problematic heredoc
+# CORRECTED: Unified CLI Target with proper library linking
 .PHONY: unified-cli
 unified-cli: $(BIN_DIR)/rift$(EXE_EXT)
 
 $(BIN_DIR)/rift$(EXE_EXT): setup-cli-sources $(STAGE_LIBS_STATIC) | setup-directories
-	@echo -e "$(BLUE)[CLI]$(NC) Building unified RIFT CLI..."
+	@echo -e "$(BLUE)[CLI]$(NC) Building unified RIFT CLI with corrected library linking..."
 	@$(CC) $(CFLAGS) -o $@ $(CLI_DIR)/main.c $(LDFLAGS) \
 		-lrift-0 -lrift-1 -lrift-2 -lrift-3 -lrift-4 -lrift-5 -lrift-6 $(LIBS)
-	@echo -e "$(GREEN)[CLI]$(NC) Unified CLI rift$(EXE_EXT) created"
+	@echo -e "$(GREEN)[CLI]$(NC) Unified CLI rift$(EXE_EXT) created successfully"
 
 .PHONY: setup-cli-sources
 setup-cli-sources:
@@ -286,7 +309,8 @@ setup-cli-sources:
 			'    (void)argc; (void)argv;' \
 			'    printf("RIFT Unified CLI v$(RIFT_VERSION)\n");' \
 			'    printf("OBINexus Computing Framework - AEGIS Methodology\n");' \
-			'    printf("Status: Build System Operational\n");' \
+			'    printf("Build System: GNU Linker Compatible\n");' \
+			'    printf("Libraries: librift-0.a through librift-6.a\n");' \
 			'    return 0;' \
 			'}' > $(CLI_DIR)/main.c; \
 	fi
@@ -349,7 +373,8 @@ validate-governance-strict: $(GOVERNANCE_VALIDATOR)
 clean: banner
 	@echo -e "$(BLUE)[CLEAN]$(NC) Removing build artifacts..."
 	@rm -rf $(BUILD_DIR) $(OBJ_DIR)
-	@rm -f $(LIB_DIR)/*.a $(LIB_DIR)/*.so $(BIN_DIR)/*$(EXE_EXT)
+	@rm -f $(LIB_DIR)/librift-*.a $(LIB_DIR)/librift-*.so $(BIN_DIR)/*$(EXE_EXT)
+	@rm -f $(LIB_DIR)/rift-*.a $(LIB_DIR)/rift-*.so  # Clean old naming convention files
 	@rm -f $(GOVERNANCE_VALIDATOR)
 	@find . -name "*.d" -delete 2>/dev/null || true
 	@rm -f $(LOGS_DIR)/phase_gate_*.marker $(LOGS_DIR)/*.log
@@ -362,25 +387,26 @@ banner:
 	@echo -e "$(BOLD)$(BLUE)"
 	@echo "======================================================================"
 	@echo "RIFT Compiler with AEGIS Governance Validation Framework"
-	@echo "OBINexus Computing - Restructured Architecture v$(RIFT_VERSION)"
+	@echo "OBINexus Computing - GNU Linker Compatible Architecture"
 	@echo "AEGIS Compliance: $(AEGIS_COMPLIANCE) | Platform: $(PLATFORM)"
+	@echo "Library Naming: GNU Standard (librift-*.a)"
 	@echo "======================================================================"
 	@echo -e "$(NC)"
 
 help:
-	@echo "RIFT AEGIS Makefile - Restructured Architecture:"
+	@echo "RIFT AEGIS Makefile - GNU Linker Compatible:"
 	@echo ""
 	@echo "  Setup and Build:"
 	@echo "    setup                   - Create restructured directory structure"
 	@echo "    all                     - Complete build with governance validation"
 	@echo "    direct-build            - Direct build without phase gates"
+	@echo "    migration               - Migrate existing libraries to GNU naming"
 	@echo "    clean                   - Remove all build artifacts"
 	@echo ""
-	@echo "  Project Structure:"
-	@echo "    cli/                    - CLI framework (config, commands, main.c)"
-	@echo "    core/gov-feature/       - Governance feature implementations"
-	@echo "    core/config/            - Core configuration management"
-	@echo "    include/gov/            - Governance framework headers"
+	@echo "  Library Naming (Corrected):"
+	@echo "    Static Libraries:       librift-0.a through librift-6.a"
+	@echo "    Shared Libraries:       librift-0.so through librift-6.so"
+	@echo "    Linker Flags:           -lrift-0 -lrift-1 ... -lrift-6"
 	@echo ""
 	@echo "  Build System:"
 	@echo "    CFLAGS includes: -I$(INCLUDE_DIR) -I$(INCLUDE_GOV_DIR)"
@@ -396,4 +422,4 @@ help:
 -include $(CORE_CONFIG_OBJECTS:.o=.d)
 
 .PRECIOUS: $(OBJ_DIR)/%.d
-.PHONY: governance-validated-build install-pkgconfig setup-cli-sources setup-source-structure
+.PHONY: governance-validated-build install-pkgconfig setup-cli-sources setup-source-structure migration
