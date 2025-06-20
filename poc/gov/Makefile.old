@@ -149,40 +149,13 @@ phase-gate-5: phase-gate-4
 # PRIMARY TARGETS WITH GOVERNANCE INTEGRATION
 # =================================================================
 
-.PHONY: all governance-validated-build setup setup-dependencies clean validate-governance
+.PHONY: all governance-validated-build setup clean validate-governance
 
 all: banner setup governance-validated-build validate
 
 governance-validated-build: phase-gate-5 direct-build
 
-# Integrated Setup Target - AEGIS Methodology Compliance
-setup: banner setup-dependencies setup-directories
-
-# Setup Dependencies through Automated Script
-setup-dependencies:
-	@echo -e "$(BOLD)$(BLUE)"
-	@echo "======================================================================"
-	@echo "AEGIS Governance POC - Automated Dependency Resolution"
-	@echo "======================================================================"
-	@echo -e "$(NC)"
-	@echo -e "$(BLUE)[SETUP]$(NC) Initiating systematic dependency resolution..."
-	@if [ -f setup.sh ]; then \
-		chmod +x setup.sh; \
-		echo -e "$(BLUE)[SETUP]$(NC) Executing platform-aware setup script..."; \
-		./setup.sh --deps-only 2>&1 | tee $(LOGS_DIR)/setup_dependencies.log; \
-		if [ $? -eq 0 ]; then \
-			echo -e "$(GREEN)[SETUP]$(NC) Dependency resolution completed successfully"; \
-			touch $(LOGS_DIR)/setup_dependencies_passed.marker; \
-		else \
-			echo -e "$(RED)[FATAL]$(NC) Dependency resolution failed"; \
-			cat $(LOGS_DIR)/setup_dependencies.log; \
-			exit 1; \
-		fi; \
-	else \
-		echo -e "$(RED)[FATAL]$(NC) setup.sh not found - manual dependency installation required"; \
-		echo -e "$(YELLOW)[INFO]$(NC) Please install: gcc, make, cmake, pkg-config, libcjson-dev, libssl-dev"; \
-		exit 1; \
-	fi
+setup: banner setup-directories
 
 # Governance Validator Target
 $(GOVERNANCE_VALIDATOR): $(GOVERNANCE_SOURCES) $(GOVERNANCE_HEADERS) | setup-directories
@@ -269,42 +242,6 @@ test-governance: $(GOVERNANCE_VALIDATOR)
 # MAINTENANCE AND UTILITY TARGETS
 # =================================================================
 
-# Setup Verification Target
-setup-verify: setup-dependencies
-	@echo -e "$(BLUE)[VERIFY]$(NC) Verifying setup completion..."
-	@echo -e "$(BLUE)[VERIFY]$(NC) Checking build tools..."
-	@which gcc > /dev/null || (echo -e "$(RED)[FATAL]$(NC) gcc not found" && exit 1)
-	@which make > /dev/null || (echo -e "$(RED)[FATAL]$(NC) make not found" && exit 1)
-	@which cmake > /dev/null || (echo -e "$(RED)[FATAL]$(NC) cmake not found" && exit 1)
-	@which pkg-config > /dev/null || (echo -e "$(RED)[FATAL]$(NC) pkg-config not found" && exit 1)
-	@echo -e "$(BLUE)[VERIFY]$(NC) Checking package dependencies..."
-	@pkg-config --exists libcjson || pkg-config --exists cjson || (echo -e "$(RED)[FATAL]$(NC) cjson library not found" && exit 1)
-	@pkg-config --exists openssl || (echo -e "$(RED)[FATAL]$(NC) OpenSSL library not found" && exit 1)
-	@echo -e "$(GREEN)[VERIFY]$(NC) Setup verification completed successfully"
-	@touch $(LOGS_DIR)/setup_verification_passed.marker
-
-# Quick Setup (Skip verification for development)
-setup-quick: banner setup-directories create-test-governance-files
-	@echo -e "$(YELLOW)[QUICK]$(NC) Quick setup completed (dependencies assumed present)"
-
-# Create Test Governance Files
-create-test-governance-files:
-	@echo -e "$(BLUE)[GOVERNANCE]$(NC) Creating test governance files..."
-	@if [ ! -f .riftrc ]; then \
-		echo '{"package_name":"rift-governance-poc","version":"1.0.0","timestamp":"2025-06-20T00:00:00Z","stage":0,"stage_type":"experimental","semverx_lock":false,"entry_point":"governance/rift_governance_validator.c","nlink_enabled":false}' > .riftrc; \
-		echo -e "$(GREEN)[GOVERNANCE]$(NC) Created .riftrc file"; \
-	fi
-	@for stage in $(STAGES); do \
-		if [ ! -f .riftrc.$stage ]; then \
-			echo "{\"package_name\":\"rift-stage-$stage\",\"version\":\"1.0.0\",\"timestamp\":\"2025-06-20T00:00:00Z\",\"stage\":$stage,\"stage_type\":\"experimental\",\"semverx_lock\":false,\"entry_point\":\"src/core/stage-$stage/\",\"nlink_enabled\":false}" > .riftrc.$stage; \
-			echo -e "$(GREEN)[GOVERNANCE]$(NC) Created .riftrc.$stage file"; \
-		fi; \
-	done
-	@if [ ! -f gov.optimizer.stage.riftrc.5 ]; then \
-		echo '{"package_name":"rift-optimizer","version":"1.0.0","timestamp":"2025-06-20T00:00:00Z","stage":5,"stage_type":"stable","semverx_lock":true,"entry_point":"src/core/stage-5/optimizer.c","nlink_enabled":true,"stage_5_optimizer":{"optimizer_model":"AST-aware-minimizer-v2","minimization_verified":true,"path_hash":"d4f2c1a8b3e9f7c6d2a5e8b1c4f7d3a6e9b2c5f8d1a4e7b0c3f6d9a2e5b8c1f4","post_optimization_hash":"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2","audit_enabled":true,"security_level":"exploit_elimination","semantic_equivalence_proof":true}}' > gov.optimizer.stage.riftrc.5; \
-		echo -e "$(GREEN)[GOVERNANCE]$(NC) Created gov.optimizer.stage.riftrc.5 file"; \
-	fi
-
 # Clean Target
 clean: banner
 	@echo -e "$(BLUE)[CLEAN]$(NC) Removing build artifacts..."
@@ -333,11 +270,7 @@ banner:
 help:
 	@echo "RIFT AEGIS Makefile - Available Targets:"
 	@echo ""
-	@echo "  Setup and Build:"
-	@echo "    setup                   - Automated dependency resolution and environment setup"
-	@echo "    setup-dependencies      - Install platform-specific dependencies only"
-	@echo "    setup-verify            - Verify setup completion and dependency availability"
-	@echo "    setup-quick             - Quick setup without dependency verification"
+	@echo "  Primary Targets:"
 	@echo "    all                     - Complete build with governance validation"
 	@echo "    governance-validated-build - Phase-gated build with full validation"
 	@echo "    clean                   - Remove all build artifacts"
@@ -364,6 +297,6 @@ help:
 -include $(OBJ_DIR)/*/*.d
 
 # Mark targets as phony
-.PHONY: banner help all setup setup-dependencies setup-verify setup-quick create-test-governance-files clean validate direct-build unified-cli
+.PHONY: banner help all setup clean validate direct-build unified-cli
 .PHONY: governance-validated-build validate-governance validate-governance-strict
 .PHONY: qa-governance test-governance
