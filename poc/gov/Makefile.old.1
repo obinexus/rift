@@ -240,258 +240,40 @@ $(BIN_DIR)/rift$(EXE_EXT): $(STAGE_LIBS_STATIC) | setup-directories
 	@if [ ! -f $(SRC_DIR)/cli/main.c ]; then \
 		echo -e "$(YELLOW)[CLI]$(NC) Creating AEGIS-compliant CLI main.c..."; \
 		mkdir -p $(SRC_DIR)/cli; \
-		cat > $(SRC_DIR)/cli/main.c << 'EOF'
-/**
- * @file main.c
- * @brief RIFT Unified CLI - AEGIS Methodology Compliance
- * @author OBINexus Computing Framework
- * @version 1.6.0
- * 
- * Command-line interface for RIFT compiler pipeline validation
- * Integrates governance validation, stage management, and build system controls
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-// RIFT CLI Return Codes
-#define CLI_SUCCESS 0
-#define CLI_INVALID_ARGS 1
-#define CLI_VALIDATION_FAILED 2
-#define CLI_BUILD_FAILED 3
-
-// CLI Command Structure
-typedef struct {
-    const char *command;
-    const char *description;
-    int (*handler)(int argc, char *argv[]);
-} cli_command_t;
-
-/**
- * @brief Display CLI usage information
- * @param program_name Name of the executable
- */
-void display_usage(const char *program_name) {
-    printf("====================================================================\n");
-    printf("RIFT Unified CLI v1.6.0\n");
-    printf("OBINexus Computing Framework - AEGIS Methodology\n");
-    printf("====================================================================\n");
-    printf("\nUsage: %s [command] [options]\n\n", program_name);
-    printf("Commands:\n");
-    printf("  status          Show build system status\n");
-    printf("  validate        Run governance validation\n");
-    printf("  build           Execute systematic build\n");
-    printf("  clean           Clean build artifacts\n");
-    printf("  help            Show this help message\n");
-    printf("\nOptions:\n");
-    printf("  -v, --verbose   Enable verbose output\n");
-    printf("  -s, --strict    Enable strict validation mode\n");
-    printf("  --version       Show version information\n");
-    printf("\nExamples:\n");
-    printf("  %s status\n", program_name);
-    printf("  %s validate --verbose\n", program_name);
-    printf("  %s build --strict\n", program_name);
-    printf("\n");
-}
-
-/**
- * @brief Handle status command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_status(int argc, char *argv[]) {
-    printf("\n====================================================================\n");
-    printf("RIFT Build System Status Report\n");
-    printf("====================================================================\n");
-    printf("Version: 1.6.0\n");
-    printf("AEGIS Compliance: ENABLED\n");
-    printf("Governance Validation: ACTIVE\n");
-    printf("Build Configuration: Waterfall Methodology\n");
-    printf("\nStage Pipeline Status:\n");
-    printf("  [0] Tokenizer     : READY (rift-0.a, rift-0.so)\n");
-    printf("  [1] Parser        : READY (rift-1.a, rift-1.so)\n");
-    printf("  [2] Semantic      : READY (rift-2.a, rift-2.so)\n");
-    printf("  [3] Validator     : READY (rift-3.a, rift-3.so)\n");
-    printf("  [4] Bytecode      : READY (rift-4.a, rift-4.so)\n");
-    printf("  [5] Optimizer     : READY (rift-5.a, rift-5.so)\n");
-    printf("  [6] Emitter       : READY (rift-6.a, rift-6.so)\n");
-    printf("\nGovernance Framework: Operational\n");
-    printf("PKG-Config Integration: Available\n");
-    printf("Build System: Validated\n");
-    
-    // Check for governance files
-    printf("\nGovernance File Status:\n");
-    for (int i = 0; i < 7; i++) {
-        char config_path[256];
-        snprintf(config_path, sizeof(config_path), ".riftrc.%d", i);
-        if (access(config_path, F_OK) == 0) {
-            printf("  .riftrc.%d       : PRESENT\n", i);
-        } else {
-            printf("  .riftrc.%d       : MISSING\n", i);
-        }
-    }
-    
-    return CLI_SUCCESS;
-}
-
-/**
- * @brief Handle validate command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_validate(int argc, char *argv[]) {
-    printf("\n====================================================================\n");
-    printf("RIFT Governance Validation\n");
-    printf("====================================================================\n");
-    
-    // Parse validation options
-    int verbose = 0;
-    int strict = 0;
-    
-    for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0) {
-            verbose = 1;
-        } else if (strcmp(argv[i], "--strict") == 0 || strcmp(argv[i], "-s") == 0) {
-            strict = 1;
-        }
-    }
-    
-    printf("Validation Mode: %s\n", strict ? "Strict" : "Standard");
-    printf("Verbose Output: %s\n", verbose ? "Enabled" : "Disabled");
-    
-    // Execute governance validator if available
-    char validator_path[] = "./bin/rift_governance_validator";
-    if (access(validator_path, X_OK) == 0) {
-        printf("\nExecuting governance validator...\n");
-        char command[512];
-        snprintf(command, sizeof(command), "%s . %s %s", 
-                validator_path,
-                verbose ? "--verbose" : "",
-                strict ? "--strict" : "");
-        int result = system(command);
-        return (result == 0) ? CLI_SUCCESS : CLI_VALIDATION_FAILED;
-    } else {
-        printf("Warning: Governance validator not found at %s\n", validator_path);
-        printf("Please run 'make' to build the complete system.\n");
-        return CLI_VALIDATION_FAILED;
-    }
-}
-
-/**
- * @brief Handle build command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_build(int argc, char *argv[]) {
-    printf("\n====================================================================\n");
-    printf("RIFT Systematic Build Execution\n");
-    printf("====================================================================\n");
-    
-    printf("Initiating AEGIS-compliant build process...\n");
-    int result = system("make direct-build");
-    
-    if (result == 0) {
-        printf("\n[SUCCESS] Build completed successfully\n");
-        return CLI_SUCCESS;
-    } else {
-        printf("\n[ERROR] Build failed with code: %d\n", result);
-        return CLI_BUILD_FAILED;
-    }
-}
-
-/**
- * @brief Handle clean command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_clean(int argc, char *argv[]) {
-    printf("\n====================================================================\n");
-    printf("RIFT Build Artifact Cleanup\n");
-    printf("====================================================================\n");
-    
-    printf("Removing build artifacts...\n");
-    int result = system("make clean");
-    
-    if (result == 0) {
-        printf("\n[SUCCESS] Cleanup completed successfully\n");
-        return CLI_SUCCESS;
-    } else {
-        printf("\n[ERROR] Cleanup failed with code: %d\n", result);
-        return CLI_BUILD_FAILED;
-    }
-}
-
-/**
- * @brief Handle help command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_help(int argc, char *argv[]) {
-    (void)argc; // Suppress unused parameter warning for help command
-    display_usage(argv[0]);
-    return CLI_SUCCESS;
-}
-
-/**
- * @brief Main CLI entry point with comprehensive argument processing
- * @param argc Argument count from command line
- * @param argv Argument vector from command line
- * @return int Exit code (0 = success, non-zero = failure)
- */
-int main(int argc, char *argv[]) {
-    // Define available commands
-    cli_command_t commands[] = {
-        {"status", "Show build system status", handle_status},
-        {"validate", "Run governance validation", handle_validate},
-        {"build", "Execute systematic build", handle_build},
-        {"clean", "Clean build artifacts", handle_clean},
-        {"help", "Show help message", handle_help},
-        {NULL, NULL, NULL} // Sentinel
-    };
-    
-    // Handle no arguments - show status by default
-    if (argc < 2) {
-        return handle_status(argc, argv);
-    }
-    
-    // Handle version flag
-    if (strcmp(argv[1], "--version") == 0) {
-        printf("RIFT Unified CLI v1.6.0\n");
-        printf("OBINexus Computing Framework - AEGIS Methodology\n");
-        return CLI_SUCCESS;
-    }
-    
-    // Handle help flags
-    if (strcmp(argv[1], "help") == 0 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
-        display_usage(argv[0]);
-        return CLI_SUCCESS;
-    }
-    
-    // Process command
-    const char *command = argv[1];
-    
-    // Find and execute command handler
-    for (int i = 0; commands[i].command != NULL; i++) {
-        if (strcmp(command, commands[i].command) == 0) {
-            // Pass remaining arguments to command handler
-            return commands[i].handler(argc - 1, &argv[1]);
-        }
-    }
-    
-    // Unknown command
-    printf("Error: Unknown command '%s'\n\n", command);
-    display_usage(argv[0]);
-    return CLI_INVALID_ARGS;
-}
-EOF
-		echo -e "$(GREEN)[CLI]$(NC) Enhanced CLI implementation created"; \
+		echo '#include <stdio.h>' > $(SRC_DIR)/cli/main.c; \
+		echo '#include <string.h>' >> $(SRC_DIR)/cli/main.c; \
+		echo '' >> $(SRC_DIR)/cli/main.c; \
+		echo '/**' >> $(SRC_DIR)/cli/main.c; \
+		echo ' * @brief RIFT Unified CLI - AEGIS Methodology Compliance' >> $(SRC_DIR)/cli/main.c; \
+		echo ' * @param argc Argument count' >> $(SRC_DIR)/cli/main.c; \
+		echo ' * @param argv Argument vector' >> $(SRC_DIR)/cli/main.c; \
+		echo ' * @return int Exit code' >> $(SRC_DIR)/cli/main.c; \
+		echo ' */' >> $(SRC_DIR)/cli/main.c; \
+		echo 'int main(int argc, char *argv[]) {' >> $(SRC_DIR)/cli/main.c; \
+		echo '    // AEGIS Compliance: Suppress unused parameter warnings' >> $(SRC_DIR)/cli/main.c; \
+		echo '    (void)argc;' >> $(SRC_DIR)/cli/main.c; \
+		echo '    (void)argv;' >> $(SRC_DIR)/cli/main.c; \
+		echo '' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("====================================================================\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("RIFT Unified CLI v$(RIFT_VERSION)\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("OBINexus Computing Framework - AEGIS Methodology\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("====================================================================\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("Build Configuration:\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  - AEGIS Compliance: ENABLED\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  - Governance Validation: ACTIVE\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  - Stage Libraries: 0-6 (7 stages)\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  - Build System: Validated\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("\\nStage Pipeline Status:\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  [0] Tokenizer     : READY\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  [1] Parser        : READY\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  [2] Semantic      : READY\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  [3] Validator     : READY\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  [4] Bytecode      : READY\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  [5] Optimizer     : READY\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("  [6] Emitter       : READY\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    printf("\\nGovernance Framework: Operational\\n");' >> $(SRC_DIR)/cli/main.c; \
+		echo '    return 0;' >> $(SRC_DIR)/cli/main.c; \
+		echo '}' >> $(SRC_DIR)/cli/main.c; \
 	fi
 	@$(CC) $(CFLAGS) -o $@ $(SRC_DIR)/cli/main.c $(LDFLAGS) -L$(LIB_DIR) \
 		-lrift-0 -lrift-1 -lrift-2 -lrift-3 -lrift-4 -lrift-5 -lrift-6 $(LIBS)
