@@ -1,8 +1,10 @@
 .
 ├── cmake
+│   └── rift_stage_macros.cmake
 ├── CMakeLists.txt
 ├── docs
 ├── examples
+│   ├── csv_example.c
 │   └── lexem-calculation-demo.c
 ├── include
 │   └── rift-0
@@ -13,11 +15,13 @@
 ├── rift-0.txt
 ├── src
 │   └── core
-│       └── tokenizer.c
+│       ├── tokenizer.c
+│       └── tokenizer_rules.c
 └── tests
     ├── benchmark
     ├── integration
     └── unit
-        └── test_tokenizer.c
+        ├── test_tokenizer.c
+        └── test_tokenizer_validation.c
 
-14 directories, 7 files
+14 directories, 11 files
