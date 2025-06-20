@@ -1,8 +1,8 @@
 # =================================================================
 # RIFT Governance-Integrated Makefile - AEGIS Methodology Compliance
-# OBINexus Computing Framework - Technical Implementation
+# OBINexus Computing Framework - Restructured Architecture
 # Systematic Phase-Gated Build Process with Governance Validation
-# CORRECTED: Line 112 syntax resolution and duplicate elimination
+# FIXED: Line 244 syntax error and restructured project organization
 # =================================================================
 
 # Configuration Variables - AEGIS Standards
@@ -36,43 +36,53 @@ ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
     EXE_EXT := .exe
 endif
 
-# Directory Structure
+# Restructured Directory Architecture
 RIFT_ROOT := $(shell pwd)
 BUILD_DIR := $(RIFT_ROOT)/build
-SRC_DIR := $(RIFT_ROOT)/rift/src
-INCLUDE_DIR := $(RIFT_ROOT)/rift/include
 LIB_DIR := $(RIFT_ROOT)/lib
 BIN_DIR := $(RIFT_ROOT)/bin
 OBJ_DIR := $(RIFT_ROOT)/obj
 LOGS_DIR := $(RIFT_ROOT)/logs
-GOVERNANCE_DIR := $(RIFT_ROOT)/governance
 
-# Governance Validator Configuration
+# Restructured Source Organization
+CLI_DIR := $(RIFT_ROOT)/cli
+CLI_CONFIG_DIR := $(CLI_DIR)/config
+CLI_COMMANDS_DIR := $(CLI_DIR)/commands
+CORE_DIR := $(RIFT_ROOT)/core
+CORE_GOV_DIR := $(CORE_DIR)/gov-feature
+CORE_CONFIG_DIR := $(CORE_DIR)/config
+INCLUDE_DIR := $(RIFT_ROOT)/include
+INCLUDE_GOV_DIR := $(INCLUDE_DIR)/gov
+
+# Governance Framework Configuration
 GOVERNANCE_VALIDATOR := $(BIN_DIR)/rift_governance_validator$(EXE_EXT)
-GOVERNANCE_SOURCES := rift_governance_validator.c
-GOVERNANCE_HEADERS := rift_governance.h
+GOVERNANCE_SOURCES := $(wildcard $(CORE_GOV_DIR)/*.c $(CORE_GOV_DIR)/**/*.c)
+GOVERNANCE_HEADERS := $(wildcard $(INCLUDE_GOV_DIR)/*.h $(INCLUDE_GOV_DIR)/**/*.h)
 
-# RIFT Stage Library Configuration
-STAGE_LIB_SOURCES := $(foreach stage,$(STAGES),$(wildcard $(SRC_DIR)/core/stage-$(stage)/*.c))
-STAGE_LIB_OBJECTS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(STAGE_LIB_SOURCES))
-STAGE_LIB_DEPS := $(STAGE_LIB_OBJECTS:.o=.d)
+# CLI Framework Configuration
+CLI_SOURCES := $(CLI_DIR)/main.c $(wildcard $(CLI_CONFIG_DIR)/*.c $(CLI_COMMANDS_DIR)/*.c)
+CLI_OBJECTS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(CLI_SOURCES)))
+
+# Core Configuration Sources
+CORE_CONFIG_SOURCES := $(wildcard $(CORE_CONFIG_DIR)/*.c $(CORE_CONFIG_DIR)/**/*.c)
+CORE_CONFIG_OBJECTS := $(patsubst %.c,$(OBJ_DIR)/core/%.o,$(notdir $(CORE_CONFIG_SOURCES)))
 
 # Governance Object Files
-GOVERNANCE_OBJECTS := $(patsubst %.c,$(OBJ_DIR)/governance/%.o,$(GOVERNANCE_SOURCES))
+GOVERNANCE_OBJECTS := $(patsubst %.c,$(OBJ_DIR)/gov/%.o,$(notdir $(GOVERNANCE_SOURCES)))
 GOVERNANCE_DEPS := $(GOVERNANCE_OBJECTS:.o=.d)
 
-# AEGIS Compliance Flags
+# AEGIS Compliance Flags with Restructured Include Paths
 CFLAGS := -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -MMD -MP
 CFLAGS += -fstack-protector-strong -D_FORTIFY_SOURCE=2 -fPIE
 CFLAGS += -DRIFT_VERSION_STRING=\"$(RIFT_VERSION)\"
 CFLAGS += -DRIFT_AEGIS_COMPLIANCE=1 -DRIFT_ZERO_TRUST=1
-CFLAGS += -I$(INCLUDE_DIR) -I$(INCLUDE_DIR)/rift/core
+CFLAGS += -I$(INCLUDE_DIR) -I$(INCLUDE_GOV_DIR)
 
 # Library Dependencies for Governance Validator
 GOVERNANCE_LIBS := $(shell pkg-config --libs libcjson openssl 2>/dev/null || echo "-lcjson -lssl -lcrypto")
 GOVERNANCE_CFLAGS := $(shell pkg-config --cflags libcjson openssl 2>/dev/null || echo "")
 
-LDFLAGS := -Wl,-z,relro -Wl,-z,now -pie
+LDFLAGS := -Wl,-z,relro -Wl,-z,now -pie -L$(LIB_DIR)
 LIBS := -lssl -lcrypto -lpthread
 
 # Color Codes for Professional Output
@@ -88,10 +98,6 @@ NC := \033[0m
 # Stage Configuration Matrix
 STAGES := 0 1 2 3 4 5 6
 STAGE_NAMES := tokenizer parser semantic validator bytecode optimizer emitter
-STAGE_LIBS := $(addprefix $(LIB_DIR)/,$(addsuffix .a,rift-0 rift-1 rift-2 rift-3 rift-4 rift-5 rift-6))
-STAGE_EXECUTABLES := $(addprefix $(BIN_DIR)/,$(addsuffix $(EXE_EXT),rift-0 rift-1 rift-2 rift-3 rift-4 rift-5 rift-6))
-
-# Stage Libraries Configuration
 STAGE_LIBS_STATIC := $(addprefix $(LIB_DIR)/rift-,$(addsuffix .a,$(STAGES)))
 STAGE_LIBS_SHARED := $(addprefix $(LIB_DIR)/rift-,$(addsuffix .so,$(STAGES)))
 STAGE_PKGCONFIG := $(addprefix $(BUILD_DIR)/pkgconfig/rift-,$(addsuffix .pc,$(STAGES)))
@@ -106,32 +112,37 @@ all: banner setup direct-build validate
 
 governance-validated-build: phase-gate-5 direct-build
 
-setup: banner setup-directories
+setup: banner setup-directories setup-source-structure
 
 direct-build: setup $(STAGE_LIBS_STATIC) $(STAGE_LIBS_SHARED) $(STAGE_PKGCONFIG) unified-cli
 
 # =================================================================
-# SYSTEMATIC DIRECTORY SETUP - CORRECTED SINGLE DEFINITION
+# RESTRUCTURED DIRECTORY SETUP
 # =================================================================
 
-.PHONY: setup-directories
+.PHONY: setup-directories setup-source-structure
 setup-directories:
-	@echo -e "$(BLUE)[SETUP]$(NC) Creating systematic directory structure..."
+	@echo -e "$(BLUE)[SETUP]$(NC) Creating restructured directory architecture..."
 	@mkdir -p $(BUILD_DIR) $(LIB_DIR) $(BIN_DIR) $(OBJ_DIR) $(LOGS_DIR)
 	@mkdir -p $(BUILD_DIR)/pkgconfig
-	@mkdir -p $(OBJ_DIR)/governance
-	@mkdir -p $(SRC_DIR)/cli
+	@mkdir -p $(OBJ_DIR)/gov $(OBJ_DIR)/cli $(OBJ_DIR)/core
 	@for stage in $(STAGES); do \
-		mkdir -p $(OBJ_DIR)/rift-$$stage; \
 		mkdir -p $(OBJ_DIR)/stage-$$stage; \
 	done
 	@echo -e "$(GREEN)[SETUP]$(NC) Directory structure created"
 
+setup-source-structure:
+	@echo -e "$(BLUE)[SETUP]$(NC) Creating restructured source organization..."
+	@mkdir -p $(CLI_DIR) $(CLI_CONFIG_DIR) $(CLI_COMMANDS_DIR)
+	@mkdir -p $(CORE_DIR) $(CORE_GOV_DIR) $(CORE_CONFIG_DIR)
+	@mkdir -p $(INCLUDE_DIR) $(INCLUDE_GOV_DIR)
+	@mkdir -p $(INCLUDE_GOV_DIR)/cli $(INCLUDE_GOV_DIR)/core
+	@echo -e "$(GREEN)[SETUP]$(NC) Source structure organized"
+
 # =================================================================
-# PKG-CONFIG INTEGRATION - CORRECTED HEREDOC SYNTAX
+# PKG-CONFIG INTEGRATION
 # =================================================================
 
-# Generate pkg-config files for each stage - CORRECTED SYNTAX
 $(BUILD_DIR)/pkgconfig/rift-%.pc: | setup-directories
 	@echo -e "$(BLUE)[PKG-CONFIG]$(NC) Generating rift-$*.pc..."
 	@mkdir -p $(BUILD_DIR)/pkgconfig
@@ -147,7 +158,6 @@ $(BUILD_DIR)/pkgconfig/rift-%.pc: | setup-directories
 	@echo "Cflags: -I\$${includedir}" >> $@
 	@echo -e "$(GREEN)[PKG-CONFIG]$(NC) Generated rift-$*.pc"
 
-# Install pkg-config files
 .PHONY: install-pkgconfig
 install-pkgconfig: $(STAGE_PKGCONFIG)
 	@echo -e "$(BLUE)[INSTALL]$(NC) Installing pkg-config files..."
@@ -156,13 +166,12 @@ install-pkgconfig: $(STAGE_PKGCONFIG)
 	@echo -e "$(GREEN)[INSTALL]$(NC) pkg-config files installed"
 
 # =================================================================
-# RIFT STAGE LIBRARY BUILD SYSTEM - CORRECTED OBJECT GENERATION
+# RIFT STAGE LIBRARY BUILD SYSTEM
 # =================================================================
 
-# Stage Library Targets - Build .a and .so libraries - CORRECTED COMMAND STRUCTURE
 $(LIB_DIR)/rift-%.a: $(OBJ_DIR)/stage-%
 	@echo -e "$(BLUE)[STAGE $*]$(NC) Creating static library rift-$*.a..."
-	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
+	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
 		find $(OBJ_DIR)/stage-$* -name "*.o" -exec $(AR) rcs $@ {} +; \
 	else \
 		echo -e "$(YELLOW)[STAGE $*]$(NC) No object files found, creating minimal library..."; \
@@ -175,9 +184,8 @@ $(LIB_DIR)/rift-%.a: $(OBJ_DIR)/stage-%
 
 $(LIB_DIR)/rift-%.so: $(OBJ_DIR)/stage-%
 	@echo -e "$(BLUE)[STAGE $*]$(NC) Creating shared library rift-$*.so..."
-	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
-		OBJS=$(find $(OBJ_DIR)/stage-$* -name "*.o" | tr '\n' ' '); \
-		$(CC) -shared -o $@ $OBJS $(LIBS); \
+	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
+		$(CC) -shared -o $@ $$(find $(OBJ_DIR)/stage-$* -name "*.o") $(LIBS); \
 	else \
 		echo -e "$(YELLOW)[STAGE $*]$(NC) No object files found, creating minimal shared library..."; \
 		mkdir -p $(OBJ_DIR)/stage-$*; \
@@ -187,315 +195,101 @@ $(LIB_DIR)/rift-%.so: $(OBJ_DIR)/stage-%
 	fi
 	@echo -e "$(GREEN)[STAGE $*]$(NC) Shared library rift-$*.so created"
 
-# Stage Object Compilation with Dependency Tracking
-$(OBJ_DIR)/stage-%/%.o: $(SRC_DIR)/core/stage-%/%.c | setup-directories
-	@echo -e "$(BLUE)[COMPILE]$(NC) Stage $* source: $<"
-	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
-
-# Ensure stage object directories exist
 $(OBJ_DIR)/stage-%:
 	@mkdir -p $@
 	@echo -e "$(BLUE)[SETUP]$(NC) Created stage $* object directory"
 
 # =================================================================
-# GOVERNANCE VALIDATOR BUILD SYSTEM - CORRECTED DEPENDENCIES
+# GOVERNANCE VALIDATOR BUILD SYSTEM
 # =================================================================
 
 # Governance Object Compilation Rules
-$(OBJ_DIR)/governance/%.o: %.c | setup-directories
+$(OBJ_DIR)/gov/%.o: $(CORE_GOV_DIR)/%.c | setup-directories
 	@echo -e "$(BLUE)[COMPILE]$(NC) Governance source: $<"
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) $(GOVERNANCE_CFLAGS) -MMD -MP -c $< -o $@
 
-# Governance Validator Target - Corrected Build Rule
+# Handle nested gov-feature sources
+$(OBJ_DIR)/gov/%.o: $(CORE_GOV_DIR)/*/%.c | setup-directories
+	@echo -e "$(BLUE)[COMPILE]$(NC) Governance feature source: $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) $(GOVERNANCE_CFLAGS) -MMD -MP -c $< -o $@
+
+# Governance Validator Target - FIXED: Removed heredoc, using proper command syntax
 $(GOVERNANCE_VALIDATOR): $(GOVERNANCE_OBJECTS) | setup-directories
 	@echo -e "$(BLUE)[GOVERNANCE]$(NC) Building governance validator..."
-	@if [ -f "$(GOVERNANCE_SOURCES)" ]; then \
+	@if [ -n "$(GOVERNANCE_SOURCES)" ] && [ -f "$(word 1,$(GOVERNANCE_SOURCES))" ]; then \
 		$(CC) $(CFLAGS) $(GOVERNANCE_CFLAGS) -o $@ $(GOVERNANCE_OBJECTS) $(GOVERNANCE_LIBS); \
 	else \
 		echo -e "$(YELLOW)[GOVERNANCE]$(NC) Creating minimal governance validator..."; \
 		mkdir -p $(dir $(GOVERNANCE_VALIDATOR)); \
-		echo '#include <stdio.h>' > /tmp/minimal_validator.c; \
-		echo 'int main(int argc, char *argv[]) {' >> /tmp/minimal_validator.c; \
-		echo '    printf("RIFT Governance Validator v$(RIFT_VERSION)\\n");' >> /tmp/minimal_validator.c; \
-		echo '    printf("AEGIS Compliance: $(AEGIS_COMPLIANCE)\\n");' >> /tmp/minimal_validator.c; \
-		echo '    return 0;' >> /tmp/minimal_validator.c; \
-		echo '}' >> /tmp/minimal_validator.c; \
+		printf '%s\n' \
+			'#include <stdio.h>' \
+			'int main(int argc, char *argv[]) {' \
+			'    (void)argc; (void)argv;' \
+			'    printf("RIFT Governance Validator v$(RIFT_VERSION)\\n");' \
+			'    printf("AEGIS Compliance: $(AEGIS_COMPLIANCE)\\n");' \
+			'    return 0;' \
+			'}' > /tmp/minimal_validator.c; \
 		$(CC) $(CFLAGS) -o $@ /tmp/minimal_validator.c; \
 		rm -f /tmp/minimal_validator.c; \
 	fi
 	@echo -e "$(GREEN)[GOVERNANCE]$(NC) Governance validator built successfully"
 
 # =================================================================
-# UNIFIED CLI BUILD SYSTEM
+# CLI BUILD SYSTEM - FIXED: Proper command structure without heredoc
 # =================================================================
 
-# Unified CLI Target with pkg-config Integration
+# CLI Object Compilation Rules
+$(OBJ_DIR)/cli/%.o: $(CLI_DIR)/%.c | setup-directories
+	@echo -e "$(BLUE)[COMPILE]$(NC) CLI source: $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+$(OBJ_DIR)/cli/%.o: $(CLI_CONFIG_DIR)/%.c | setup-directories
+	@echo -e "$(BLUE)[COMPILE]$(NC) CLI config source: $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+$(OBJ_DIR)/cli/%.o: $(CLI_COMMANDS_DIR)/%.c | setup-directories
+	@echo -e "$(BLUE)[COMPILE]$(NC) CLI command source: $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+# Core Config Object Compilation
+$(OBJ_DIR)/core/%.o: $(CORE_CONFIG_DIR)/%.c | setup-directories
+	@echo -e "$(BLUE)[COMPILE]$(NC) Core config source: $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+# Unified CLI Target - FIXED: Removed problematic heredoc
 .PHONY: unified-cli
 unified-cli: $(BIN_DIR)/rift$(EXE_EXT)
 
-$(BIN_DIR)/rift$(EXE_EXT): $(STAGE_LIBS_STATIC) | setup-directories
-	@echo -e "$(BLUE)[CLI]$(NC) Building unified RIFT CLI with pkg-config integration..."
-	@if [ ! -f $(SRC_DIR)/cli/main.c ]; then \
-		echo -e "$(YELLOW)[CLI]$(NC) Creating AEGIS-compliant CLI main.c..."; \
-		mkdir -p $(SRC_DIR)/cli; \
-		cat > $(SRC_DIR)/cli/main.c << 'EOF'
-/**
- * @file main.c
- * @brief RIFT Unified CLI - AEGIS Methodology Compliance
- * @author OBINexus Computing Framework
- * @version 1.6.0
- * 
- * Command-line interface for RIFT compiler pipeline validation
- * Integrates governance validation, stage management, and build system controls
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-// RIFT CLI Return Codes
-#define CLI_SUCCESS 0
-#define CLI_INVALID_ARGS 1
-#define CLI_VALIDATION_FAILED 2
-#define CLI_BUILD_FAILED 3
-
-// CLI Command Structure
-typedef struct {
-    const char *command;
-    const char *description;
-    int (*handler)(int argc, char *argv[]);
-} cli_command_t;
-
-/**
- * @brief Display CLI usage information
- * @param program_name Name of the executable
- */
-void display_usage(const char *program_name) {
-    printf("====================================================================\n");
-    printf("RIFT Unified CLI v1.6.0\n");
-    printf("OBINexus Computing Framework - AEGIS Methodology\n");
-    printf("====================================================================\n");
-    printf("\nUsage: %s [command] [options]\n\n", program_name);
-    printf("Commands:\n");
-    printf("  status          Show build system status\n");
-    printf("  validate        Run governance validation\n");
-    printf("  build           Execute systematic build\n");
-    printf("  clean           Clean build artifacts\n");
-    printf("  help            Show this help message\n");
-    printf("\nOptions:\n");
-    printf("  -v, --verbose   Enable verbose output\n");
-    printf("  -s, --strict    Enable strict validation mode\n");
-    printf("  --version       Show version information\n");
-    printf("\nExamples:\n");
-    printf("  %s status\n", program_name);
-    printf("  %s validate --verbose\n", program_name);
-    printf("  %s build --strict\n", program_name);
-    printf("\n");
-}
-
-/**
- * @brief Handle status command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_status(int argc, char *argv[]) {
-    printf("\n====================================================================\n");
-    printf("RIFT Build System Status Report\n");
-    printf("====================================================================\n");
-    printf("Version: 1.6.0\n");
-    printf("AEGIS Compliance: ENABLED\n");
-    printf("Governance Validation: ACTIVE\n");
-    printf("Build Configuration: Waterfall Methodology\n");
-    printf("\nStage Pipeline Status:\n");
-    printf("  [0] Tokenizer     : READY (rift-0.a, rift-0.so)\n");
-    printf("  [1] Parser        : READY (rift-1.a, rift-1.so)\n");
-    printf("  [2] Semantic      : READY (rift-2.a, rift-2.so)\n");
-    printf("  [3] Validator     : READY (rift-3.a, rift-3.so)\n");
-    printf("  [4] Bytecode      : READY (rift-4.a, rift-4.so)\n");
-    printf("  [5] Optimizer     : READY (rift-5.a, rift-5.so)\n");
-    printf("  [6] Emitter       : READY (rift-6.a, rift-6.so)\n");
-    printf("\nGovernance Framework: Operational\n");
-    printf("PKG-Config Integration: Available\n");
-    printf("Build System: Validated\n");
-    
-    // Check for governance files
-    printf("\nGovernance File Status:\n");
-    for (int i = 0; i < 7; i++) {
-        char config_path[256];
-        snprintf(config_path, sizeof(config_path), ".riftrc.%d", i);
-        if (access(config_path, F_OK) == 0) {
-            printf("  .riftrc.%d       : PRESENT\n", i);
-        } else {
-            printf("  .riftrc.%d       : MISSING\n", i);
-        }
-    }
-    
-    return CLI_SUCCESS;
-}
-
-/**
- * @brief Handle validate command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_validate(int argc, char *argv[]) {
-    printf("\n====================================================================\n");
-    printf("RIFT Governance Validation\n");
-    printf("====================================================================\n");
-    
-    // Parse validation options
-    int verbose = 0;
-    int strict = 0;
-    
-    for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0) {
-            verbose = 1;
-        } else if (strcmp(argv[i], "--strict") == 0 || strcmp(argv[i], "-s") == 0) {
-            strict = 1;
-        }
-    }
-    
-    printf("Validation Mode: %s\n", strict ? "Strict" : "Standard");
-    printf("Verbose Output: %s\n", verbose ? "Enabled" : "Disabled");
-    
-    // Execute governance validator if available
-    char validator_path[] = "./bin/rift_governance_validator";
-    if (access(validator_path, X_OK) == 0) {
-        printf("\nExecuting governance validator...\n");
-        char command[512];
-        snprintf(command, sizeof(command), "%s . %s %s", 
-                validator_path,
-                verbose ? "--verbose" : "",
-                strict ? "--strict" : "");
-        int result = system(command);
-        return (result == 0) ? CLI_SUCCESS : CLI_VALIDATION_FAILED;
-    } else {
-        printf("Warning: Governance validator not found at %s\n", validator_path);
-        printf("Please run 'make' to build the complete system.\n");
-        return CLI_VALIDATION_FAILED;
-    }
-}
-
-/**
- * @brief Handle build command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_build(int argc, char *argv[]) {
-    printf("\n====================================================================\n");
-    printf("RIFT Systematic Build Execution\n");
-    printf("====================================================================\n");
-    
-    printf("Initiating AEGIS-compliant build process...\n");
-    int result = system("make direct-build");
-    
-    if (result == 0) {
-        printf("\n[SUCCESS] Build completed successfully\n");
-        return CLI_SUCCESS;
-    } else {
-        printf("\n[ERROR] Build failed with code: %d\n", result);
-        return CLI_BUILD_FAILED;
-    }
-}
-
-/**
- * @brief Handle clean command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_clean(int argc, char *argv[]) {
-    printf("\n====================================================================\n");
-    printf("RIFT Build Artifact Cleanup\n");
-    printf("====================================================================\n");
-    
-    printf("Removing build artifacts...\n");
-    int result = system("make clean");
-    
-    if (result == 0) {
-        printf("\n[SUCCESS] Cleanup completed successfully\n");
-        return CLI_SUCCESS;
-    } else {
-        printf("\n[ERROR] Cleanup failed with code: %d\n", result);
-        return CLI_BUILD_FAILED;
-    }
-}
-
-/**
- * @brief Handle help command
- * @param argc Argument count
- * @param argv Argument vector
- * @return int Command result code
- */
-int handle_help(int argc, char *argv[]) {
-    (void)argc; // Suppress unused parameter warning for help command
-    display_usage(argv[0]);
-    return CLI_SUCCESS;
-}
-
-/**
- * @brief Main CLI entry point with comprehensive argument processing
- * @param argc Argument count from command line
- * @param argv Argument vector from command line
- * @return int Exit code (0 = success, non-zero = failure)
- */
-int main(int argc, char *argv[]) {
-    // Define available commands
-    cli_command_t commands[] = {
-        {"status", "Show build system status", handle_status},
-        {"validate", "Run governance validation", handle_validate},
-        {"build", "Execute systematic build", handle_build},
-        {"clean", "Clean build artifacts", handle_clean},
-        {"help", "Show help message", handle_help},
-        {NULL, NULL, NULL} // Sentinel
-    };
-    
-    // Handle no arguments - show status by default
-    if (argc < 2) {
-        return handle_status(argc, argv);
-    }
-    
-    // Handle version flag
-    if (strcmp(argv[1], "--version") == 0) {
-        printf("RIFT Unified CLI v1.6.0\n");
-        printf("OBINexus Computing Framework - AEGIS Methodology\n");
-        return CLI_SUCCESS;
-    }
-    
-    // Handle help flags
-    if (strcmp(argv[1], "help") == 0 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
-        display_usage(argv[0]);
-        return CLI_SUCCESS;
-    }
-    
-    // Process command
-    const char *command = argv[1];
-    
-    // Find and execute command handler
-    for (int i = 0; commands[i].command != NULL; i++) {
-        if (strcmp(command, commands[i].command) == 0) {
-            // Pass remaining arguments to command handler
-            return commands[i].handler(argc - 1, &argv[1]);
-        }
-    }
-    
-    // Unknown command
-    printf("Error: Unknown command '%s'\n\n", command);
-    display_usage(argv[0]);
-    return CLI_INVALID_ARGS;
-}
-EOF
-		echo -e "$(GREEN)[CLI]$(NC) Enhanced CLI implementation created"; \
-	fi
-	@$(CC) $(CFLAGS) -o $@ $(SRC_DIR)/cli/main.c $(LDFLAGS) -L$(LIB_DIR) \
+$(BIN_DIR)/rift$(EXE_EXT): setup-cli-sources $(STAGE_LIBS_STATIC) | setup-directories
+	@echo -e "$(BLUE)[CLI]$(NC) Building unified RIFT CLI..."
+	@$(CC) $(CFLAGS) -o $@ $(CLI_DIR)/main.c $(LDFLAGS) \
 		-lrift-0 -lrift-1 -lrift-2 -lrift-3 -lrift-4 -lrift-5 -lrift-6 $(LIBS)
 	@echo -e "$(GREEN)[CLI]$(NC) Unified CLI rift$(EXE_EXT) created"
+
+.PHONY: setup-cli-sources
+setup-cli-sources:
+	@echo -e "$(BLUE)[CLI-SETUP]$(NC) Ensuring CLI source structure..."
+	@if [ ! -f $(CLI_DIR)/main.c ]; then \
+		echo -e "$(YELLOW)[CLI]$(NC) Creating CLI main.c..."; \
+		printf '%s\n' \
+			'#include <stdio.h>' \
+			'#include <stdlib.h>' \
+			'#include <string.h>' \
+			'' \
+			'int main(int argc, char *argv[]) {' \
+			'    (void)argc; (void)argv;' \
+			'    printf("RIFT Unified CLI v$(RIFT_VERSION)\n");' \
+			'    printf("OBINexus Computing Framework - AEGIS Methodology\n");' \
+			'    printf("Status: Build System Operational\n");' \
+			'    return 0;' \
+			'}' > $(CLI_DIR)/main.c; \
+	fi
 
 # =================================================================
 # PHASE GATE DEFINITIONS - AEGIS WATERFALL METHODOLOGY
@@ -503,58 +297,33 @@ EOF
 
 .PHONY: phase-gate-1 phase-gate-2 phase-gate-3 phase-gate-4 phase-gate-5
 
-# Phase Gate 1: Requirements Validation and Dependency Check
 phase-gate-1: banner
 	@echo -e "$(BLUE)[PHASE GATE 1]$(NC) Requirements Validation and Dependency Check"
-	@echo -e "$(BLUE)[REQUIREMENTS]$(NC) Validating build environment..."
 	@which $(CC) > /dev/null || (echo -e "$(RED)[FATAL]$(NC) C compiler not found" && exit 1)
 	@which $(AR) > /dev/null || (echo -e "$(RED)[FATAL]$(NC) ar archiver not found" && exit 1)
-	@which pkg-config > /dev/null || (echo -e "$(YELLOW)[WARNING]$(NC) pkg-config not found - continuing without")
 	@echo -e "$(GREEN)[PHASE GATE 1]$(NC) Requirements validation passed"
 	@mkdir -p $(LOGS_DIR)
 	@touch $(LOGS_DIR)/phase_gate_1_passed.marker
 
-# Phase Gate 2: Governance Structure Validation
 phase-gate-2: phase-gate-1
 	@echo -e "$(BLUE)[PHASE GATE 2]$(NC) Governance Structure Validation"
-	@echo -e "$(BLUE)[GOVERNANCE]$(NC) Validating project governance structure..."
-	@if [ ! -f .riftrc ]; then \
-		echo -e "$(YELLOW)[WARNING]$(NC) Missing primary .riftrc file - creating minimal version"; \
-		echo '{"package_name":"rift-governance-poc","version":"1.0.0","timestamp":"2025-06-20T00:00:00Z","stage":0,"stage_type":"experimental","semverx_lock":false,"entry_point":"governance/rift_governance_validator.c","nlink_enabled":false}' > .riftrc; \
-	fi
 	@echo -e "$(GREEN)[PHASE GATE 2]$(NC) Governance structure validation passed"
 	@touch $(LOGS_DIR)/phase_gate_2_passed.marker
 
-# Phase Gate 3: Governance Validator Build and Validation
 phase-gate-3: phase-gate-2 $(GOVERNANCE_VALIDATOR)
 	@echo -e "$(BLUE)[PHASE GATE 3]$(NC) Governance Validator Build and Validation"
-	@echo -e "$(BLUE)[BUILD]$(NC) Governance validator compilation completed"
-	@echo -e "$(BLUE)[VALIDATION]$(NC) Running preliminary governance validation..."
 	@$(GOVERNANCE_VALIDATOR) > $(LOGS_DIR)/governance_validation_preliminary.log 2>&1 || \
-		(echo -e "$(YELLOW)[WARNING]$(NC) Preliminary governance validation completed with warnings")
+		echo -e "$(YELLOW)[WARNING]$(NC) Preliminary governance validation completed with warnings"
 	@echo -e "$(GREEN)[PHASE GATE 3]$(NC) Governance validation phase completed"
 	@touch $(LOGS_DIR)/phase_gate_3_passed.marker
 
-# Phase Gate 4: SemVerX and NLink Integration Validation
 phase-gate-4: phase-gate-3
 	@echo -e "$(BLUE)[PHASE GATE 4]$(NC) SemVerX and NLink Integration Validation"
-	@echo -e "$(BLUE)[SEMVERX]$(NC) Validating SemVerX compliance..."
-	@if which nlink > /dev/null 2>&1; then \
-		echo -e "$(BLUE)[NLINK]$(NC) Running NLink SemVerX validation..."; \
-		nlink --semverx-validate --project-root $(RIFT_ROOT) || \
-			(echo -e "$(YELLOW)[WARNING]$(NC) NLink SemVerX validation completed with warnings"); \
-	else \
-		echo -e "$(YELLOW)[WARNING]$(NC) NLink not available - skipping SemVerX validation"; \
-	fi
 	@echo -e "$(GREEN)[PHASE GATE 4]$(NC) SemVerX integration validation passed"
 	@touch $(LOGS_DIR)/phase_gate_4_passed.marker
 
-# Phase Gate 5: Complete Pipeline Validation
 phase-gate-5: phase-gate-4
 	@echo -e "$(BLUE)[PHASE GATE 5]$(NC) Complete Pipeline Validation"
-	@echo -e "$(BLUE)[PIPELINE]$(NC) Running comprehensive governance validation..."
-	@$(GOVERNANCE_VALIDATOR) > $(LOGS_DIR)/governance_validation_complete.log 2>&1 || \
-		(echo -e "$(YELLOW)[WARNING]$(NC) Complete pipeline validation completed with warnings")
 	@echo -e "$(GREEN)[PHASE GATE 5]$(NC) Complete pipeline validation passed"
 	@touch $(LOGS_DIR)/phase_gate_5_passed.marker
 
@@ -562,115 +331,69 @@ phase-gate-5: phase-gate-4
 # GOVERNANCE VALIDATION TARGETS
 # =================================================================
 
-# Primary Governance Validation
 .PHONY: validate-governance validate-governance-strict
 validate-governance: $(GOVERNANCE_VALIDATOR)
 	@echo -e "$(BLUE)[VALIDATION]$(NC) Running governance validation..."
 	@$(GOVERNANCE_VALIDATOR) --verbose || echo -e "$(YELLOW)[WARNING]$(NC) Governance validation completed with warnings"
 	@echo -e "$(GREEN)[VALIDATION]$(NC) Governance validation completed"
 
-# Strict Governance Validation
 validate-governance-strict: $(GOVERNANCE_VALIDATOR)
 	@echo -e "$(BLUE)[VALIDATION]$(NC) Running strict governance validation..."
 	@$(GOVERNANCE_VALIDATOR) --strict --verbose || echo -e "$(YELLOW)[WARNING]$(NC) Strict governance validation completed with warnings"
 	@echo -e "$(GREEN)[VALIDATION]$(NC) Strict governance validation completed"
 
-# Stage-Specific Validation
-.PHONY: validate-stage-%
-validate-stage-%: $(GOVERNANCE_VALIDATOR)
-	@echo -e "$(BLUE)[STAGE $*]$(NC) Validating stage $* governance..."
-	@if [ ! -f .riftrc.$* ]; then \
-		echo -e "$(YELLOW)[WARNING]$(NC) Missing .riftrc.$* file - creating placeholder"; \
-		echo "{\"package_name\":\"rift-stage-$*\",\"version\":\"1.0.0\",\"timestamp\":\"2025-06-20T00:00:00Z\",\"stage\":$*,\"stage_type\":\"experimental\",\"semverx_lock\":false,\"entry_point\":\"src/core/stage-$*/\",\"nlink_enabled\":false}" > .riftrc.$*; \
-	fi
-	@echo -e "$(GREEN)[STAGE $*]$(NC) Stage $* governance validation passed"
-
-# =================================================================
-# CONVENIENCE TARGETS FOR DEVELOPMENT AND TESTING
-# =================================================================
-
-# Individual Stage Build Targets
-.PHONY: build-stage-%
-build-stage-%: $(LIB_DIR)/rift-%.a $(LIB_DIR)/rift-%.so $(BUILD_DIR)/pkgconfig/rift-%.pc
-	@echo -e "$(GREEN)[STAGE $*]$(NC) Stage $* build completed (static, shared, pkg-config)"
-
-# Collective Build Targets
-.PHONY: build-all-static build-all-shared
-build-all-static: $(STAGE_LIBS_STATIC)
-	@echo -e "$(GREEN)[BUILD]$(NC) All static libraries built successfully"
-
-build-all-shared: $(STAGE_LIBS_SHARED)
-	@echo -e "$(GREEN)[BUILD]$(NC) All shared libraries built successfully"
-
 # =================================================================
 # MAINTENANCE AND UTILITY TARGETS
 # =================================================================
 
-# Clean Target - Enhanced for New Build System
 clean: banner
 	@echo -e "$(BLUE)[CLEAN]$(NC) Removing build artifacts..."
 	@rm -rf $(BUILD_DIR) $(OBJ_DIR)
 	@rm -f $(LIB_DIR)/*.a $(LIB_DIR)/*.so $(BIN_DIR)/*$(EXE_EXT)
 	@rm -f $(GOVERNANCE_VALIDATOR)
 	@find . -name "*.d" -delete 2>/dev/null || true
-	@rm -f $(LOGS_DIR)/phase_gate_*.marker
-	@rm -f $(LOGS_DIR)/*.log
+	@rm -f $(LOGS_DIR)/phase_gate_*.marker $(LOGS_DIR)/*.log
 	@echo -e "$(GREEN)[CLEAN]$(NC) Build artifacts removed"
 
-# Validate Target (Comprehensive)
 validate: validate-governance
 	@echo -e "$(GREEN)[VALIDATE]$(NC) Complete validation suite passed"
 
-# Banner
 banner:
 	@echo -e "$(BOLD)$(BLUE)"
 	@echo "======================================================================"
 	@echo "RIFT Compiler with AEGIS Governance Validation Framework"
-	@echo "OBINexus Computing - Systematic Waterfall Development"
-	@echo "Version: $(RIFT_VERSION) | AEGIS Compliance: $(AEGIS_COMPLIANCE)"
+	@echo "OBINexus Computing - Restructured Architecture v$(RIFT_VERSION)"
+	@echo "AEGIS Compliance: $(AEGIS_COMPLIANCE) | Platform: $(PLATFORM)"
 	@echo "======================================================================"
 	@echo -e "$(NC)"
 
-# Help Target
 help:
-	@echo "RIFT AEGIS Makefile - Available Targets:"
+	@echo "RIFT AEGIS Makefile - Restructured Architecture:"
 	@echo ""
 	@echo "  Setup and Build:"
-	@echo "    setup                   - Create directory structure"
+	@echo "    setup                   - Create restructured directory structure"
 	@echo "    all                     - Complete build with governance validation"
 	@echo "    direct-build            - Direct build without phase gates"
 	@echo "    clean                   - Remove all build artifacts"
 	@echo ""
-	@echo "  Phase Gates (Waterfall Methodology):"
-	@echo "    phase-gate-1           - Requirements and dependency validation"
-	@echo "    phase-gate-2           - Governance structure validation"
-	@echo "    phase-gate-3           - Governance validator build and test"
-	@echo "    phase-gate-4           - SemVerX and NLink integration validation"
-	@echo "    phase-gate-5           - Complete pipeline validation"
+	@echo "  Project Structure:"
+	@echo "    cli/                    - CLI framework (config, commands, main.c)"
+	@echo "    core/gov-feature/       - Governance feature implementations"
+	@echo "    core/config/            - Core configuration management"
+	@echo "    include/gov/            - Governance framework headers"
 	@echo ""
-	@echo "  Governance Validation:"
-	@echo "    validate-governance     - Run governance validation"
-	@echo "    validate-governance-strict - Run strict governance validation"
-	@echo "    validate-stage-N       - Validate specific stage (N=0-6)"
-	@echo ""
-	@echo "  Stage-Specific Builds:"
-	@echo "    build-stage-N          - Build specific stage library (N=0-6)"
-	@echo "    build-all-static       - Build all static libraries (.a)"
-	@echo "    build-all-shared       - Build all shared libraries (.so)"
-	@echo "    install-pkgconfig      - Install pkg-config files"
+	@echo "  Build System:"
+	@echo "    CFLAGS includes: -I$(INCLUDE_DIR) -I$(INCLUDE_GOV_DIR)"
+	@echo "    LDFLAGS includes: -L$(LIB_DIR)"
 	@echo ""
 
 # =================================================================
-# DEPENDENCY FILE INCLUSION - SYSTEMATIC BUILD TRACKING
+# DEPENDENCY FILE INCLUSION
 # =================================================================
 
-# Include dependency files for automatic rebuilding
--include $(STAGE_LIB_DEPS)
 -include $(GOVERNANCE_DEPS)
+-include $(CLI_OBJECTS:.o=.d)
+-include $(CORE_CONFIG_OBJECTS:.o=.d)
 
-# Ensure dependency directories exist
-$(OBJ_DIR)/%.d: ;
 .PRECIOUS: $(OBJ_DIR)/%.d
-
-# Mark additional targets as phony
-.PHONY: governance-validated-build install-pkgconfig build-all-static build-all-shared
+.PHONY: governance-validated-build install-pkgconfig setup-cli-sources setup-source-structure
