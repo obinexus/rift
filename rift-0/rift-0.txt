@@ -1,0 +1,21 @@
+.
+├── cmake
+├── CMakeLists.txt
+├── docs
+├── examples
+├── include
+│   └── rift-0
+│       ├── cli
+│       └── core
+│           └── tokenizer.h
+├── rift-0.txt
+├── src
+│   └── core
+│       └── tokenizer.c
+└── tests
+    ├── benchmark
+    ├── integration
+    └── unit
+        └── test_tokenizer.c
+
+14 directories, 5 files
