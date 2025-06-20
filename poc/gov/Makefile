@@ -159,10 +159,10 @@ install-pkgconfig: $(STAGE_PKGCONFIG)
 # RIFT STAGE LIBRARY BUILD SYSTEM - CORRECTED OBJECT GENERATION
 # =================================================================
 
-# Stage Library Targets - Build .a and .so libraries
+# Stage Library Targets - Build .a and .so libraries - CORRECTED COMMAND STRUCTURE
 $(LIB_DIR)/rift-%.a: $(OBJ_DIR)/stage-%
 	@echo -e "$(BLUE)[STAGE $*]$(NC) Creating static library rift-$*.a..."
-	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
+	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
 		find $(OBJ_DIR)/stage-$* -name "*.o" -exec $(AR) rcs $@ {} +; \
 	else \
 		echo -e "$(YELLOW)[STAGE $*]$(NC) No object files found, creating minimal library..."; \
@@ -175,8 +175,9 @@ $(LIB_DIR)/rift-%.a: $(OBJ_DIR)/stage-%
 
 $(LIB_DIR)/rift-%.so: $(OBJ_DIR)/stage-%
 	@echo -e "$(BLUE)[STAGE $*]$(NC) Creating shared library rift-$*.so..."
-	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
-		find $(OBJ_DIR)/stage-$* -name "*.o" -exec $(CC) -shared -o $@ {} + $(LIBS); \
+	@if [ -d "$(OBJ_DIR)/stage-$*" ] && [ -n "$(find $(OBJ_DIR)/stage-$* -name '*.o' 2>/dev/null)" ]; then \
+		OBJS=$(find $(OBJ_DIR)/stage-$* -name "*.o" | tr '\n' ' '); \
+		$(CC) -shared -o $@ $OBJS $(LIBS); \
 	else \
 		echo -e "$(YELLOW)[STAGE $*]$(NC) No object files found, creating minimal shared library..."; \
 		mkdir -p $(OBJ_DIR)/stage-$*; \
