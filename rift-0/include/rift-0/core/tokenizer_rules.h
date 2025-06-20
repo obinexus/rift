@@ -1,362 +1,480 @@
-/**
+/*
  * =================================================================
- * tokenizer_rules.h - RIFT-0 Complete Tokenizer Rules Interface
+ * tokenizer_rules.h - RIFT-0 Enhanced Tokenizer Rules Interface
  * RIFT: RIFT Is a Flexible Translator
- * Component: DFA-based tokenization with R"" pattern support and R-macros
- * OBINexus Computing Framework - Stage 0 Implementation
+ * Component: DFA-based tokenization with R-syntax composition
+ * OBINexus Computing Framework - Stage 0 Core Definitions
+ * 
+ * Defines comprehensive tokenization rule system with deterministic
+ * finite automaton patterns, R-syntax regex composition, and 
+ * TokenTriplet bitfield structures for AEGIS governance compliance.
+ * 
+ * Author: OBINexus Nnamdi Michael Okpala
+ * Framework: AEGIS with nlink → polybuild orchestration
  * =================================================================
  */
 
-#ifndef RIFT_0_TOKENIZER_RULES_H
-#define RIFT_0_TOKENIZER_RULES_H
-
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <pthread.h>
-#include <stdatomic.h>
+#ifndef RIFT_0_CORE_TOKENIZER_RULES_H
+#define RIFT_0_CORE_TOKENIZER_RULES_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Governance Policy Enforcement Pragma */
-#pragma rift_policy memory(aligned(4)) type(strict) value(static)
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <assert.h>
 
-/**
- * TokenTriplet: Memory-efficient token representation using bitfields
- * Compliant with C99/C11 memory mapping and thread-safe requirements
- * Total size: 4 bytes (32-bit word aligned)
+/* =================================================================
+ * VERSION AND BUILD CONFIGURATION
+ * =================================================================
  */
-typedef struct {
-    uint32_t type : 8;      /* Token type identifier (0-255) */
-    uint32_t mem_ptr : 16;  /* Memory pointer offset (0-65535) */
-    uint32_t value : 8;     /* Token value/length (0-255) */
+
+#define RIFT_TOKENIZER_VERSION_MAJOR    1
+#define RIFT_TOKENIZER_VERSION_MINOR    0
+#define RIFT_TOKENIZER_VERSION_PATCH    0
+
+#define RIFT_VERSION_STRING "1.0.0"
+
+/* Build feature flags */
+#ifdef RIFT_DFA_ENABLED
+#define RIFT_HAS_DFA_SUPPORT 1
+#else
+#define RIFT_HAS_DFA_SUPPORT 0
+#endif
+
+#ifdef RIFT_REGEX_COMPOSE
+#define RIFT_HAS_REGEX_COMPOSE 1
+#else
+#define RIFT_HAS_REGEX_COMPOSE 0
+#endif
+
+#ifdef RIFT_TOKEN_TRIPLET
+#define RIFT_HAS_TOKEN_TRIPLET 1
+#else
+#define RIFT_HAS_TOKEN_TRIPLET 0
+#endif
+
+/* =================================================================
+ * TOKENTRIPLET BITFIELD STRUCTURE
+ * =================================================================
+ */
+
+/* 32-bit packed TokenTriplet for deterministic memory layout */
+typedef struct __attribute__((packed)) {
+    uint32_t type    : 8;   /* Token type identifier (0-255) */
+    uint32_t mem_ptr : 16;  /* Memory pointer/offset (0-65535) */
+    uint32_t value   : 8;   /* Token value/flags (0-255) */
 } TokenTriplet;
 
-/**
- * DFA State Flags for R"" pattern processing
- * Supports: g(lobal), m(ultiline), i(nsensitive), t(op-down), b(ottom-up)
- */
-typedef enum {
-    DFA_FLAG_GLOBAL     = 0x01,   /* 'g' - global matching */
-    DFA_FLAG_MULTILINE  = 0x02,   /* 'm' - multiline mode */
-    DFA_FLAG_INSENSITIVE = 0x04,  /* 'i' - case insensitive */
-    DFA_FLAG_TOP_DOWN   = 0x08,   /* 't' - top-down parsing */
-    DFA_FLAG_BOTTOM_UP  = 0x10    /* 'b' - bottom-up parsing */
-} DFAFlags;
+/* Static assertions for bitfield integrity */
+_Static_assert(sizeof(TokenTriplet) == 4, 
+               "TokenTriplet must be exactly 32 bits for deterministic builds");
 
-/**
- * Token Types for RIFT language semantics
- */
+/* Token Type Classification System */
 typedef enum {
     TOKEN_UNKNOWN = 0,
     TOKEN_IDENTIFIER,
     TOKEN_KEYWORD,
-    TOKEN_LITERAL_STRING,
     TOKEN_LITERAL_NUMBER,
+    TOKEN_LITERAL_STRING,
     TOKEN_OPERATOR,
-    TOKEN_DELIMITER,
-    TOKEN_R_PATTERN,        /* R"" pattern token */
-    TOKEN_NULL_KEYWORD,     /* NULL keyword */
-    TOKEN_NIL_KEYWORD,      /* nil keyword */
+    TOKEN_PUNCTUATION,
     TOKEN_WHITESPACE,
     TOKEN_COMMENT,
     TOKEN_EOF,
-    TOKEN_ERROR = 255
+    TOKEN_ERROR,
+    
+    /* R-syntax specific token types */
+    TOKEN_REGEX_START,       /* R" or R' marker */
+    TOKEN_REGEX_END,         /* Closing quote marker */
+    TOKEN_COMPOSE_AND,       /* R.AND composition */
+    TOKEN_COMPOSE_OR,        /* R.OR composition */
+    TOKEN_COMPOSE_XOR,       /* R.XOR composition */
+    TOKEN_COMPOSE_NAND,      /* R.NAND composition */
+    TOKEN_COMPOSE_NOT,       /* R.NOT composition */
+    
+    /* DFA state machine tokens */
+    TOKEN_DFA_STATE,         /* DFA state transition */
+    TOKEN_DFA_ACCEPT,        /* DFA acceptance state */
+    TOKEN_DFA_REJECT,        /* DFA rejection state */
+    
+    TOKEN_MAX = 255          /* Maximum token type value */
 } TokenType;
 
-/**
- * DFA State Machine States for pattern processing
- */
+/* Token Flag System (stored in value field) */
 typedef enum {
-    DFA_STATE_INIT = 0,
-    DFA_STATE_R_DETECTED,
-    DFA_STATE_R_QUOTE_START,
-    DFA_STATE_R_SQUOTE_START,
-    DFA_STATE_R_CONTENT,
-    DFA_STATE_R_PATTERN_END,
-    DFA_STATE_IDENTIFIER,
-    DFA_STATE_NUMBER,
-    DFA_STATE_OPERATOR,
-    DFA_STATE_DELIMITER,
-    DFA_STATE_WHITESPACE,
-    DFA_STATE_ACCEPTING,
-    DFA_STATE_ERROR
+    TOKEN_FLAG_NONE       = 0x00,
+    
+    /* R-syntax pattern flags */
+    TOKEN_FLAG_GLOBAL     = 0x01,  /* g flag - global matching */
+    TOKEN_FLAG_MULTILINE  = 0x02,  /* m flag - multiline mode */
+    TOKEN_FLAG_IGNORECASE = 0x04,  /* i flag - case insensitive */
+    TOKEN_FLAG_TOPDOWN    = 0x08,  /* t flag - top-down evaluation */
+    TOKEN_FLAG_BOTTOMUP   = 0x10,  /* b flag - bottom-up evaluation */
+    
+    /* Composition and validation flags */
+    TOKEN_FLAG_COMPOSED   = 0x20,  /* Token from composed regex */
+    TOKEN_FLAG_VALIDATED  = 0x40,  /* DFA validated token */
+    TOKEN_FLAG_ERROR      = 0x80   /* Error state marker */
+} TokenFlags;
+
+/* =================================================================
+ * DFA STATE MACHINE STRUCTURES
+ * =================================================================
+ */
+
+/* Forward declaration */
+struct DFAState;
+
+/* DFA State Structure (5-tuple automaton: Q, Σ, δ, q0, F) */
+typedef struct DFAState {
+    uint32_t state_id;              /* Unique state identifier (Q) */
+    bool is_final;                  /* Final state flag (F) */
+    bool is_start;                  /* Start state flag (q0) */
+    char transition_char;           /* Transition character (Σ) */
+    struct DFAState* next_state;    /* Next state pointer (δ) */
+    struct DFAState* fail_state;    /* Failure state pointer */
+    TokenType token_type;           /* Associated token type */
+    uint32_t match_count;           /* Match counter for validation */
 } DFAState;
 
-/**
- * Pattern matching result structure
- * Contains token triplet and metadata about the match
- */
+/* DFA Transition Table Entry */
 typedef struct {
-    TokenTriplet token;         /* Generated token triplet */
-    int match_length;           /* Length of matched text */
-    bool success;               /* Match success flag */
-    const char* error_msg;      /* Error message (if any) */
-} PatternMatchResult;
+    uint32_t from_state;
+    uint32_t to_state;
+    char input_char;
+    TokenType emit_token;
+} DFATransition;
 
-/**
- * Compiled Pattern Structure for R-macro operations
- * Thread-safe with reference counting
+/* =================================================================
+ * R-SYNTAX REGEX COMPOSITION STRUCTURES
+ * =================================================================
  */
+
+/* Regex Composition Structure for R"" and R'' patterns */
 typedef struct {
-    void* pattern_data;         /* Compiled DFA representation */
-    size_t pattern_size;        /* Size of pattern data */
-    uint32_t flags;             /* DFA processing flags */
-    TokenType token_type;       /* Associated token type */
-    atomic_int ref_count;       /* Reference count for memory management */
-    bool last_match_valid;      /* Last match state */
-    TokenTriplet last_token;    /* Last matched token */
-} CompiledPattern;
+    char* pattern;                  /* Raw regex pattern string */
+    size_t pattern_length;          /* Pattern byte length */
+    TokenFlags flags;               /* Compilation flags */
+    DFAState* start_state;          /* DFA start state */
+    DFAState* current_state;        /* Current processing state */
+    bool is_composed;               /* Composition status flag */
+    uint32_t composition_id;        /* Unique composition identifier */
+} RegexComposition;
 
-/* Maximum tokens per R.aggregate operation */
-#define MAX_TOKENS_PER_AGGREGATE 64
+/* R-syntax composition operators */
+typedef enum {
+    R_OP_NONE = 0,
+    R_OP_AND,                       /* R.AND boolean intersection */
+    R_OP_OR,                        /* R.OR boolean union */
+    R_OP_XOR,                       /* R.XOR exclusive or */
+    R_OP_NAND,                      /* R.NAND negated and */
+    R_OP_NOT                        /* R.NOT negation */
+} RCompositionOperator;
 
-/**
- * Core Initialization and Cleanup Functions
+/* =================================================================
+ * TOKENIZER CONTEXT AND STATE MANAGEMENT
+ * =================================================================
  */
 
-/**
- * Initialize the tokenizer rules engine
- * Must be called before any tokenization operations
- * Thread-safe initialization with PoliC governance enforcement
- * 
- * @return 0 on success, negative error code on failure
- */
-int init_tokenizer_rules(void);
+/* Tokenizer Context for stateful processing */
+typedef struct {
+    /* Input management */
+    const char* input_buffer;       /* Source input buffer */
+    size_t buffer_length;           /* Buffer size in bytes */
+    size_t current_position;        /* Current parsing position */
+    size_t line_number;             /* Current line (1-based) */
+    size_t column_number;           /* Current column (1-based) */
+    
+    /* Token output management */
+    TokenTriplet* token_buffer;     /* Output token array */
+    size_t token_capacity;          /* Maximum token capacity */
+    size_t token_count;             /* Current token count */
+    
+    /* DFA processing state */
+    DFAState* dfa_root;             /* Root DFA state machine */
+    RegexComposition** compositions; /* Active regex compositions */
+    size_t composition_count;       /* Number of active compositions */
+    size_t composition_capacity;    /* Maximum compositions */
+    
+    /* R-syntax pattern cache */
+    struct {
+        char* name;
+        RegexComposition* composition;
+    } pattern_cache[RIFT_MAX_COMPOSITIONS];
+    size_t cache_count;
+    
+    /* Error handling and diagnostics */
+    char error_message[RIFT_MAX_ERROR_MESSAGE];
+    size_t error_position;          /* Error location in input */
+    bool has_error;                 /* Error flag */
+    
+    /* Thread safety and concurrency */
+    void* mutex_handle;             /* Platform-specific mutex */
+    bool thread_safe_mode;          /* Thread safety enabled */
+    
+    /* Performance monitoring */
+    uint64_t total_tokens;
+    uint64_t total_characters;
+    uint64_t processing_time_ns;
+    uint64_t dfa_transitions;
+    uint64_t cache_hits;
+    uint64_t cache_misses;
+} TokenizerContext;
 
-/**
- * Cleanup tokenizer rules engine
- * Release all allocated resources and reset state
- */
-void cleanup_tokenizer_rules(void);
+/* Performance statistics structure */
+typedef struct {
+    uint64_t total_tokens;
+    uint64_t total_characters;
+    uint64_t processing_time_ns;
+    uint64_t dfa_transitions;
+    uint64_t cache_hits;
+    uint64_t cache_misses;
+} TokenizerStats;
 
-/**
- * Core Tokenization Functions
- */
-
-/**
- * Match token pattern using enhanced regular expressions
- * Supports R"" and R'' composition with DFA state flags
- * 
- * @param src Source text to tokenize
- * @param pattern Regular expression pattern (e.g., R"/[^A-Z0-9\b]/gmi[tb]")
- * @param flags DFA processing flags
- * @param result Output token triplet and match information
- * @return 0 on successful match, negative error code on failure
- */
-int match_token_pattern(const char* src, const char* pattern, 
-                       uint32_t flags, PatternMatchResult* result);
-
-/**
- * Process tokenization for complete source file
- * Implements deterministic O(n) tokenization with single-pass processing
- * 
- * @param src Complete source text
- * @param tokens Output array of token triplets (caller allocated)
- * @param max_tokens Maximum number of tokens to generate
- * @param token_count Actual number of tokens generated
- * @return 0 on success, negative error code on failure
- */
-int tokenize_source(const char* src, TokenTriplet* tokens, 
-                   size_t max_tokens, size_t* token_count);
-
-/**
- * R-Macro Functions for Pattern Composition
- * These implement the R.compose, R.aggregate, R.AND, etc. operations
- */
-
-/**
- * R.compose - Merge two patterns into composite matcher
- * Creates a new compiled pattern that matches either input pattern
- * 
- * @param p1 First pattern to compose
- * @param p2 Second pattern to compose
- * @return New composite pattern (caller must free) or NULL on error
- */
-CompiledPattern* r_compose(const CompiledPattern* p1, const CompiledPattern* p2);
-
-/**
- * R.aggregate - Collect multiple pattern results
- * Gathers tokens from multiple pattern matches into result array
- * 
- * @param patterns Array of compiled patterns to aggregate
- * @param count Number of patterns in array
- * @param results Output array for collected tokens
- * @param result_count Number of tokens collected
- * @return 0 on success, negative error code on failure
- */
-int r_aggregate(CompiledPattern** patterns, size_t count, 
-               TokenTriplet* results, size_t* result_count);
-
-/**
- * R.AND - Boolean intersection of pattern matches
- * Returns true only if ALL patterns match at given position
- * 
- * @param patterns Array of patterns to test
- * @param count Number of patterns
- * @param text Source text
- * @param pos Position in text to test
- * @return true if all patterns match, false otherwise
- */
-bool r_and(const CompiledPattern** patterns, size_t count, const char* text, size_t pos);
-
-/**
- * R.OR - Boolean union of pattern matches
- * Returns true if ANY pattern matches at given position
- * 
- * @param patterns Array of patterns to test
- * @param count Number of patterns
- * @param text Source text
- * @param pos Position in text to test
- * @return true if any pattern matches, false otherwise
- */
-bool r_or(const CompiledPattern** patterns, size_t count, const char* text, size_t pos);
-
-/**
- * R.XOR - Boolean exclusive or of pattern matches
- * Returns true if EXACTLY ONE pattern matches at given position
- * 
- * @param patterns Array of patterns to test
- * @param count Number of patterns
- * @param text Source text
- * @param pos Position in text to test
- * @return true if exactly one pattern matches, false otherwise
- */
-bool r_xor(const CompiledPattern** patterns, size_t count, const char* text, size_t pos);
-
-/**
- * R.NAND - Boolean not-and of pattern matches
- * Returns true if NOT ALL patterns match at given position
- * 
- * @param patterns Array of patterns to test
- * @param count Number of patterns
- * @param text Source text
- * @param pos Position in text to test
- * @return true if not all patterns match, false if all match
- */
-bool r_nand(const CompiledPattern** patterns, size_t count, const char* text, size_t pos);
-
-/**
- * Utility Functions for Pattern Management
+/* =================================================================
+ * CONSTANTS AND LIMITS
+ * =================================================================
  */
 
-/**
- * Match pattern at specific position
- * Internal utility for R-macro operations
- * 
- * @param pattern Compiled pattern to test
- * @param text Source text
- * @param pos Position to test
- * @return true if pattern matches at position, false otherwise
- */
-bool match_pattern_at_position(const CompiledPattern* pattern, const char* text, size_t pos);
+#define RIFT_MAX_TOKEN_LENGTH           4096
+#define RIFT_MAX_PATTERN_LENGTH         1024
+#define RIFT_MAX_DFA_STATES             65536
+#define RIFT_DEFAULT_TOKEN_CAPACITY     1024
+#define RIFT_MAX_COMPOSITIONS           64
+#define RIFT_MAX_ERROR_MESSAGE          256
+#define RIFT_MAX_CACHE_ENTRIES          32
 
-/**
- * Compile R"" pattern string into DFA structure
- * Parses pattern syntax and creates optimized DFA representation
- * 
- * @param pattern_str Pattern string (e.g., R"/[A-Z]+/gi")
- * @param flags Output flags parsed from pattern
- * @return Compiled pattern structure or NULL on error
- */
-CompiledPattern* compile_r_pattern(const char* pattern_str, uint32_t* flags);
+/* R-syntax pattern markers */
+#define RIFT_REGEX_RAW_QUOTE            "R\""
+#define RIFT_REGEX_RAW_SINGLE           "R'"
+#define RIFT_COMPOSE_AND                "R.AND"
+#define RIFT_COMPOSE_OR                 "R.OR"
+#define RIFT_COMPOSE_XOR                "R.XOR"
+#define RIFT_COMPOSE_NAND               "R.NAND"
+#define RIFT_COMPOSE_NOT                "R.NOT"
 
-/**
- * Release compiled pattern memory
- * Thread-safe reference counting cleanup
- * 
- * @param pattern Pattern to release
- */
-void release_compiled_pattern(CompiledPattern* pattern);
+/* DFA construction limits */
+#define RIFT_DFA_MAX_STATES             1024
+#define RIFT_DFA_MAX_TRANSITIONS        4096
+#define RIFT_DFA_STACK_SIZE             256
 
-/**
- * Thread Context Management for Top-Down/Bottom-Up Processing
+/* =================================================================
+ * CORE API FUNCTION DECLARATIONS
+ * =================================================================
  */
 
-/**
- * Signal context switch for thread coordination
- * Used for semaphore-based signaling (101/010 patterns)
- * 
- * @param is_top_down true for top-down mode, false for bottom-up
- */
-void signal_context_switch(bool is_top_down);
+/* TokenTriplet management functions */
+TokenTriplet rift_token_create(uint8_t type, uint16_t mem_ptr, uint8_t value);
+bool rift_token_is_valid(const TokenTriplet* token);
+TokenFlags rift_token_get_flags(const TokenTriplet* token);
+void rift_token_set_flags(TokenTriplet* token, TokenFlags flags);
 
-/**
- * Wait for specific processing context
- * Blocks until required context becomes available
- * 
- * @param need_top_down true if top-down context required
- * @return true if context acquired, false on timeout
- */
-bool wait_for_context(bool need_top_down);
+/* DFA state machine functions */
+DFAState* rift_dfa_create_state(uint32_t state_id, bool is_final);
+void rift_dfa_destroy_states(DFAState* root);
+bool rift_dfa_add_transition(DFAState* from, DFAState* to, char transition_char);
+DFAState* rift_dfa_process_input(DFAState* start, const char* input, size_t length);
+bool rift_dfa_is_accepting_state(DFAState* state);
+TokenType rift_dfa_get_token_type(DFAState* state);
 
-/**
- * Governance and Validation Functions
- */
+/* R-syntax regex composition functions */
+RegexComposition* rift_regex_compile(const char* pattern, TokenFlags flags);
+void rift_regex_destroy(RegexComposition* regex);
+RegexComposition* rift_regex_compose_and(RegexComposition* a, RegexComposition* b);
+RegexComposition* rift_regex_compose_or(RegexComposition* a, RegexComposition* b);
+RegexComposition* rift_regex_compose_xor(RegexComposition* a, RegexComposition* b);
+RegexComposition* rift_regex_compose_nand(RegexComposition* a, RegexComposition* b);
+bool rift_regex_match(RegexComposition* regex, const char* input, size_t length);
+bool rift_regex_find(RegexComposition* regex, const char* input, size_t length,
+                     size_t* match_start, size_t* match_length);
 
-/**
- * Validate TokenTriplet structure compliance
- * Ensures memory layout meets PoliC governance requirements
- * 
- * @param token Token to validate
- * @return 0 if valid, negative error code if invalid
- */
-int validate_token_triplet(const TokenTriplet* token);
+/* Tokenizer context management */
+TokenizerContext* rift_tokenizer_create(size_t initial_capacity);
+void rift_tokenizer_destroy(TokenizerContext* ctx);
+bool rift_tokenizer_reset(TokenizerContext* ctx);
+bool rift_tokenizer_set_input(TokenizerContext* ctx, const char* input, size_t length);
+bool rift_tokenizer_set_input_file(TokenizerContext* ctx, const char* filename);
 
-/**
- * Policy2 QA Matrix validation
- * Tests tokenization accuracy using truth table approach
- * 
- * @param test_input Input text for testing
- * @param expected_type Expected token type
- * @param test_category Truth category (truePositive, falseNegative, etc.)
- * @return 0 if test passes, negative error code if fails
- */
-int policy2_qa_validate(const char* test_input, TokenType expected_type, const char* test_category);
+/* Core tokenization processing */
+bool rift_tokenizer_process(TokenizerContext* ctx);
+TokenTriplet* rift_tokenizer_get_tokens(TokenizerContext* ctx, size_t* count);
+TokenTriplet rift_tokenizer_next_token(TokenizerContext* ctx);
 
-/**
- * R-Macro Interface Macros
- * Provide convenient syntax for R-pattern operations
- */
+/* Pattern caching and management */
+bool rift_tokenizer_cache_pattern(TokenizerContext* ctx, const char* name,
+                                  const char* pattern, TokenFlags flags);
+RegexComposition* rift_tokenizer_get_cached_pattern(TokenizerContext* ctx, const char* name);
 
-/* R.compose macro - composes two patterns */
-#define R_COMPOSE(p1, p2) r_compose((p1), (p2))
+/* Error handling */
+const char* rift_tokenizer_get_error(const TokenizerContext* ctx);
+bool rift_tokenizer_has_error(const TokenizerContext* ctx);
+void rift_tokenizer_clear_error(TokenizerContext* ctx);
 
-/* R.aggregate macro - aggregates pattern results */
-#define R_AGGREGATE(patterns, count, results, result_count) \
-    r_aggregate((patterns), (count), (results), (result_count))
+/* Thread safety */
+bool rift_tokenizer_enable_thread_safety(TokenizerContext* ctx);
+bool rift_tokenizer_disable_thread_safety(TokenizerContext* ctx);
+bool rift_tokenizer_is_thread_safe(const TokenizerContext* ctx);
 
-/* Boolean composition macros */
-#define R_AND(patterns, count, text, pos) r_and((patterns), (count), (text), (pos))
-#define R_OR(patterns, count, text, pos) r_or((patterns), (count), (text), (pos))
-#define R_XOR(patterns, count, text, pos) r_xor((patterns), (count), (text), (pos))
-#define R_NAND(patterns, count, text, pos) r_nand((patterns), (count), (text), (pos))
+/* Performance monitoring */
+TokenizerStats rift_tokenizer_get_stats(const TokenizerContext* ctx);
+void rift_tokenizer_reset_stats(TokenizerContext* ctx);
 
-/**
- * Constants and Limits
+/* =================================================================
+ * UTILITY FUNCTIONS
+ * =================================================================
  */
 
-/* Maximum pattern cache size */
-#define MAX_COMPILED_PATTERNS 256
+/* Flag parsing and conversion */
+TokenFlags rift_parse_r_flags(const char* flag_string);
+const char* rift_flags_to_string(TokenFlags flags);
 
-/* Maximum delimiter length for R"" patterns */
-#define MAX_DELIMITER_LENGTH 16
+/* Token type utilities */
+const char* rift_token_type_name(TokenType type);
+const char* rift_token_flags_string(TokenFlags flags);
 
-/* Maximum content buffer size for R-patterns */
-#define MAX_R_PATTERN_CONTENT 1024
+/* Debug and validation functions */
+void rift_tokenizer_print_stats(const TokenizerContext* ctx);
+void rift_tokenizer_print_tokens(const TokenizerContext* ctx);
+bool rift_tokenizer_validate_dfa(const TokenizerContext* ctx);
 
-/* Error codes */
-#define RIFT_ERROR_NULL_POINTER     -1
-#define RIFT_ERROR_INVALID_PATTERN  -2
-#define RIFT_ERROR_MEMORY_ALLOC     -3
-#define RIFT_ERROR_POLICY_VIOLATION -4
-#define RIFT_ERROR_THREAD_CONTEXT   -5
-#define RIFT_ERROR_DFA_STATE        -6
+/* Version and feature detection */
+const char* rift_tokenizer_version(void);
+const char* rift_tokenizer_build_info(void);
+uint32_t rift_tokenizer_version_number(void);
+bool rift_tokenizer_has_dfa_support(void);
+bool rift_tokenizer_has_regex_compose(void);
+bool rift_tokenizer_has_thread_safety(void);
+bool rift_tokenizer_has_caching(void);
+
+/* =================================================================
+ * ADVANCED R-SYNTAX PROCESSING
+ * =================================================================
+ */
+
+/* R-syntax pattern validation */
+typedef enum {
+    R_PARSE_SUCCESS = 0,
+    R_PARSE_INVALID_SYNTAX,
+    R_PARSE_INVALID_FLAGS,
+    R_PARSE_PATTERN_TOO_LONG,
+    R_PARSE_COMPOSITION_ERROR,
+    R_PARSE_DFA_CONSTRUCTION_FAILED
+} RParseResult;
+
+/* R-syntax parsing functions */
+RParseResult rift_r_syntax_parse(const char* input, size_t length,
+                                 RegexComposition** output);
+bool rift_r_syntax_validate(const char* pattern);
+RCompositionOperator rift_r_syntax_detect_operator(const char* input, size_t length);
+
+/* Advanced composition functions */
+RegexComposition* rift_r_syntax_parse_composition(const char* expression);
+bool rift_r_syntax_optimize_dfa(RegexComposition* regex);
+
+/* =================================================================
+ * AEGIS GOVERNANCE INTEGRATION
+ * =================================================================
+ */
+
+/* Governance validation functions */
+typedef enum {
+    GOVERNANCE_PASS = 0,
+    GOVERNANCE_FAIL_SECURITY,
+    GOVERNANCE_FAIL_VALIDATION,
+    GOVERNANCE_FAIL_COMPLIANCE
+} GovernanceResult;
+
+GovernanceResult rift_governance_validate_pattern(const char* pattern);
+GovernanceResult rift_governance_validate_token(const TokenTriplet* token);
+GovernanceResult rift_governance_validate_context(const TokenizerContext* ctx);
+
+/* Audit trail functions */
+typedef struct {
+    uint64_t timestamp;
+    const char* operation;
+    const char* pattern;
+    GovernanceResult result;
+    char details[256];
+} AuditEntry;
+
+bool rift_governance_log_audit(const AuditEntry* entry);
+size_t rift_governance_get_audit_trail(AuditEntry* buffer, size_t capacity);
+
+/* =================================================================
+ * MACRO DEFINITIONS FOR ENHANCED FUNCTIONALITY
+ * =================================================================
+ */
+
+/* R-syntax pattern matching macros */
+#define R_PATTERN(pattern, flags) \
+    rift_regex_compile("R\"" pattern "\"", rift_parse_r_flags(flags))
+
+#define R_MATCH(regex, input) \
+    rift_regex_match((regex), (input), strlen(input))
+
+#define R_AND(a, b) rift_regex_compose_and((a), (b))
+#define R_OR(a, b)  rift_regex_compose_or((a), (b))
+#define R_XOR(a, b) rift_regex_compose_xor((a), (b))
+#define R_NAND(a, b) rift_regex_compose_nand((a), (b))
+
+/* TokenTriplet manipulation macros */
+#define TOKEN_CREATE(type, ptr, val) rift_token_create((type), (ptr), (val))
+#define TOKEN_GET_TYPE(token) ((token).type)
+#define TOKEN_GET_PTR(token) ((token).mem_ptr)
+#define TOKEN_GET_VALUE(token) ((token).value)
+#define TOKEN_SET_FLAG(token, flag) rift_token_set_flags(&(token), (flag))
+
+/* DFA state management macros */
+#define DFA_CREATE_STATE(id, final) rift_dfa_create_state((id), (final))
+#define DFA_IS_FINAL(state) rift_dfa_is_accepting_state(state)
+#define DFA_GET_TOKEN_TYPE(state) rift_dfa_get_token_type(state)
+
+/* Error handling macros */
+#define RIFT_CHECK_NULL(ptr) do { \
+    if (!(ptr)) { \
+        fprintf(stderr, "RIFT Error: NULL pointer at %s:%d\n", __FILE__, __LINE__); \
+        return false; \
+    } \
+} while(0)
+
+#define RIFT_CHECK_BOUNDS(val, max) do { \
+    if ((val) >= (max)) { \
+        fprintf(stderr, "RIFT Error: Bounds check failed at %s:%d\n", __FILE__, __LINE__); \
+        return false; \
+    } \
+} while(0)
+
+/* =================================================================
+ * COMPILER-SPECIFIC OPTIMIZATIONS
+ * =================================================================
+ */
+
+/* GCC-specific optimizations */
+#ifdef __GNUC__
+#define RIFT_LIKELY(x)      __builtin_expect(!!(x), 1)
+#define RIFT_UNLIKELY(x)    __builtin_expect(!!(x), 0)
+#define RIFT_PURE           __attribute__((pure))
+#define RIFT_CONST          __attribute__((const))
+#define RIFT_HOT            __attribute__((hot))
+#define RIFT_COLD           __attribute__((cold))
+#else
+#define RIFT_LIKELY(x)      (x)
+#define RIFT_UNLIKELY(x)    (x)
+#define RIFT_PURE
+#define RIFT_CONST
+#define RIFT_HOT
+#define RIFT_COLD
+#endif
+
+/* Function annotations for performance optimization */
+#define RIFT_INLINE static inline __attribute__((always_inline))
+#define RIFT_NOINLINE __attribute__((noinline))
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* RIFT_0_TOKENIZER_RULES_H */
+#endif /* RIFT_0_CORE_TOKENIZER_RULES_H */
