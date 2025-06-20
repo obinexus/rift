@@ -1,214 +1,289 @@
-#ifndef TOKENIZER_H
-#define TOKENIZER_H
+/*
+ * =================================================================
+ * tokenizer.h - RIFT-0 Core Tokenizer Interface
+ * RIFT: RIFT Is a Flexible Translator
+ * Component: DFA-based tokenization with regex composition
+ * OBINexus Computing Framework - Stage 0 Implementation
+ * 
+ * Toolchain: riftlang.exe → .so.a → rift.exe → gosilang
+ * Build Orchestration: nlink → polybuild (AEGIS Framework)
+ * =================================================================
+ */
+
+#ifndef RIFT_0_CORE_TOKENIZER_H
+#define RIFT_0_CORE_TOKENIZER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "tokenizer_rules.h"
-#include <stddef.h>
+#include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
-/**
- * RIFT-0 Core Tokenizer Interface
- * 
- * Implementation leverages Nnamdi Okpala's state machine optimization research
- * for deterministic O(n) tokenization with minimal memory overhead.
- * 
- * Key architectural principles:
- * - Single-pass processing without backtracking
- * - PoliC zero-trust governance integration
- * - Thread-safe operation with thread-local storage
- * - Deterministic build artifacts for multi-stage compilation
+/* =================================================================
+ * RIFT-0 TOKEN DEFINITIONS
+ * =================================================================
  */
 
-// RIFT-0 Governance Policy Enforcement
-#pragma rift_policy memory(aligned(4)) type(strict) value(static)
-
-/**
- * Initialize the RIFT-0 tokenizer subsystem
- * 
- * This function must be called before any tokenization operations.
- * Implements PoliC governance validation and state machine initialization
- * following the waterfall methodology progression gates.
- * 
- * Thread Safety: Safe for concurrent initialization across threads
- * Memory Requirements: Minimal allocation, uses thread-local storage
- * 
- * @return 0 on successful initialization, negative error code on failure
- */
-int tokenizer_initialize(void);
-
-/**
- * Process tokenization for a source file
- * 
- * Implements the core RIFT-0 tokenization pipeline with deterministic
- * output generation. Utilizes state machine minimization techniques
- * from Nnamdi's optimization research for maximum efficiency.
- * 
- * @param filename Path to source file for tokenization
- * @param tokens Output array for generated token triplets (caller allocated)
- * @param max_tokens Maximum number of tokens to generate (buffer size)
- * @param token_count Actual number of tokens generated (output parameter)
- * 
- * @return 0 on successful tokenization, negative error code on failure
- * 
- * Error Conditions:
- * - File not found or read permission denied
- * - Memory allocation failure for file buffer
- * - PoliC governance validation failure
- * - Token buffer overflow (exceeds max_tokens)
- */
-int tokenizer_process_file(const char* filename, TokenTriplet* tokens, 
-                          size_t max_tokens, size_t* token_count);
-
-/**
- * Process tokenization for an input string
- * 
- * Direct string tokenization interface for in-memory processing.
- * Ideal for REPL environments, test suites, and embedded processing.
- * 
- * @param input Source string for tokenization (null-terminated)
- * @param tokens Output array for generated token triplets (caller allocated)
- * @param max_tokens Maximum number of tokens to generate (buffer size)
- * @param token_count Actual number of tokens generated (output parameter)
- * 
- * @return 0 on successful tokenization, negative error code on failure
- */
-int tokenizer_process_string(const char* input, TokenTriplet* tokens, 
-                           size_t max_tokens, size_t* token_count);
-
-/**
- * Retrieve the last error message from tokenizer operations
- * 
- * Provides detailed diagnostic information for failed operations.
- * Error messages include context for systematic debugging within
- * our waterfall development methodology.
- * 
- * @return Pointer to null-terminated error message string
- *         Returns empty string if no error has occurred
- */
-const char* tokenizer_get_error_message(void);
-
-/**
- * Check if tokenizer is in error state
- * 
- * Enables systematic error checking as part of our methodical
- * testing approach. Should be checked after each tokenization operation.
- * 
- * @return true if tokenizer has encountered an error, false otherwise
- */
-bool tokenizer_has_error(void);
-
-/**
- * Reset tokenizer error state
- * 
- * Clears current error condition to allow continued operation.
- * Part of the error recovery strategy in our systematic approach.
- */
-void tokenizer_reset_error(void);
-
-/**
- * Cleanup tokenizer resources
- * 
- * Releases all allocated resources and resets tokenizer state.
- * Essential for proper resource management in long-running processes.
- * Thread-safe cleanup with proper synchronization.
- */
-void tokenizer_cleanup(void);
-
-/**
- * Print formatted token information for debugging
- * 
- * Diagnostic utility for systematic testing and validation.
- * Outputs human-readable token representation following our
- * documentation standards.
- * 
- * @param token Pointer to token triplet for display
- */
-void tokenizer_print_token(const TokenTriplet* token);
-
-/**
- * Print complete token stream for analysis
- * 
- * Comprehensive diagnostic output for token stream validation.
- * Essential tool for systematic verification of tokenization results
- * within our waterfall testing methodology.
- * 
- * @param tokens Array of token triplets to display
- * @param count Number of tokens in the array
- */
-void tokenizer_print_tokens(const TokenTriplet* tokens, size_t count);
-
-/**
- * Advanced tokenization configuration structure
- * 
- * Provides fine-grained control over tokenization behavior
- * for specialized processing requirements.
- */
+/* Bitfield Token Format (32-bit packed structure) */
 typedef struct {
-    bool enable_line_tracking;      // Track line/column information
-    bool skip_whitespace;           // Filter whitespace tokens
-    bool skip_comments;             // Filter comment tokens
-    bool validate_governance;       // Enable PoliC validation
-    size_t max_identifier_length;   // Identifier length limit
-    size_t max_string_length;       // String literal length limit
-} TokenizerConfig;
+    uint32_t type    : 8;   /* Token type identifier (0-255) */
+    uint32_t mem_ptr : 16;  /* Memory pointer/offset (0-65535) */
+    uint32_t value   : 8;   /* Token value/flags (0-255) */
+} TokenTriplet;
 
-/**
- * Configure tokenizer behavior with advanced options
- * 
- * Enables systematic customization of tokenization behavior
- * for specific project requirements within the RIFT-0 framework.
- * 
- * @param config Pointer to configuration structure
- * @return 0 on successful configuration, negative error code on failure
- */
-int tokenizer_configure(const TokenizerConfig* config);
+/* Token Type Enumeration */
+typedef enum {
+    TOKEN_UNKNOWN = 0,
+    TOKEN_IDENTIFIER,
+    TOKEN_KEYWORD,
+    TOKEN_LITERAL_NUMBER,
+    TOKEN_LITERAL_STRING,
+    TOKEN_OPERATOR,
+    TOKEN_PUNCTUATION,
+    TOKEN_WHITESPACE,
+    TOKEN_COMMENT,
+    TOKEN_EOF,
+    TOKEN_ERROR,
+    /* DFA-specific tokens */
+    TOKEN_REGEX_START,
+    TOKEN_REGEX_END,
+    TOKEN_COMPOSE_AND,
+    TOKEN_COMPOSE_OR,
+    TOKEN_COMPOSE_XOR,
+    TOKEN_COMPOSE_NAND,
+    TOKEN_DFA_STATE,
+    TOKEN_MAX = 255
+} TokenType;
 
-/**
- * Get current tokenizer configuration
- * 
- * Retrieves active configuration for validation and debugging.
- * Supports systematic configuration management approaches.
- * 
- * @param config Output parameter for current configuration
- * @return 0 on success, negative error code on failure
- */
-int tokenizer_get_configuration(TokenizerConfig* config);
+/* Token Flags (stored in value field) */
+typedef enum {
+    TOKEN_FLAG_NONE       = 0x00,
+    TOKEN_FLAG_GLOBAL     = 0x01,  /* g flag */
+    TOKEN_FLAG_MULTILINE  = 0x02,  /* m flag */
+    TOKEN_FLAG_IGNORECASE = 0x04,  /* i flag */
+    TOKEN_FLAG_TOPDOWN    = 0x08,  /* t flag */
+    TOKEN_FLAG_BOTTOMUP   = 0x10,  /* b flag */
+    TOKEN_FLAG_COMPOSED   = 0x20,  /* Composed regex */
+    TOKEN_FLAG_VALIDATED = 0x40,  /* DFA validated */
+    TOKEN_FLAG_ERROR      = 0x80   /* Error state */
+} TokenFlags;
 
-/**
- * Validate tokenization results against governance policies
- * 
- * Implements systematic validation of token streams against
- * .riftrc.0 governance rules. Critical component of our
- * methodical quality assurance approach.
- * 
- * @param tokens Array of tokens to validate
- * @param count Number of tokens in array
- * @param policy_file Path to governance policy file (.riftrc.0)
- * @return true if validation passes, false on policy violations
+/* =================================================================
+ * DFA AUTOMATON STRUCTURES
+ * =================================================================
  */
-bool tokenizer_validate_governance(const TokenTriplet* tokens, size_t count, 
-                                  const char* policy_file);
 
-/**
- * Generate CSV export of token stream for analysis
- * 
- * Produces structured output for systematic analysis and
- * integration with external validation tools. Supports
- * collaborative debugging with Nnamdi's optimization tools.
- * 
- * @param tokens Array of tokens to export
- * @param count Number of tokens in array
- * @param output_file Path for CSV output file
- * @return 0 on successful export, negative error code on failure
+/* DFA State Structure (5-tuple automaton) */
+typedef struct DFAState {
+    uint32_t state_id;              /* Unique state identifier */
+    bool is_final;                  /* Final state flag */
+    bool is_start;                  /* Start state flag */
+    char transition_char;           /* Transition character */
+    struct DFAState* next_state;    /* Next state pointer */
+    struct DFAState* fail_state;    /* Failure state pointer */
+    TokenType token_type;           /* Associated token type */
+    uint32_t match_count;           /* Number of matches */
+} DFAState;
+
+/* Regex Composition Structure */
+typedef struct {
+    char* pattern;                  /* Raw regex pattern */
+    TokenFlags flags;               /* Compilation flags */
+    DFAState* start_state;          /* DFA start state */
+    DFAState* current_state;        /* Current processing state */
+    bool is_composed;               /* Composition status */
+    size_t pattern_length;          /* Pattern byte length */
+} RegexComposition;
+
+/* =================================================================
+ * TOKENIZER CONTEXT & STATE
+ * =================================================================
  */
-int tokenizer_export_csv(const TokenTriplet* tokens, size_t count, 
-                        const char* output_file);
+
+/* Tokenizer Context Structure */
+typedef struct {
+    const char* input_buffer;       /* Source input buffer */
+    size_t buffer_length;           /* Buffer size in bytes */
+    size_t current_position;        /* Current parsing position */
+    size_t line_number;             /* Current line (1-based) */
+    size_t column_number;           /* Current column (1-based) */
+    
+    /* Token output management */
+    TokenTriplet* token_buffer;     /* Output token array */
+    size_t token_capacity;          /* Maximum tokens */
+    size_t token_count;             /* Current token count */
+    
+    /* DFA processing state */
+    DFAState* dfa_root;             /* Root DFA state machine */
+    RegexComposition* compositions; /* Active regex compositions */
+    size_t composition_count;       /* Number of compositions */
+    
+    /* Error handling */
+    char error_message[256];        /* Last error description */
+    size_t error_position;          /* Error location in input */
+    bool has_error;                 /* Error flag */
+    
+    /* Thread safety */
+    void* mutex_handle;             /* Platform-specific mutex */
+    bool thread_safe_mode;          /* Thread safety enabled */
+} TokenizerContext;
+
+/* =================================================================
+ * CORE TOKENIZER API
+ * =================================================================
+ */
+
+/* Tokenizer Lifecycle Management */
+TokenizerContext* rift_tokenizer_create(size_t initial_capacity);
+void rift_tokenizer_destroy(TokenizerContext* ctx);
+bool rift_tokenizer_reset(TokenizerContext* ctx);
+
+/* Input Processing */
+bool rift_tokenizer_set_input(TokenizerContext* ctx, const char* input, size_t length);
+bool rift_tokenizer_set_input_file(TokenizerContext* ctx, const char* filename);
+
+/* Core Tokenization */
+bool rift_tokenizer_process(TokenizerContext* ctx);
+TokenTriplet* rift_tokenizer_get_tokens(TokenizerContext* ctx, size_t* count);
+TokenTriplet rift_tokenizer_next_token(TokenizerContext* ctx);
+
+/* =================================================================
+ * REGEX COMPOSITION API (R"" and R'' syntax)
+ * =================================================================
+ */
+
+/* Regex Pattern Compilation */
+RegexComposition* rift_regex_compile(const char* pattern, TokenFlags flags);
+void rift_regex_destroy(RegexComposition* regex);
+
+/* Boolean Composition Operations */
+RegexComposition* rift_regex_compose_and(RegexComposition* a, RegexComposition* b);
+RegexComposition* rift_regex_compose_or(RegexComposition* a, RegexComposition* b);
+RegexComposition* rift_regex_compose_xor(RegexComposition* a, RegexComposition* b);
+RegexComposition* rift_regex_compose_nand(RegexComposition* a, RegexComposition* b);
+
+/* Pattern Matching with DFA */
+bool rift_regex_match(RegexComposition* regex, const char* input, size_t length);
+bool rift_regex_find(RegexComposition* regex, const char* input, size_t length, 
+                     size_t* match_start, size_t* match_length);
+
+/* =================================================================
+ * DFA STATE MACHINE API
+ * =================================================================
+ */
+
+/* DFA Construction */
+DFAState* rift_dfa_create_state(uint32_t state_id, bool is_final);
+void rift_dfa_destroy_states(DFAState* root);
+bool rift_dfa_add_transition(DFAState* from, DFAState* to, char transition_char);
+
+/* DFA Processing */
+DFAState* rift_dfa_process_input(DFAState* start, const char* input, size_t length);
+bool rift_dfa_is_accepting_state(DFAState* state);
+TokenType rift_dfa_get_token_type(DFAState* state);
+
+/* =================================================================
+ * UTILITY & VALIDATION API
+ * =================================================================
+ */
+
+/* Token Utilities */
+const char* rift_token_type_name(TokenType type);
+const char* rift_token_flags_string(TokenFlags flags);
+bool rift_token_is_valid(const TokenTriplet* token);
+
+/* Debug & Introspection */
+void rift_tokenizer_print_stats(const TokenizerContext* ctx);
+void rift_tokenizer_print_tokens(const TokenizerContext* ctx);
+bool rift_tokenizer_validate_dfa(const TokenizerContext* ctx);
+
+/* Error Handling */
+const char* rift_tokenizer_get_error(const TokenizerContext* ctx);
+bool rift_tokenizer_has_error(const TokenizerContext* ctx);
+void rift_tokenizer_clear_error(TokenizerContext* ctx);
+
+/* =================================================================
+ * THREAD SAFETY API (for Gosilang integration)
+ * =================================================================
+ */
+
+/* Thread Safety Control */
+bool rift_tokenizer_enable_thread_safety(TokenizerContext* ctx);
+bool rift_tokenizer_disable_thread_safety(TokenizerContext* ctx);
+bool rift_tokenizer_is_thread_safe(const TokenizerContext* ctx);
+
+/* Thread-Safe Processing */
+TokenizerContext* rift_tokenizer_clone(const TokenizerContext* source);
+bool rift_tokenizer_merge_results(TokenizerContext* target, const TokenizerContext* source);
+
+/* =================================================================
+ * ADVANCED FEATURES
+ * =================================================================
+ */
+
+/* Pattern Caching */
+bool rift_tokenizer_cache_pattern(TokenizerContext* ctx, const char* name, 
+                                   const char* pattern, TokenFlags flags);
+RegexComposition* rift_tokenizer_get_cached_pattern(TokenizerContext* ctx, const char* name);
+
+/* Performance Monitoring */
+typedef struct {
+    uint64_t total_tokens;
+    uint64_t total_characters;
+    uint64_t processing_time_ns;
+    uint64_t dfa_transitions;
+    uint64_t cache_hits;
+    uint64_t cache_misses;
+} TokenizerStats;
+
+TokenizerStats rift_tokenizer_get_stats(const TokenizerContext* ctx);
+void rift_tokenizer_reset_stats(TokenizerContext* ctx);
+
+/* =================================================================
+ * CONSTANTS & LIMITS
+ * =================================================================
+ */
+
+#define RIFT_TOKENIZER_VERSION_MAJOR    1
+#define RIFT_TOKENIZER_VERSION_MINOR    0
+#define RIFT_TOKENIZER_VERSION_PATCH    0
+
+#define RIFT_MAX_TOKEN_LENGTH           4096
+#define RIFT_MAX_PATTERN_LENGTH         1024
+#define RIFT_MAX_DFA_STATES             65536
+#define RIFT_DEFAULT_TOKEN_CAPACITY     1024
+#define RIFT_MAX_COMPOSITIONS           64
+#define RIFT_MAX_ERROR_MESSAGE          256
+
+/* Regex Composition Syntax Markers */
+#define RIFT_REGEX_RAW_QUOTE            "R\""
+#define RIFT_REGEX_RAW_SINGLE           "R'"
+#define RIFT_COMPOSE_AND                "R.AND"
+#define RIFT_COMPOSE_OR                 "R.OR"
+#define RIFT_COMPOSE_XOR                "R.XOR"
+#define RIFT_COMPOSE_NAND               "R.NAND"
+#define RIFT_COMPOSE_NOT                "R.NOT"
+
+/* =================================================================
+ * VERSION & BUILD INFO
+ * =================================================================
+ */
+
+/* Version Information */
+const char* rift_tokenizer_version(void);
+const char* rift_tokenizer_build_info(void);
+uint32_t rift_tokenizer_version_number(void);
+
+/* Feature Detection */
+bool rift_tokenizer_has_dfa_support(void);
+bool rift_tokenizer_has_regex_compose(void);
+bool rift_tokenizer_has_thread_safety(void);
+bool rift_tokenizer_has_caching(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // TOKENIZER_H
+#endif /* RIFT_0_CORE_TOKENIZER_H */
