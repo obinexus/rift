@@ -124,7 +124,7 @@ validate_compilation_gate() {
     # Build sample stage to verify dependency tracking
     cd "${RIFT_ROOT}"
     
-    if make all >/dev/null 2>&1; then
+    if make build-static-libs >/dev/null 2>&1; then
         log_success "Static library compilation successful"
         
         # Verify .d files are generated
@@ -215,7 +215,7 @@ validate_quality_gate() {
     cd "${RIFT_ROOT}"
     
     # Unit test validation
-    if make validate-build >/dev/null 2>&1; then
+    if make unit-tests >/dev/null 2>&1; then
         log_success "Unit tests executed successfully"
     else
         log_warning "Unit test execution issues detected"
@@ -278,8 +278,8 @@ collect_coverage_metrics() {
         # Recompile with coverage flags
         export CFLAGS="$CFLAGS --coverage"
         make clean >/dev/null 2>&1
-        make all >/dev/null 2>&1
-        make validate-build >/dev/null 2>&1
+        make build-static-libs >/dev/null 2>&1
+        make unit-tests >/dev/null 2>&1
         
         # Generate coverage data
         find obj -name "*.gcda" -exec gcov {} \; >"${coverage_dir}/coverage_raw.txt" 2>&1

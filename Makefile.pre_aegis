@@ -1,6 +1,8 @@
 # =================================================================
-# RIFT AEGIS Build System - Optimized Production Implementation
+# RIFT AEGIS Build System - Production Implementation
 # OBINexus Computing Framework - Technical Lead: Nnamdi Michael Okpala
+# VERSION: 1.0.0-PRODUCTION
+# FIXES: Syntax errors, dependency tracking, library naming
 # =================================================================
 
 RIFT_VERSION := 1.0.0
@@ -28,18 +30,20 @@ LIBS := -lssl -lcrypto -lpthread
 STAGES := 0 1 2 3 4 5 6
 STAGE_NAMES := tokenizer parser semantic validator bytecode verifier emitter
 
-# CORRECTED: Proper library naming with librift-*.a convention
-STATIC_LIBS := $(addprefix $(LIB_DIR)/lib,$(addsuffix .a,$(addprefix rift-,$(STAGES))))
-EXECUTABLES := $(addprefix $(BIN_DIR)/,$(addprefix rift-,$(STAGES)))
+# CORRECTED: Proper library naming
+STATIC_LIBS := $(addprefix $(LIB_DIR)/librift-,$(addsuffix .a,$(STAGES)))
+EXECUTABLES := $(addprefix $(BIN_DIR)/rift-,$(STAGES))
 
 # Color codes
 GREEN := \033[0;32m
 BLUE := \033[0;34m
+YELLOW := \033[1;33m
+RED := \033[0;31m
 NC := \033[0m
 
-.PHONY: all setup clean build-static-libs build-executables
+.PHONY: all setup clean build-static-libs build-executables validate
 
-all: setup build-static-libs build-executables
+all: setup build-static-libs build-executables validate
 
 setup:
 	@echo -e "$(BLUE)[SETUP]$(NC) Creating AEGIS directory structure..."
@@ -54,36 +58,51 @@ build-static-libs: $(STATIC_LIBS)
 
 build-executables: $(EXECUTABLES)
 
-# Pattern rule for static libraries with corrected naming
-$(LIB_DIR)/librift-%.a: $(OBJ_DIR)/rift-%/$(word $(shell expr $* + 1),$(STAGE_NAMES)).o
+# CORRECTED: Fixed pattern rule with proper word function usage
+$(LIB_DIR)/librift-%.a: $(OBJ_DIR)/rift-%/stage%.o
 	@echo -e "$(BLUE)[LIB]$(NC) Building librift-$*.a..."
 	@$(AR) rcs $@ $<
 	@$(RANLIB) $@
 	@echo -e "$(GREEN)[SUCCESS]$(NC) librift-$*.a created"
 
-# Object file compilation with dependency tracking
-$(OBJ_DIR)/rift-%/%.o: $(SRC_DIR)/core/stage-%/%.c
-	@echo -e "$(BLUE)[COMPILE]$(NC) Building $@..."
+# CORRECTED: Object file compilation with proper dependency tracking
+$(OBJ_DIR)/rift-%/stage%.o: $(SRC_DIR)/core/stage-%/stage%.c
+	@echo -e "$(BLUE)[COMPILE]$(NC) Building stage $* object..."
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -MF $(@:.o=.d) -c $< -o $@
 
-# Executable generation with corrected linking
+# CORRECTED: Executable generation with proper linking
 $(BIN_DIR)/rift-%: $(SRC_DIR)/cli/stage-%/main.c $(LIB_DIR)/librift-%.a
 	@echo -e "$(BLUE)[EXEC]$(NC) Building rift-$*..."
 	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< -L$(LIB_DIR) -l:librift-$*.a $(LIBS)
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< -L$(LIB_DIR) -lrift-$* $(LIBS)
+
+validate:
+	@echo -e "$(BLUE)[VALIDATE]$(NC) Running AEGIS build validation..."
+	@for stage in $(STAGES); do \
+		if [ -f "$(LIB_DIR)/librift-$$stage.a" ]; then \
+			echo -e "$(GREEN)✓$(NC) librift-$$stage.a"; \
+		else \
+			echo -e "$(RED)✗$(NC) librift-$$stage.a missing"; \
+		fi; \
+		if [ -f "$(BIN_DIR)/rift-$$stage" ]; then \
+			echo -e "$(GREEN)✓$(NC) rift-$$stage"; \
+		else \
+			echo -e "$(RED)✗$(NC) rift-$$stage missing"; \
+		fi; \
+	done
 
 clean:
 	@echo -e "$(BLUE)[CLEAN]$(NC) Removing build artifacts..."
 	@rm -rf $(OBJ_DIR) $(LIB_DIR)/*.a $(BIN_DIR)/rift-*
 	@find . -name "*.d" -delete
 
-# Generate source files if missing
-$(SRC_DIR)/core/stage-%/%.c:
+# Generate source files if missing (with corrected naming)
+$(SRC_DIR)/core/stage-%/stage%.c:
 	@mkdir -p $(dir $@)
 	@mkdir -p $(INCLUDE_DIR)/rift/core/stage-$*
-	@echo "Generating minimal $@ implementation..."
-	@cat > $@ << 'EOFINNER'
+	@echo "Generating stage $* implementation..."
+	@cat > $@ << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -105,12 +124,12 @@ int rift_stage_$*_process(const char* input, char** output) {
 void rift_stage_$*_cleanup(void) {
     printf("RIFT Stage $* - Cleanup complete\n");
 }
-EOFINNER
+EOF
 
 $(SRC_DIR)/cli/stage-%/main.c:
 	@mkdir -p $(dir $@)
 	@echo "Generating CLI for stage $*..."
-	@cat > $@ << 'EOFINNER'
+	@cat > $@ << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -136,7 +155,32 @@ int main(int argc, char* argv[]) {
     rift_stage_$*_cleanup();
     return result;
 }
-EOFINNER
+EOF
 
 # Include dependency files
 -include $(shell find $(OBJ_DIR) -name "*.d" 2>/dev/null)
+
+# AEGIS Status Report
+status:
+	@echo -e "$(BLUE)=================================================================="
+	@echo -e "RIFT AEGIS Build System Status"
+	@echo -e "Version: $(RIFT_VERSION)"
+	@echo -e "Compliance: AEGIS Waterfall Methodology"
+	@echo -e "Libraries: $(words $(STATIC_LIBS)) stages"
+	@echo -e "Executables: $(words $(EXECUTABLES)) binaries"
+	@echo -e "==================================================================$(NC)"
+
+help:
+	@echo -e "$(BLUE)RIFT AEGIS Build System$(NC)"
+	@echo "Available targets:"
+	@echo "  all         - Complete AEGIS build (default)"
+	@echo "  setup       - Create directory structure"
+	@echo "  build-static-libs - Build stage libraries"
+	@echo "  build-executables - Build stage executables"
+	@echo "  validate    - Validate build artifacts"
+	@echo "  clean       - Remove build artifacts"
+	@echo "  status      - Show build system status"
+	@echo "  help        - Show this help message"
+	@echo ""
+	@echo "Technical Implementation: OBINexus Computing Framework"
+	@echo "Methodology: AEGIS Waterfall with Zero Trust Governance"

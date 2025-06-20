@@ -43,26 +43,29 @@
 │       │       └── parser.h
 │       └── governance
 │           └── policy.h
-├── integrated_cmake_pkgconfig.cmake
-├── intergrated_cmake_pkgconfig.cmake
 ├── lib
-│   ├── rift-0.a
-│   ├── rift-1.a
-│   ├── rift-2.a
-│   ├── rift-3.a
-│   ├── rift-4.a
-│   ├── rift-5.a
-│   └── rift-6.a
 ├── logs
+│   ├── aegis_build_resolution.log
 │   ├── bootstrap_execution_20250618_235357.log
 │   ├── build_recovery.log
 │   ├── cmake_config.log
 │   ├── compilation.log
 │   ├── pipeline_scaffolding_20250619_001300.log
+│   ├── qa_execution.log
 │   └── root_infrastructure_20250619_001820.log
 ├── Makefile
 ├── Makefile.old
+├── Makefile.pre_aegis
 ├── obj
+│   ├── rift-0
+│   │   ├── tokenizer.d
+│   │   └── tokenizer.o
+│   ├── rift-1
+│   ├── rift-2
+│   ├── rift-3
+│   ├── rift-4
+│   ├── rift-5
+│   ├── rift-6
 │   ├── stage-0
 │   │   ├── tokenizer.d
 │   │   └── tokenizer.o
@@ -84,26 +87,20 @@
 │   └── stage-6
 │       ├── emitter.d
 │       └── emitter.o
+├── qa
+│   └── reports
+│       ├── dependency_analysis.txt
+│       └── linking_validation.txt
 ├── rift
-│   ├── bin
 │   ├── build
 │   │   └── pkgconfig
 │   ├── cmake
-│   │   ├── common
-│   │   │   └── compiler_pipeline.cmake
-│   │   └── modules
+│   │   └── common
+│   │       └── compiler_pipeline.cmake
 │   ├── CMakeLists.txt
 │   ├── demo_pipeline.sh
-│   ├── docs
-│   │   ├── feature-adt
-│   │   ├── feature-cli
-│   │   ├── feature-core
-│   │   ├── feature-lexer
-│   │   ├── feature-security
-│   │   └── feature-tokenizer
 │   ├── examples
 │   │   └── test_input.rift
-│   ├── governance
 │   ├── include
 │   │   └── rift
 │   │       ├── cli
@@ -160,30 +157,9 @@
 │   │       ├── governance
 │   │       │   ├── governance.h
 │   │       │   └── policy.h
-│   │       ├── lexer
-│   │       ├── rift.h
-│   │       ├── tokenizer
-│   │       ├── token_type
-│   │       └── token_value
-│   ├── lib
+│   │       └── rift.h
 │   ├── logs
 │   │   └── error.out
-│   ├── obj
-│   │   ├── bytecode
-│   │   ├── cli
-│   │   ├── command
-│   │   ├── config
-│   │   ├── core
-│   │   ├── emitter
-│   │   ├── governance
-│   │   ├── lexer
-│   │   ├── parser
-│   │   ├── semantic
-│   │   ├── tokenizer
-│   │   ├── token_type
-│   │   ├── token_value
-│   │   ├── validator
-│   │   └── verifier
 │   ├── pkgconfig
 │   │   ├── examples
 │   │   │   ├── Makefile.example
@@ -208,210 +184,97 @@
 │   │   │   └── Stage6CMakeIntegration.cmake
 │   │   └── validate-pkgconfig.sh
 │   ├── rift-0
-│   │   ├── cmake
-│   │   ├── CMakeLists.txt
-│   │   ├── docs
-│   │   ├── include
-│   │   │   └── rift-0
-│   │   │       ├── cli
-│   │   │       └── core
-│   │   ├── obj
-│   │   ├── src
-│   │   │   └── core
-│   │   │       └── tokenizer
-│   │   └── tests
-│   │       ├── integration
-│   │       └── unit
+│   │   └── CMakeLists.txt
 │   ├── rift-1
-│   │   ├── cmake
-│   │   ├── CMakeLists.txt
-│   │   ├── docs
-│   │   ├── include
-│   │   │   └── rift-1
-│   │   │       ├── cli
-│   │   │       └── core
-│   │   ├── obj
-│   │   ├── src
-│   │   │   └── core
-│   │   │       └── parser
-│   │   └── tests
-│   │       ├── integration
-│   │       └── unit
+│   │   └── CMakeLists.txt
 │   ├── rift-2
-│   │   ├── cmake
-│   │   ├── CMakeLists.txt
-│   │   ├── docs
-│   │   ├── include
-│   │   │   └── rift-2
-│   │   │       ├── cli
-│   │   │       └── core
-│   │   ├── obj
-│   │   ├── src
-│   │   │   └── core
-│   │   │       └── semantic
-│   │   └── tests
-│   │       ├── integration
-│   │       └── unit
+│   │   └── CMakeLists.txt
 │   ├── rift-3
-│   │   ├── cmake
-│   │   ├── CMakeLists.txt
-│   │   ├── docs
-│   │   ├── include
-│   │   │   └── rift-3
-│   │   │       ├── cli
-│   │   │       └── core
-│   │   ├── obj
-│   │   ├── src
-│   │   │   └── core
-│   │   │       └── validator
-│   │   └── tests
-│   │       ├── integration
-│   │       └── unit
+│   │   └── CMakeLists.txt
 │   ├── rift-4
-│   │   ├── cmake
-│   │   ├── CMakeLists.txt
-│   │   ├── docs
-│   │   ├── include
-│   │   │   └── rift-4
-│   │   │       ├── cli
-│   │   │       └── core
-│   │   ├── obj
-│   │   ├── src
-│   │   │   └── core
-│   │   │       └── bytecode
-│   │   └── tests
-│   │       ├── integration
-│   │       └── unit
+│   │   └── CMakeLists.txt
 │   ├── rift-5
-│   │   ├── cmake
-│   │   ├── CMakeLists.txt
-│   │   ├── docs
-│   │   ├── include
-│   │   │   └── rift-5
-│   │   │       ├── cli
-│   │   │       └── core
-│   │   ├── obj
-│   │   ├── src
-│   │   │   └── core
-│   │   │       └── verifier
-│   │   └── tests
-│   │       ├── integration
-│   │       └── unit
+│   │   └── CMakeLists.txt
 │   ├── rift-6
-│   │   ├── cmake
-│   │   ├── CMakeLists.txt
-│   │   ├── docs
-│   │   ├── include
-│   │   │   └── rift-6
-│   │   │       ├── cli
-│   │   │       └── core
-│   │   ├── obj
-│   │   ├── src
-│   │   │   └── core
-│   │   │       └── emitter
-│   │   └── tests
-│   │       ├── integration
-│   │       └── unit
+│   │   └── CMakeLists.txt
 │   ├── scripts
-│   │   ├── deployment
 │   │   └── validation
 │   │       └── validate_rift.sh
-│   ├── security
-│   │   └── polic
-│   ├── src
-│   │   ├── cli
-│   │   │   ├── cli.c
-│   │   │   ├── command
-│   │   │   ├── commands
-│   │   │   ├── config
-│   │   │   │   └── config_loader.c
-│   │   │   ├── governance
-│   │   │   ├── main.c
-│   │   │   └── pipeline
-│   │   ├── commands
-│   │   │   ├── analyze.c
-│   │   │   ├── compile.c
-│   │   │   ├── emit.c
-│   │   │   ├── generate.c
-│   │   │   ├── governance.c
-│   │   │   ├── parse.c
-│   │   │   ├── tokenize.c
-│   │   │   ├── validate.c
-│   │   │   └── verify.c
-│   │   ├── config
-│   │   │   └── config.c
-│   │   ├── core
-│   │   │   ├── bytecode
-│   │   │   │   └── bytecode.c
-│   │   │   ├── cli
-│   │   │   │   └── cli.c
-│   │   │   ├── config
-│   │   │   │   └── config.c
-│   │   │   ├── core
-│   │   │   │   └── core.c
-│   │   │   ├── emitter
-│   │   │   │   └── emitter.c
-│   │   │   ├── governance
-│   │   │   │   └── governance.c
-│   │   │   ├── lexer
-│   │   │   │   └── lexer.c
-│   │   │   ├── parser
-│   │   │   │   └── parser.c
-│   │   │   ├── rift.c
-│   │   │   ├── semantic
-│   │   │   │   └── semantic.c
-│   │   │   ├── stage-0
-│   │   │   │   └── tokenizer.c
-│   │   │   ├── stage-1
-│   │   │   │   └── parser.c
-│   │   │   ├── stage-2
-│   │   │   │   └── semantic.c
-│   │   │   ├── stage-3
-│   │   │   │   └── validator.c
-│   │   │   ├── stage-4
-│   │   │   │   └── bytecode.c
-│   │   │   ├── stage-5
-│   │   │   │   └── verifier.c
-│   │   │   ├── stage-6
-│   │   │   │   └── emitter.c
-│   │   │   ├── tokenizer
-│   │   │   │   └── tokenizer.c
-│   │   │   ├── token_type
-│   │   │   │   └── token_type.c
-│   │   │   ├── token_value
-│   │   │   │   └── token_value.c
-│   │   │   ├── validator
-│   │   │   │   └── validator.c
-│   │   │   └── verifier
-│   │   │       └── verifier.c
-│   │   └── governance
-│   │       ├── config
-│   │       ├── config.c
-│   │       ├── memory.c
-│   │       ├── policy
-│   │       ├── tokens.c
-│   │       ├── validation
-│   │       ├── validation.c
-│   │       ├── waterfall.c
-│   │       └── zero_trust.c
-│   └── tests
-│       ├── benchmark
-│       ├── integration
-│       └── unit
-│           ├── bytecode
-│           ├── cli
+│   └── src
+│       ├── cli
+│       │   ├── cli.c
+│       │   ├── commands
+│       │   ├── config
+│       │   │   └── config_loader.c
+│       │   ├── governance
+│       │   ├── main.c
+│       │   └── pipeline
+│       ├── commands
+│       │   ├── analyze.c
+│       │   ├── compile.c
+│       │   ├── emit.c
+│       │   ├── generate.c
+│       │   ├── governance.c
+│       │   ├── parse.c
+│       │   ├── tokenize.c
+│       │   ├── validate.c
+│       │   └── verify.c
+│       ├── config
+│       │   └── config.c
+│       ├── core
+│       │   ├── bytecode
+│       │   │   └── bytecode.c
+│       │   ├── cli
+│       │   │   └── cli.c
+│       │   ├── config
+│       │   │   └── config.c
+│       │   ├── core
+│       │   │   └── core.c
+│       │   ├── emitter
+│       │   │   └── emitter.c
+│       │   ├── governance
+│       │   │   └── governance.c
+│       │   ├── lexer
+│       │   │   └── lexer.c
+│       │   ├── parser
+│       │   │   └── parser.c
+│       │   ├── rift.c
+│       │   ├── semantic
+│       │   │   └── semantic.c
+│       │   ├── stage-0
+│       │   │   └── tokenizer.c
+│       │   ├── stage-1
+│       │   │   └── parser.c
+│       │   ├── stage-2
+│       │   │   └── semantic.c
+│       │   ├── stage-3
+│       │   │   └── validator.c
+│       │   ├── stage-4
+│       │   │   └── bytecode.c
+│       │   ├── stage-5
+│       │   │   └── verifier.c
+│       │   ├── stage-6
+│       │   │   └── emitter.c
+│       │   ├── tokenizer
+│       │   │   └── tokenizer.c
+│       │   ├── token_type
+│       │   │   └── token_type.c
+│       │   ├── token_value
+│       │   │   └── token_value.c
+│       │   ├── validator
+│       │   │   └── validator.c
+│       │   └── verifier
+│       │       └── verifier.c
+│       └── governance
 │           ├── config
-│           ├── core
-│           ├── emitter
-│           ├── governance
-│           ├── lexer
-│           ├── parser
-│           ├── semantic
-│           ├── tokenizer
-│           ├── token_type
-│           ├── token_value
-│           ├── validator
-│           └── verifier
+│           ├── config.c
+│           ├── memory.c
+│           ├── policy
+│           ├── tokens.c
+│           ├── validation
+│           ├── validation.c
+│           ├── waterfall.c
+│           └── zero_trust.c
 ├── rift-0
 │   ├── cmake
 │   ├── CMakeLists.txt
@@ -599,14 +462,6 @@
 │   │   ├── lib
 │   │   ├── logs
 │   │   ├── Makefile
-│   │   ├── obj
-│   │   │   ├── cli
-│   │   │   ├── command
-│   │   │   ├── core
-│   │   │   ├── lexer
-│   │   │   ├── tokenizer
-│   │   │   ├── token_type
-│   │   │   └── token_value
 │   │   ├── scripts
 │   │   │   └── validation
 │   │   │       └── validate-architecture.sh
@@ -682,6 +537,10 @@
 │   ├── integration
 │   └── unit
 └── tools
+    ├── aegis_build_resolution.sh
+    ├── dependency_validation.sh
+    ├── qa_framework.sh
+    ├── qa_framework.sh.backup
     └── setup.sh
 
-419 directories, 266 files
+276 directories, 268 files
