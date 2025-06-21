@@ -6,6 +6,12 @@
  * OBINexus Computing Framework - Stage 0 Implementation
  * =================================================================
  */
+#if !defined(_WIN32)
+  #ifndef _POSIX_C_SOURCE
+    #define _POSIX_C_SOURCE 199309L
+  #endif
+#endif
+#include <time.h>
 
 #include "rift-0/core/tokenizer.h"
 
@@ -16,7 +22,6 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h> // For ssize_t
-#include <time.h>
 
 /* =================================================================
  * INTERNAL HELPER FUNCTIONS - STATIC SCOPE

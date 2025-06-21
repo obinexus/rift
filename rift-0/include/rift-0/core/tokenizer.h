@@ -17,13 +17,6 @@
 #include "rift-0/core/tokenizer_types.h"
 #include "rift-0/core/tokenizer_rules.h"
 
-// Enable POSIX features for clock_gettime on Linux/Unix
-#if !defined(_WIN32)
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 199309L
-#endif
-#endif
-
 #if !defined(_WIN32)
 #include <unistd.h>
 #endif
