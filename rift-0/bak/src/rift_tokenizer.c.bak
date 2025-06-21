@@ -380,87 +380,6 @@ bool rift_tokenizer_has_dfa_support(void) {
 }
 
 /* =================================================================
- * AEGIS INTEGRATION FUNCTIONS FOR CLI MAIN
- * =================================================================
- */
-
-/**
- * Execute AEGIS-compliant tokenization demo
- * Called from CLI main when --aegis-demo flag is used
- * @param argc Command line argument count
- * @param argv Command line argument vector
- * @return Processing result code
- */
-int rift_tokenizer_run_aegis_demo(int argc, char **argv) {
-    printf("=================================================================\n");
-    printf("RIFT Tokenization Stage (rift-0) v4.0.0\n");
-    printf("OBINexus Computing Framework - Technical Implementation\n");
-    printf("Toolchain: riftlang.exe → .so.a → rift.exe → gosilang\n");
-    printf("Build Orchestration: nlink → polybuild (AEGIS Framework)\n");
-    printf("=================================================================\n");
-    
-    printf("Command line arguments: %d\n", argc);
-    for (int i = 0; i < argc; i++) {
-        printf("  argv[%d]: %s\n", i, argv[i]);
-    }
-    
-    /* Initialize AEGIS-compliant stage configuration */
-    rift_tokenizer_config_t config = {0};
-    config.processing_flags = 0x01;        /* Enable dual-mode */
-    config.validation_level = 3;           /* High validation */
-    config.trust_tagging_enabled = true;   /* AEGIS trust tagging */
-    config.preserve_matched_state = true;  /* State preservation */
-    config.output_format = "metadata-enhanced";
-    
-    /* Initialize tokenizer context */
-    rift_tokenizer_context_t *ctx = rift_tokenizer_init(&config);
-    if (!ctx) {
-        fprintf(stderr, "Failed to initialize tokenization stage\n");
-        return 1;
-    }
-    
-    /* Validate AEGIS compliance */
-    if (rift_tokenizer_validate(ctx) != RIFT_TOKENIZER_SUCCESS) {
-        fprintf(stderr, "Tokenization validation failed - AEGIS non-compliant\n");
-        rift_tokenizer_cleanup(ctx);
-        return 1;
-    }
-    
-    /* Process sample input demonstrating stage capabilities */
-    const char *sample_input = "let result = (x + y) * 42; /* RIFT tokenization test */";
-    void *output = NULL;
-    size_t output_size = 0;
-    
-    rift_tokenizer_result_t result = rift_tokenizer_process(
-        ctx, sample_input, strlen(sample_input), &output, &output_size);
-    
-    if (result == RIFT_TOKENIZER_SUCCESS) {
-        printf("\n=================================================================\n");
-        printf("Tokenization processing successful - AEGIS compliant\n");
-        printf("Output (%zu bytes):\n", output_size);
-        printf("=================================================================\n");
-        printf("%.*s\n", (int)output_size, (char*)output);
-        printf("=================================================================\n");
-        free(output);
-    } else {
-        fprintf(stderr, "Tokenization processing failed: %d\n", result);
-    }
-    
-    /* Test stage-specific functions */
-    printf("\nTesting stage-specific functionality:\n");
-    rift_tokenizer_set_pattern(ctx, "R\"([a-zA-Z_][a-zA-Z0-9_]*)\"");
-    rift_tokenizer_tokenize_input(ctx, sample_input);
-    
-    /* Cleanup and resource management */
-    rift_tokenizer_cleanup(ctx);
-    
-    printf("\nTokenization stage execution complete\n");
-    printf("Build verification: %s\n", rift_tokenizer_version());
-    
-    return result == RIFT_TOKENIZER_SUCCESS ? 0 : 1;
-}
-
-/* =================================================================
  * PLACEHOLDER IMPLEMENTATIONS FOR COMPLEX FEATURES
  * =================================================================
  */
@@ -519,3 +438,8 @@ void rift_regex_destroy(RegexComposition* regex) {
     
     free(regex);
 }
+
+/* =================================================================
+ * MAIN FUNCTION FOR STANDALONE EXECUTION
+ * =================================================================
+ */
