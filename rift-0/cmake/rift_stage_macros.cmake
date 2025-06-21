@@ -139,7 +139,7 @@ function(add_rift_stage STAGE_NUM STAGE_NAME SOURCES)
             $<INSTALL_INTERFACE:include/rift-${STAGE_NUM}>
         )
         
-    else
+    else()
         # Header-only stage configuration
         add_library(${STAGE_NAME}_interface INTERFACE)
         
@@ -191,7 +191,7 @@ function(configure_riftrc_stage STAGE_NUM STAGE_NAME)
             @ONLY
         )
         message(STATUS "Generated .riftrc.${STAGE_NUM} from base template")
-    else
+    else()
         # Generate minimal configuration
         file(WRITE ${CONFIG_OUTPUT_DIR}/.riftrc.${STAGE_NUM}
             "# RIFT Stage ${STAGE_NUM} Configuration\n"
