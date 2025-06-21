@@ -1,468 +1,440 @@
-/*
+/**
  * =================================================================
- * tokenizer.c - RIFT-0 Core Tokenizer Implementation (AEGIS Compliant)
+ * tokenizer.c - RIFT-0 Core Tokenizer Implementation
  * RIFT: RIFT Is a Flexible Translator
- * Component: High-level tokenizer lifecycle management
+ * Component: Main tokenizer context and processing implementation
  * OBINexus Computing Framework - Stage 0 Implementation
- * 
- * R.IMPLEMENT(TokenizerContext, LifecycleManagement, InputProcessing)
- * R.FLAGS(thread_safe, memory_aligned, error_recoverable)
- * R.COMPOSE(Create, Process, Destroy) -> Complete lifecycle
- * 
- * Toolchain: riftlang.exe → .so.a → rift.exe → gosilang
- * Build Orchestration: nlink → polybuild (AEGIS Framework)
- * Author: Nnamdi Michael Okpala & AEGIS Integration Team
  * =================================================================
  */
 
 #include "rift-0/core/tokenizer.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <errno.h>
 #include <time.h>
 
-#ifdef RIFT_THREAD_SUPPORT
-#include <pthread.h>
-#endif
-
 /* =================================================================
- * INTERNAL UTILITY MACROS
+ * INTERNAL HELPER FUNCTIONS - STATIC SCOPE
  * =================================================================
  */
 
-#define RIFT_SAFE_FREE(ptr) do { if (ptr) { free(ptr); (ptr) = NULL; } } while(0)
-#define RIFT_MIN(a, b) ((a) < (b) ? (a) : (b))
-#define RIFT_MAX(a, b) ((a) > (b) ? (a) : (b))
-
-/* =================================================================
- * TOKENIZER CONTEXT LIFECYCLE MANAGEMENT
- * =================================================================
- */
-
-/**
- * Create new tokenizer context with specified capacity
- * R.CREATE(TokenizerContext) -> AEGIS compliant initialization
- */
-TokenizerContext* rift_tokenizer_create(size_t initial_capacity) {
-    if (initial_capacity == 0) {
-        initial_capacity = RIFT_TOKENIZER_DEFAULT_CAPACITY;
-    }
+static bool _tokenizer_init_context(TokenizerContext* ctx, 
+                                   size_t token_capacity, 
+                                   size_t pattern_capacity) {
+    if (!ctx) return false;
     
-    TokenizerContext* ctx = calloc(1, sizeof(TokenizerContext));
-    if (!ctx) {
-        return NULL;
-    }
-    
-    /* Initialize token storage */
-    ctx->tokens = calloc(initial_capacity, sizeof(TokenTriplet));
+    /* Initialize core state */
+    ctx->tokens = calloc(token_capacity, sizeof(TokenTriplet));
     if (!ctx->tokens) {
-        free(ctx);
-        return NULL;
+        snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                "Failed to allocate token buffer: %s", strerror(errno));
+        ctx->error_code = RIFT_TOKENIZER_ERROR_MEMORY_ALLOCATION_FAILED;
+        ctx->has_error = true;
+        return false;
     }
     
-    ctx->token_capacity = initial_capacity;
-    ctx->token_count = 0;
-    
-    /* Initialize pattern storage */
-    ctx->composition_capacity = RIFT_TOKENIZER_MAX_PATTERNS;
-    ctx->compositions = calloc(ctx->composition_capacity, sizeof(RegexComposition*));
-    if (!ctx->compositions) {
+    ctx->regex_patterns = calloc(pattern_capacity, sizeof(RegexComposition*));
+    if (!ctx->regex_patterns) {
         free(ctx->tokens);
-        free(ctx);
-        return NULL;
+        snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                "Failed to allocate pattern buffer: %s", strerror(errno));
+        ctx->error_code = RIFT_TOKENIZER_ERROR_MEMORY_ALLOCATION_FAILED;
+        ctx->has_error = true;
+        return false;
     }
     
-    /* Initialize state */
+    /* Initialize capacities and counts */
+    ctx->token_capacity = token_capacity;
+    ctx->pattern_capacity = pattern_capacity;
+    ctx->token_count = 0;
+    ctx->pattern_count = 0;
+    
+    /* Initialize input state */
     ctx->input_buffer = NULL;
     ctx->input_length = 0;
-    ctx->input_position = 0;
-    ctx->dfa_root = NULL;
-    ctx->error_message = NULL;
+    ctx->current_position = 0;
+    ctx->line_number = 1;
+    ctx->column_number = 1;
+    
+    /* Initialize DFA state */
+    ctx->current_dfa_state = NULL;
+    
+    /* Initialize thread safety */
+    if (pthread_mutex_init(&ctx->context_mutex, NULL) != 0) {
+        free(ctx->tokens);
+        free(ctx->regex_patterns);
+        snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                "Failed to initialize mutex: %s", strerror(errno));
+        ctx->error_code = RIFT_TOKENIZER_ERROR_MEMORY_ALLOCATION_FAILED;
+        ctx->has_error = true;
+        return false;
+    }
+    
+    atomic_store(&ctx->thread_safe_mode, false);
+    ctx->owner_thread = pthread_self();
+    
+    /* Initialize error state */
+    ctx->error_message[0] = '\0';
+    ctx->error_code = RIFT_TOKENIZER_SUCCESS;
     ctx->has_error = false;
-    ctx->thread_safe = false;
-    ctx->mutex = NULL;
-    ctx->aegis_compliant = true;
-    ctx->governance_score = 0;
     
     /* Initialize statistics */
     memset(&ctx->stats, 0, sizeof(TokenizerStats));
-    ctx->stats.memory_allocated = sizeof(TokenizerContext) + 
-                                  (initial_capacity * sizeof(TokenTriplet)) +
-                                  (ctx->composition_capacity * sizeof(RegexComposition*));
-    ctx->stats.memory_peak = ctx->stats.memory_allocated;
+    
+    /* Initialize configuration */
+    ctx->global_flags = TOKEN_FLAG_NONE;
+    ctx->debug_mode = false;
+    ctx->strict_mode = false;
+    
+    return true;
+}
+
+static void _tokenizer_cleanup_context(TokenizerContext* ctx) {
+    if (!ctx) return;
+    
+    /* Clean up patterns */
+    for (size_t i = 0; i < ctx->pattern_count; i++) {
+        if (ctx->regex_patterns[i]) {
+            rift_regex_destroy(ctx->regex_patterns[i]);
+        }
+    }
+    
+    /* Free buffers */
+    free(ctx->tokens);
+    free(ctx->regex_patterns);
+    
+    /* Destroy mutex */
+    pthread_mutex_destroy(&ctx->context_mutex);
+    
+    /* Clear sensitive data */
+    memset(ctx, 0, sizeof(TokenizerContext));
+}
+
+/* =================================================================
+ * TOKENIZER CONTEXT LIFECYCLE IMPLEMENTATION
+ * =================================================================
+ */
+
+TokenizerContext* rift_tokenizer_create(void) {
+    return rift_tokenizer_create_with_capacity(RIFT_TOKENIZER_DEFAULT_CAPACITY,
+                                              RIFT_TOKENIZER_MAX_PATTERNS);
+}
+
+TokenizerContext* rift_tokenizer_create_with_capacity(size_t token_capacity, 
+                                                     size_t pattern_capacity) {
+    if (token_capacity == 0 || token_capacity > RIFT_TOKENIZER_MAX_TOKENS) {
+        return NULL;
+    }
+    
+    if (pattern_capacity == 0 || pattern_capacity > RIFT_TOKENIZER_MAX_PATTERNS) {
+        return NULL;
+    }
+    
+    TokenizerContext* ctx = calloc(1, sizeof(TokenizerContext));
+    if (!ctx) return NULL;
+    
+    if (!_tokenizer_init_context(ctx, token_capacity, pattern_capacity)) {
+        free(ctx);
+        return NULL;
+    }
     
     return ctx;
 }
 
-/**
- * Destroy tokenizer context and free all resources
- * R.DESTROY(TokenizerContext) -> Complete cleanup
- */
 void rift_tokenizer_destroy(TokenizerContext* ctx) {
     if (!ctx) return;
     
-    /* Free token storage */
-    RIFT_SAFE_FREE(ctx->tokens);
-    
-    /* Free input buffer */
-    RIFT_SAFE_FREE(ctx->input_buffer);
-    
-    /* Free error message */
-    RIFT_SAFE_FREE(ctx->error_message);
-    
-    /* Free pattern compositions */
-    if (ctx->compositions) {
-        for (size_t i = 0; i < ctx->composition_count; i++) {
-            if (ctx->compositions[i]) {
-                rift_regex_destroy(ctx->compositions[i]);
-            }
-        }
-        free(ctx->compositions);
-    }
-    
-    /* Free DFA state machine */
-    if (ctx->dfa_root) {
-        rift_dfa_destroy_states(ctx->dfa_root);
-    }
-    
-    /* Free thread synchronization */
-    #ifdef RIFT_THREAD_SUPPORT
-    if (ctx->mutex) {
-        pthread_mutex_destroy((pthread_mutex_t*)ctx->mutex);
-        free(ctx->mutex);
-    }
-    #endif
-    
-    /* Zero and free context */
-    memset(ctx, 0, sizeof(TokenizerContext));
+    _tokenizer_cleanup_context(ctx);
     free(ctx);
 }
 
-/**
- * Reset tokenizer to initial state
- * R.RESET(TokenizerContext) -> Clean state preservation
- */
 bool rift_tokenizer_reset(TokenizerContext* ctx) {
     if (!ctx) return false;
     
-    /* Reset processing state */
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return false;
+    }
+    
+    /* Reset token state */
     ctx->token_count = 0;
-    ctx->input_position = 0;
+    ctx->current_position = 0;
+    ctx->line_number = 1;
+    ctx->column_number = 1;
+    ctx->current_dfa_state = NULL;
+    
+    /* Reset error state */
+    ctx->error_message[0] = '\0';
+    ctx->error_code = RIFT_TOKENIZER_SUCCESS;
     ctx->has_error = false;
     
-    /* Clear error message */
-    RIFT_SAFE_FREE(ctx->error_message);
+    /* Clear input reference */
+    ctx->input_buffer = NULL;
+    ctx->input_length = 0;
     
-    /* Reset statistics (preserve allocations) */
-    size_t memory_allocated = ctx->stats.memory_allocated;
-    size_t memory_peak = ctx->stats.memory_peak;
-    memset(&ctx->stats, 0, sizeof(TokenizerStats));
-    ctx->stats.memory_allocated = memory_allocated;
-    ctx->stats.memory_peak = memory_peak;
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
+    }
     
     return true;
 }
 
 /* =================================================================
- * INPUT MANAGEMENT FUNCTIONS
+ * CORE TOKENIZATION OPERATIONS IMPLEMENTATION
  * =================================================================
  */
 
-/**
- * Set input text for processing
- * R.INPUT(buffer, length) -> Safe buffer management
- */
-bool rift_tokenizer_set_input(TokenizerContext* ctx, const char* input, size_t length) {
-    if (!ctx || !input) {
-        return false;
-    }
-    
-    /* Free existing buffer */
-    RIFT_SAFE_FREE(ctx->input_buffer);
-    
-    /* Allocate and copy new buffer */
-    ctx->input_buffer = malloc(length + 1);
-    if (!ctx->input_buffer) {
-        ctx->has_error = true;
-        ctx->error_message = strdup("Memory allocation failed for input buffer");
-        return false;
-    }
-    
-    memcpy(ctx->input_buffer, input, length);
-    ctx->input_buffer[length] = '\0';
-    ctx->input_length = length;
-    ctx->input_position = 0;
-    
-    /* Update memory statistics */
-    ctx->stats.memory_allocated += length + 1;
-    ctx->stats.memory_peak = RIFT_MAX(ctx->stats.memory_peak, ctx->stats.memory_allocated);
-    
-    return true;
+ssize_t rift_tokenizer_process(TokenizerContext* ctx, const char* input, size_t length) {
+    return rift_tokenizer_process_with_flags(ctx, input, length, ctx->global_flags);
 }
 
-/**
- * Set input from file
- * R.INPUT(filename) -> File-based input loading
- */
-bool rift_tokenizer_set_input_file(TokenizerContext* ctx, const char* filename) {
-    if (!ctx || !filename) {
-        return false;
+ssize_t rift_tokenizer_process_with_flags(TokenizerContext* ctx, 
+                                         const char* input, 
+                                         size_t length,
+                                         TokenFlags flags) {
+    if (!ctx || !input) {
+        if (ctx) {
+            snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                    "Invalid input parameters: ctx=%p, input=%p", 
+                    (void*)ctx, (void*)input);
+            ctx->error_code = RIFT_TOKENIZER_ERROR_INVALID_INPUT;
+            ctx->has_error = true;
+        }
+        return -1;
     }
     
-    FILE* file = fopen(filename, "rb");
-    if (!file) {
-        ctx->has_error = true;
-        ctx->error_message = strdup("Failed to open input file");
-        return false;
+    /* Auto-detect length for null-terminated strings */
+    if (length == 0) {
+        length = strlen(input);
     }
     
-    /* Get file size */
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    
-    if (file_size < 0) {
-        fclose(file);
-        ctx->has_error = true;
-        ctx->error_message = strdup("Failed to determine file size");
-        return false;
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return -1;
     }
     
-    /* Allocate buffer */
-    char* buffer = malloc(file_size + 1);
-    if (!buffer) {
-        fclose(file);
-        ctx->has_error = true;
-        ctx->error_message = strdup("Memory allocation failed for file buffer");
-        return false;
+    /* Reset for new processing */
+    ctx->input_buffer = input;
+    ctx->input_length = length;
+    ctx->current_position = 0;
+    ctx->token_count = 0;
+    
+    /* Record processing start time */
+    struct timespec start_time;
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
+    
+    /* Apply all registered rules */
+    ssize_t result = rift_rules_apply_all(ctx, input, length);
+    
+    /* Update statistics */
+    struct timespec end_time;
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
+    
+    double processing_time = (end_time.tv_sec - start_time.tv_sec) + 
+                           (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+    
+    ctx->stats.processing_time += processing_time;
+    ctx->stats.tokens_processed += length;
+    ctx->stats.tokens_generated += (result > 0) ? result : 0;
+    
+    if (result < 0) {
+        ctx->stats.error_count++;
     }
     
-    /* Read file */
-    size_t bytes_read = fread(buffer, 1, file_size, file);
-    fclose(file);
-    
-    if (bytes_read != (size_t)file_size) {
-        free(buffer);
-        ctx->has_error = true;
-        ctx->error_message = strdup("Failed to read complete file");
-        return false;
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
     }
-    
-    buffer[file_size] = '\0';
-    
-    /* Set input using buffer */
-    bool result = rift_tokenizer_set_input(ctx, buffer, file_size);
-    free(buffer);
     
     return result;
 }
 
-/* =================================================================
- * TOKEN PROCESSING FUNCTIONS
- * =================================================================
- */
+size_t rift_tokenizer_get_tokens(const TokenizerContext* ctx, 
+                                 TokenTriplet* tokens, 
+                                 size_t max_tokens) {
+    if (!ctx) return 0;
+    
+    size_t available_tokens = ctx->token_count;
+    
+    if (tokens && max_tokens > 0) {
+        size_t copy_count = (available_tokens < max_tokens) ? available_tokens : max_tokens;
+        memcpy(tokens, ctx->tokens, copy_count * sizeof(TokenTriplet));
+    }
+    
+    return available_tokens;
+}
 
-/**
- * Process input and generate tokens
- * R.PROCESS(TokenizerContext) -> DFA-based tokenization
- */
-bool rift_tokenizer_process(TokenizerContext* ctx) {
-    if (!ctx || !ctx->input_buffer) {
-        return false;
+bool rift_tokenizer_get_token_at(const TokenizerContext* ctx, 
+                                size_t index, 
+                                TokenTriplet* token) {
+    if (!ctx || index >= ctx->token_count) return false;
+    
+    if (token) {
+        *token = ctx->tokens[index];
     }
-    
-    clock_t start_time = clock();
-    ctx->token_count = 0;
-    
-    /* Basic whitespace-aware tokenization for demo */
-    size_t pos = 0;
-    while (pos < ctx->input_length) {
-        char ch = ctx->input_buffer[pos];
-        
-        /* Ensure token capacity */
-        if (ctx->token_count >= ctx->token_capacity) {
-            size_t new_capacity = ctx->token_capacity * 2;
-            TokenTriplet* new_tokens = realloc(ctx->tokens, 
-                                               new_capacity * sizeof(TokenTriplet));
-            if (!new_tokens) {
-                ctx->has_error = true;
-                ctx->error_message = strdup("Token capacity expansion failed");
-                return false;
-            }
-            ctx->tokens = new_tokens;
-            ctx->token_capacity = new_capacity;
-        }
-        
-        /* Simple character classification */
-        TokenType type = TOKEN_UNKNOWN;
-        if (ch >= 'a' && ch <= 'z') type = TOKEN_IDENTIFIER;
-        else if (ch >= 'A' && ch <= 'Z') type = TOKEN_IDENTIFIER;
-        else if (ch >= '0' && ch <= '9') type = TOKEN_LITERAL_NUMBER;
-        else if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') type = TOKEN_WHITESPACE;
-        else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') type = TOKEN_OPERATOR;
-        else type = TOKEN_PUNCTUATION;
-        
-        /* Create token */
-        ctx->tokens[ctx->token_count] = rift_token_create(type, pos, 0);
-        ctx->token_count++;
-        
-        pos++;
-    }
-    
-    /* Add EOF token */
-    if (ctx->token_count < ctx->token_capacity) {
-        ctx->tokens[ctx->token_count] = rift_token_create(TOKEN_EOF, ctx->input_length, 0);
-        ctx->token_count++;
-    }
-    
-    /* Update statistics */
-    clock_t end_time = clock();
-    ctx->stats.processing_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
-    ctx->stats.tokens_processed = ctx->input_length;
-    ctx->stats.tokens_generated = ctx->token_count;
     
     return true;
 }
 
-/**
- * Get processed tokens
- * R.GET(tokens, count) -> Token array access
- */
-TokenTriplet* rift_tokenizer_get_tokens(TokenizerContext* ctx, size_t* count) {
-    if (!ctx || !count) {
-        return NULL;
-    }
-    
-    *count = ctx->token_count;
-    return ctx->tokens;
-}
-
-/**
- * Get next token (streaming interface)
- * R.NEXT(TokenTriplet) -> Sequential token access
- */
-TokenTriplet rift_tokenizer_next_token(TokenizerContext* ctx) {
-    if (!ctx || ctx->input_position >= ctx->token_count) {
-        return rift_token_create(TOKEN_EOF, 0, TOKEN_FLAG_ERROR);
-    }
-    
-    return ctx->tokens[ctx->input_position++];
-}
-
 /* =================================================================
- * ERROR HANDLING FUNCTIONS
+ * CONFIGURATION FUNCTIONS IMPLEMENTATION
  * =================================================================
  */
 
-/**
- * Get last error message
- */
-const char* rift_tokenizer_get_error(const TokenizerContext* ctx) {
-    return (ctx && ctx->error_message) ? ctx->error_message : "No error";
+bool rift_tokenizer_set_flags(TokenizerContext* ctx, TokenFlags flags) {
+    if (!ctx) return false;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return false;
+    }
+    
+    ctx->global_flags = flags;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
+    }
+    
+    return true;
 }
 
-/**
- * Check if context has error
+TokenFlags rift_tokenizer_get_flags(const TokenizerContext* ctx) {
+    if (!ctx) return TOKEN_FLAG_NONE;
+    return ctx->global_flags;
+}
+
+bool rift_tokenizer_set_debug_mode(TokenizerContext* ctx, bool enable) {
+    if (!ctx) return false;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return false;
+    }
+    
+    ctx->debug_mode = enable;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
+    }
+    
+    return true;
+}
+
+bool rift_tokenizer_set_strict_mode(TokenizerContext* ctx, bool strict) {
+    if (!ctx) return false;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return false;
+    }
+    
+    ctx->strict_mode = strict;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
+    }
+    
+    return true;
+}
+
+bool rift_tokenizer_set_thread_safe_mode(TokenizerContext* ctx, bool thread_safe) {
+    if (!ctx) return false;
+    
+    atomic_store(&ctx->thread_safe_mode, thread_safe);
+    
+    if (thread_safe) {
+        ctx->owner_thread = pthread_self();
+    }
+    
+    return true;
+}
+
+/* =================================================================
+ * ERROR HANDLING IMPLEMENTATION
+ * =================================================================
  */
+
 bool rift_tokenizer_has_error(const TokenizerContext* ctx) {
     return ctx ? ctx->has_error : true;
 }
 
-/**
- * Clear error state
- */
+const char* rift_tokenizer_get_error_message(const TokenizerContext* ctx) {
+    if (!ctx || !ctx->has_error) return NULL;
+    return ctx->error_message;
+}
+
+TokenizerErrorCode rift_tokenizer_get_error_code(const TokenizerContext* ctx) {
+    if (!ctx) return RIFT_TOKENIZER_ERROR_NULL_CONTEXT;
+    return ctx->error_code;
+}
+
 void rift_tokenizer_clear_error(TokenizerContext* ctx) {
     if (!ctx) return;
     
+    ctx->error_message[0] = '\0';
+    ctx->error_code = RIFT_TOKENIZER_SUCCESS;
     ctx->has_error = false;
-    RIFT_SAFE_FREE(ctx->error_message);
 }
 
 /* =================================================================
- * STATISTICS AND DIAGNOSTICS
+ * UTILITY FUNCTIONS IMPLEMENTATION
  * =================================================================
  */
 
-/**
- * Get tokenizer statistics
- */
-TokenizerStats rift_tokenizer_get_stats(const TokenizerContext* ctx) {
-    TokenizerStats empty_stats = {0};
-    return ctx ? ctx->stats : empty_stats;
+const char* rift_tokenizer_get_version(void) {
+    return RIFT_TOKENIZER_VERSION;
 }
 
-/**
- * Reset statistics
- */
-void rift_tokenizer_reset_stats(TokenizerContext* ctx) {
-    if (!ctx) return;
-    
-    memset(&ctx->stats, 0, sizeof(TokenizerStats));
-}
-
-/**
- * Print tokenizer statistics
- */
-void rift_tokenizer_print_stats(const TokenizerContext* ctx) {
-    if (!ctx) return;
-    
-    printf("=== RIFT-0 Tokenizer Statistics ===\n");
-    printf("Tokens Processed: %zu\n", ctx->stats.tokens_processed);
-    printf("Tokens Generated: %zu\n", ctx->stats.tokens_generated);
-    printf("Memory Allocated: %zu bytes\n", ctx->stats.memory_allocated);
-    printf("Memory Peak: %zu bytes\n", ctx->stats.memory_peak);
-    printf("DFA States: %zu\n", ctx->stats.dfa_states_created);
-    printf("Regex Patterns: %zu\n", ctx->stats.regex_patterns);
-    printf("Processing Time: %.6f seconds\n", ctx->stats.processing_time);
-    printf("Error Count: %u\n", ctx->stats.error_count);
-    printf("AEGIS Compliant: %s\n", ctx->aegis_compliant ? "Yes" : "No");
-    printf("==================================\n");
-}
-
-/**
- * Print generated tokens
- */
-void rift_tokenizer_print_tokens(const TokenizerContext* ctx) {
-    if (!ctx) return;
-    
-    printf("=== RIFT-0 Generated Tokens ===\n");
-    for (size_t i = 0; i < ctx->token_count; i++) {
-        TokenTriplet token = ctx->tokens[i];
-        printf("Token[%zu]: type=%u, ptr=%u, val=%u (%s)\n",
-               i, token.type, token.mem_ptr, token.value,
-               rift_token_type_to_string(token.type));
+const char* rift_tokenizer_token_type_to_string(TokenType token_type) {
+    switch (token_type) {
+        case TOKEN_UNKNOWN: return "UNKNOWN";
+        case TOKEN_IDENTIFIER: return "IDENTIFIER";
+        case TOKEN_KEYWORD: return "KEYWORD";
+        case TOKEN_LITERAL_STRING: return "LITERAL_STRING";
+        case TOKEN_LITERAL_NUMBER: return "LITERAL_NUMBER";
+        case TOKEN_OPERATOR: return "OPERATOR";
+        case TOKEN_PUNCTUATION: return "PUNCTUATION";
+        case TOKEN_DELIMITER: return "DELIMITER";
+        case TOKEN_WHITESPACE: return "WHITESPACE";
+        case TOKEN_COMMENT: return "COMMENT";
+        case TOKEN_EOF: return "EOF";
+        case TOKEN_REGEX_START: return "REGEX_START";
+        case TOKEN_REGEX_END: return "REGEX_END";
+        case TOKEN_COMPOSE_AND: return "COMPOSE_AND";
+        case TOKEN_COMPOSE_OR: return "COMPOSE_OR";
+        case TOKEN_COMPOSE_XOR: return "COMPOSE_XOR";
+        case TOKEN_COMPOSE_NAND: return "COMPOSE_NAND";
+        case TOKEN_DFA_STATE: return "DFA_STATE";
+        case TOKEN_ERROR: return "ERROR";
+        default: return "INVALID";
     }
-    printf("================================\n");
 }
 
-/**
- * Validate DFA structure
- */
-bool rift_tokenizer_validate_dfa(const TokenizerContext* ctx) {
-    if (!ctx || !ctx->dfa_root) {
-        return false;
-    }
+bool rift_tokenizer_validate_context(const TokenizerContext* ctx) {
+    if (!ctx) return false;
     
-    return rift_dfa_is_accepting_state(ctx->dfa_root) || ctx->dfa_root->next_state != NULL;
+    /* Check basic structure integrity */
+    if (!ctx->tokens || !ctx->regex_patterns) return false;
+    if (ctx->token_count > ctx->token_capacity) return false;
+    if (ctx->pattern_count > ctx->pattern_capacity) return false;
+    
+    /* Check capacity limits */
+    if (ctx->token_capacity > RIFT_TOKENIZER_MAX_TOKENS) return false;
+    if (ctx->pattern_capacity > RIFT_TOKENIZER_MAX_PATTERNS) return false;
+    
+    return true;
 }
 
 /* =================================================================
- * VERSION INFORMATION
+ * THREAD SAFETY IMPLEMENTATION
  * =================================================================
  */
 
-/**
- * Get tokenizer version string
- */
-const char* rift_tokenizer_version(void) {
-    return RIFT_VERSION_STRING;
+bool rift_tokenizer_lock(TokenizerContext* ctx) {
+    if (!ctx || !atomic_load(&ctx->thread_safe_mode)) return false;
+    return pthread_mutex_lock(&ctx->context_mutex) == 0;
 }
 
-/**
- * Get build information
- */
-const char* rift_tokenizer_build_info(void) {
-    return "RIFT-0 Tokenizer - AEGIS Framework - OBINexus Computing";
+bool rift_tokenizer_unlock(TokenizerContext* ctx) {
+    if (!ctx || !atomic_load(&ctx->thread_safe_mode)) return false;
+    return pthread_mutex_unlock(&ctx->context_mutex) == 0;
+}
+
+bool rift_tokenizer_trylock(TokenizerContext* ctx) {
+    if (!ctx || !atomic_load(&ctx->thread_safe_mode)) return false;
+    return pthread_mutex_trylock(&ctx->context_mutex) == 0;
 }
