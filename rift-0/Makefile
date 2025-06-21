@@ -193,26 +193,22 @@ $(OBJ_DIR)/cli/%.o: $(CLI_SRC_DIR)/%.c | directories
 # PKG-CONFIG GENERATION
 # =================================================================
 
-$(PKG_CONFIG_FILE): directories
-	@echo "📋 Generating pkg-config file: $@"
-	@cat > $@ << 'EOF'
-prefix=/usr/local
-exec_prefix=$${prefix}
-libdir=$${exec_prefix}/lib
-includedir=$${prefix}/include
+$(PKG_CONFIG_FILE): | directories
+	@echo "📦 Generating pkg-config file: $@"
+	@echo "prefix=$(BUILD_DIR)" > $@
+	@echo "exec_prefix=\${prefix}" >> $@
+	@echo "libdir=\${exec_prefix}/lib" >> $@
+	@echo "includedir=\${prefix}/include/rift-0" >> $@
+	@echo "" >> $@
+	@echo "Name: rift-0" >> $@
+	@echo "Description: RIFT Tokenizer Stage - OBINexus Computing" >> $@
+	@echo "Version: $(VERSION)" >> $@
+	@echo "Libs: -L\${libdir} -lrift-0" >> $@
+	@echo "Cflags: -I\${includedir}" >> $@
+	@echo "" >> $@
+	@echo "✅ pkg-config file created: $(shell ls -lh $@ | awk '{print $$5}')"	
 
-Name: rift-0
-Description: $(DESCRIPTION)
-Version: $(VERSION)
-URL: https://github.com/OBINexus/rift
-Author: $(AUTHOR)
-Libs: -L$${libdir} -lrift-0
-Libs.private: -pthread
-Cflags: -I$${includedir} -I$${includedir}/rift-0
-Features: dfa-tokenizer regex-compose token-triplet bitfield-tokens
-EOF
-	@echo "✅ pkg-config file generated"
-
+	
 # =================================================================
 # TESTING FRAMEWORK
 # =================================================================

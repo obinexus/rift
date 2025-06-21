@@ -7,15 +7,14 @@
 
 prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
-libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
 
 Name: rift-0
-Description: RIFT Tokenizer Stage with DFA and R-syntax support - OBINexus Computing Framework
-Version: @PROJECT_VERSION@
+Description: @DESCRIPTION@
+Version: @VERSION@
 URL: https://github.com/OBINexus/rift
-Author: OBINexus Nnamdi Michael Okpala
-Maintainer: OBINexus Computing Team
+Author: @AUTHOR@
 
 # Dependencies
 Requires:

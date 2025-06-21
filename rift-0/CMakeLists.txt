@@ -16,6 +16,10 @@ project(rift-0
 # Include common pipeline configuration
 include(${CMAKE_SOURCE_DIR}/cmake/common/compiler_pipeline.cmake)
 
+install(FILES ${CMAKE_BINARY_DIR}/lib/pkgconfig/rift-0.pc
+        DESTINATION lib/pkgconfig)
+
+        
 # Add this stage using the common macro
 add_rift_stage(rift-0 tokenizer)
 
@@ -23,5 +27,10 @@ add_rift_stage(rift-0 tokenizer)
 if(TARGET rift-0_static)
     add_rift_validation(rift-0)
 endif()
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/config_templates/rift-0.pc.in
+  ${CMAKE_BINARY_DIR}/lib/pkgconfig/rift-0.pc @ONLY
+)
 
 message(STATUS "rift-0 configuration complete")
