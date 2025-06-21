@@ -15,6 +15,16 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+#include "rift-0/core/rift_tokenizer.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <string.h>
+
 /* Provide strdup if not available */
 #ifndef HAVE_STRDUP
 static char* rift_strdup(const char* s) {
@@ -27,17 +37,6 @@ static char* rift_strdup(const char* s) {
 #define strdup rift_strdup
 #endif
 
-
-#include "rift-0/core/rift_tokenizer.h"
-#include <stdlib.h>
-#include <string.h>
-
-
-#include <stdio.h>
-#include <pthread.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 
 /* =================================================================
  * THREAD POOL & MUTEX MANAGEMENT

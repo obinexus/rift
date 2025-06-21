@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "rift_tokenizer.h": "c",
+        "string.h": "c"
+    }
+}

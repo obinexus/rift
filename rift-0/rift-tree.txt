@@ -1,0 +1,52 @@
+.
+├── build
+│   ├── bin
+│   ├── lib
+│   ├── obj
+│   │   ├── cli
+│   │   ├── core
+│   │   │   ├── rift_tokenizer.d
+│   │   │   ├── rift_tokenizer.o
+│   │   │   ├── tokenizer.d
+│   │   │   ├── tokenizer.o
+│   │   │   └── tokenizer_rules.d
+│   │   └── tests
+│   │       ├── integration
+│   │       └── unit
+│   └── pkg
+├── cmake
+│   └── rift_stage_macros.cmake
+├── CMakeLists.txt
+├── config_templates
+│   └── rift-0.pc.in
+├── docs
+├── examples
+│   ├── csv_example.c
+│   └── lexem-calculation-demo.c
+├── include
+│   └── rift-0
+│       ├── cli
+│       │   └── cli_interface.h
+│       └── core
+│           ├── rift_tokenizer.h
+│           ├── tokenizer.h
+│           └── tokenizer_rules.h
+├── Makefile
+├── rift-tree.txt
+├── src
+│   ├── cli
+│   │   └── main.c
+│   └── core
+│       ├── rift_tokenizer.c
+│       ├── tokenizer.c
+│       ├── tokenizer_rules.c
+│       └── tokenizer_utilities.c
+└── tests
+    ├── benchmark
+    ├── integration
+    └── unit
+        ├── test_policy2_matrix.c
+        ├── test_tokenizer.c
+        └── test_tokenizer_validation.c
+
+26 directories, 24 files
