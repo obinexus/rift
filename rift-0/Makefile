@@ -421,29 +421,6 @@ help:
 	@echo "    By Nnamdi Michael Okpala - Computing from the Heart"
 
 
-# Integrate with polybuild orchestration
-polybuild_integration:
-	@echo "🔗 Preparing polybuild integration..."
-	@if command -v polybuild >/dev/null 2>&1; then \
-		polybuild --stage=rift-0 --component=tokenizer --validate; \
-	else \
-		echo "⚠️  polybuild not available - generating manifest"; \
-		cat > $(BUILD_DIR)/polybuild.manifest << 'EOF'
-stage: rift-0
-component: tokenizer
-artifacts:
-  - lib/librift-0.a
-  - lib/librift-0.so
-  - bin/rift-0.exe
-dependencies:
-  - libc
-  - pthread
-governance:
-  validation: required
-  compliance: aegis
-  audit: enabled
-EOF
-	fi
 
 # =================================================================
 # SPECIAL TARGETS
