@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <time.h>
 #include <sys/types.h> // For ssize_t
+#include <time.h>
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -36,6 +36,7 @@ typedef ptrdiff_t ssize_t;
 // For clock_gettime and CLOCK_MONOTONIC on Windows
 #if defined(_WIN32)
 #include <windows.h>
+#include <time.h>
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
 #endif
@@ -51,6 +52,8 @@ static int clock_gettime(int clk_id, struct timespec* t) {
     t->tv_nsec = (long)(((count.QuadPart % freq.QuadPart) * 1000000000) / freq.QuadPart);
     return 0;
 }
+#else
+#include <time.h>
 #endif
 
 // Ignore non-standard pragma warning (optional)
