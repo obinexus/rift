@@ -49,8 +49,11 @@ extern "C" {
 
 /* Version and Configuration Constants */
 
+/* Maximum number of tokens supported (must fit in uint16_t) */
+#ifndef RIFT_TOKENIZER_MAX_TOKENS
+#define RIFT_TOKENIZER_MAX_TOKENS 65535U
+#endif
 #define RIFT_TOKENIZER_VERSION "0.4.0"
-#define RIFT_TOKENIZER_MAX_TOKENS 65536
 #define RIFT_TOKENIZER_MAX_PATTERNS 256
 #define RIFT_TOKENIZER_DEFAULT_CAPACITY 1024
 #define RIFT_TOKENIZER_BUFFER_SIZE 8192
