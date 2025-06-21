@@ -13,6 +13,11 @@
 #ifndef RIFT_0_CORE_TOKENIZER_H
 #define RIFT_0_CORE_TOKENIZER_H
 
+/* Maximum number of tokens supported (must fit in uint16_t) */
+#ifndef RIFT_TOKENIZER_MAX_TOKENS
+#define RIFT_TOKENIZER_MAX_TOKENS 65535U
+#endif
+
 /* Hierarchical dependency - follows Sinphasé ordering */
 #include "rift-0/core/tokenizer_types.h"
 #include "rift-0/core/tokenizer_rules.h"
@@ -50,6 +55,7 @@ static int clock_gettime(int clk_id, struct timespec* t) {
 #else
 #include <time.h>
 #endif
+
 
 #ifdef __cplusplus
 extern "C" {
