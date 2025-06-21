@@ -208,7 +208,7 @@ $(PKG_CONFIG_FILE): | directories
 	@echo "" >> $@
 	@echo "✅ pkg-config file created: $(shell ls -lh $@ | awk '{print $$5}')"	
 
-	
+
 # =================================================================
 # TESTING FRAMEWORK
 # =================================================================
@@ -420,35 +420,6 @@ help:
 	@echo "🌟 OBINexus Computing - RIFT Is a Flexible Translator"
 	@echo "    By Nnamdi Michael Okpala - Computing from the Heart"
 
-# =================================================================
-# RIFT FRAMEWORK INTEGRATION
-# =================================================================
-
-# Generate .riftrc configuration files
-riftrc: | directories
-	@echo "⚙️  Generating RIFT configuration files..."
-	@cat > $(BUILD_DIR)/.riftrc.0 << 'EOF'
-# RIFT-0 Tokenizer Configuration
-stage=0
-component=tokenizer
-dfa_enabled=true
-regex_compose=true
-token_format=triplet
-bitfield_tokens=true
-thread_safe=true
-governance_compliance=aegis
-EOF
-	@cat > $(BUILD_DIR)/.riftrc.gov << 'EOF'
-# RIFT Governance Configuration
-governance_framework=aegis
-zero_trust=enabled
-milestone_investment=true
-no_ghosting_policy=true
-validation_required=true
-audit_trail=enabled
-compliance_level=strict
-EOF
-	@echo "✅ RIFT configuration files generated"
 
 # Integrate with polybuild orchestration
 polybuild_integration:

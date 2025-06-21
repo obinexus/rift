@@ -40,7 +40,7 @@ GovernanceLevel: aegis-compliant
 ThreadSafety: @RIFT_ENABLE_THREAD_SAFETY@
 DFASupport: @RIFT_ENABLE_DFA@
 RSyntaxSupport: @RIFT_ENABLE_R_SYNTAX@
-
+UIDL: @RIFT_ENABLE_UIDL@
 # Integration points
 CMakeConfig: ${libdir}/cmake/rift-0/rift-0-config.cmake
 CMakeTargets: ${libdir}/cmake/rift-0/rift-0-targets.cmake
