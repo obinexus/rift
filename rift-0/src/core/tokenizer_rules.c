@@ -256,7 +256,7 @@ bool rift_token_validate(const TokenTriplet* token) {
     }
 
     /* Validate memory pointer is within allowed bounds */
-    if (token->mem_ptr >= RIFT_TOKENIZER_MAX_TOKENS) return false;
+    if (token->mem_ptr >= (uint16_t)RIFT_TOKENIZER_MAX_TOKENS) return false;
 
     return true;
 }
