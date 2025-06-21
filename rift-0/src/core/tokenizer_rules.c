@@ -1,402 +1,472 @@
-/*
+/**
  * =================================================================
- * tokenizer_rules.c - RIFT-0 DFA Rules & Pattern Engine Implementation
+ * tokenizer_rules.c - RIFT-0 Rule Processing Implementation
  * RIFT: RIFT Is a Flexible Translator
- * Component: DFA transition rules and pattern compilation engine
+ * Component: DFA and regex rule implementation with pattern matching
  * OBINexus Computing Framework - Stage 0 Implementation
- * 
- * R.IMPLEMENT(DFATransitions, PatternCompilation, RuleValidation)
- * R.FLAGS(deterministic, rule_cached, pattern_optimized)
- * R.COMPOSE(StateManagement, TransitionLogic, PatternMatching)
- * 
- * Toolchain: riftlang.exe → .so.a → rift.exe → gosilang
- * Build Orchestration: nlink → polybuild (AEGIS Framework)
- * Author: Nnamdi Michael Okpala & AEGIS Integration Team
  * =================================================================
  */
 
-#include "rift-0/core/tokenizer.h"
 #include "rift-0/core/tokenizer_rules.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <assert.h>
+#include <errno.h>
 
 /* =================================================================
- * TOKENTRIPLET BITFIELD VALIDATION
+ * DFA STATE MANAGEMENT IMPLEMENTATION
  * =================================================================
  */
 
-/* Compile-time assertions for AEGIS compliance */
-_Static_assert(sizeof(TokenTriplet) == 4, "TokenTriplet must be exactly 32 bits");
-
-/* =================================================================
- * TOKEN UTILITY FUNCTIONS
- * =================================================================
- */
-
-/**
- * Create TokenTriplet with validation
- * R.CREATE(TokenTriplet) -> Validated bitfield construction
- */
-TokenTriplet rift_token_create(uint8_t type, uint16_t mem_ptr, uint8_t value) {
-    TokenTriplet token = {
-        .type = type,
-        .mem_ptr = mem_ptr,
-        .value = value
-    };
-    
-    /* Validate bitfield integrity */
-    assert(token.type == type);
-    assert(token.mem_ptr == mem_ptr);
-    assert(token.value == value);
-    
-    return token;
-}
-
-/**
- * Validate TokenTriplet integrity
- * R.VALIDATE(TokenTriplet) -> Structural validation
- */
-bool rift_token_is_valid(const TokenTriplet* token) {
-    if (!token) return false;
-    
-    /* Basic range validation */
-    if (token->type > TOKEN_ERROR) return false;
-    if (token->mem_ptr > RIFT_TOKENIZER_MAX_TOKENS) return false;
-    
-    return true;
-}
-
-/**
- * Convert token type to string representation
- * R.STRING(TokenType) -> Human readable representation
- */
-const char* rift_token_type_to_string(TokenType type) {
-    switch (type) {
-        case TOKEN_UNKNOWN:         return "UNKNOWN";
-        case TOKEN_IDENTIFIER:      return "IDENTIFIER";
-        case TOKEN_KEYWORD:         return "KEYWORD";
-        case TOKEN_LITERAL_STRING:  return "LITERAL_STRING";
-        case TOKEN_LITERAL_NUMBER:  return "LITERAL_NUMBER";
-        case TOKEN_OPERATOR:        return "OPERATOR";
-        case TOKEN_PUNCTUATION:     return "PUNCTUATION";
-        case TOKEN_DELIMITER:       return "DELIMITER";
-        case TOKEN_WHITESPACE:      return "WHITESPACE";
-        case TOKEN_COMMENT:         return "COMMENT";
-        case TOKEN_EOF:             return "EOF";
-        case TOKEN_ERROR:           return "ERROR";
-        default:                    return "INVALID";
-    }
-}
-
-/* =================================================================
- * DFA STATE MANAGEMENT FUNCTIONS
- * =================================================================
- */
-
-/**
- * Create new DFA state
- * R.CREATE(DFAState) -> State machine node construction
- */
 DFAState* rift_dfa_create_state(uint32_t state_id, bool is_final) {
     DFAState* state = calloc(1, sizeof(DFAState));
     if (!state) return NULL;
     
     state->state_id = state_id;
     state->is_final = is_final;
-    state->is_start = false;
-    state->transition_char = '\0';
-    state->next_state = NULL;
-    state->fail_state = NULL;
     state->token_type = TOKEN_UNKNOWN;
-    state->match_count = 0;
+    state->transition_count = 0;
+    state->flags = 0;
+    state->user_data = NULL;
+    
+    /* Allocate transition table for all 256 possible characters */
+    state->transitions = calloc(256, sizeof(DFAState*));
+    if (!state->transitions) {
+        free(state);
+        return NULL;
+    }
     
     return state;
 }
 
-/**
- * Add transition between DFA states
- * R.TRANSITION(from, to, char) -> State connection establishment
- */
-void rift_dfa_add_transition(DFAState* from, DFAState* to, char transition_char) {
-    if (!from || !to) {
+void rift_dfa_destroy_states(DFAState* root) {
+    if (!root) return;
+    
+    /* Use breadth-first traversal to avoid deep recursion */
+    DFAState** queue = malloc(DFA_MAX_STATES * sizeof(DFAState*));
+    if (!queue) return;
+    
+    bool* visited = calloc(DFA_MAX_STATES, sizeof(bool));
+    if (!visited) {
+        free(queue);
         return;
     }
     
-    from->transition_char = transition_char;
-    from->next_state = to;
+    size_t queue_front = 0, queue_back = 0;
+    queue[queue_back++] = root;
+    
+    while (queue_front < queue_back) {
+        DFAState* current = queue[queue_front++];
+        
+        if (!current || visited[current->state_id % DFA_MAX_STATES]) continue;
+        visited[current->state_id % DFA_MAX_STATES] = true;
+        
+        /* Add all transition targets to queue */
+        for (int i = 0; i < 256; i++) {
+            if (current->transitions[i] && 
+                !visited[current->transitions[i]->state_id % DFA_MAX_STATES]) {
+                queue[queue_back++] = current->transitions[i];
+            }
+        }
+        
+        /* Free current state */
+        free(current->transitions);
+        free(current);
+    }
+    
+    free(queue);
+    free(visited);
 }
 
-/**
- * Process input through DFA
- * R.PROCESS(DFAState, input) -> Input consumption via state machine
- */
+bool rift_dfa_add_transition(DFAState* from, DFAState* to, char transition_char) {
+    if (!from || !to || !from->transitions) return false;
+    
+    unsigned char index = (unsigned char)transition_char;
+    from->transitions[index] = to;
+    from->transition_count++;
+    
+    return true;
+}
+
 DFAState* rift_dfa_process_input(DFAState* start, const char* input, size_t length) {
-    if (!start || !input) return NULL;
+    if (!start || !input || length == 0) return NULL;
     
     DFAState* current = start;
     
-    for (size_t i = 0; i < length; i++) {
-        char ch = input[i];
-        
-        if (current->transition_char == ch && current->next_state) {
-            current = current->next_state;
-            current->match_count++;
-        } else if (current->fail_state) {
-            current = current->fail_state;
-        } else {
-            break;
-        }
+    for (size_t i = 0; i < length && current; i++) {
+        unsigned char c = (unsigned char)input[i];
+        current = current->transitions[c];
     }
     
     return current;
 }
 
-/**
- * Check if DFA state is accepting
- * R.ACCEPTING(DFAState) -> Final state validation
- */
 bool rift_dfa_is_accepting_state(DFAState* state) {
-    return state && state->is_final;
+    return state ? state->is_final : false;
 }
 
-/**
- * Get token type for DFA state
- * R.TOKEN_TYPE(DFAState) -> Associated token type retrieval
- */
 TokenType rift_dfa_get_token_type(DFAState* state) {
     return state ? state->token_type : TOKEN_UNKNOWN;
 }
 
-/**
- * Destroy DFA state tree
- * R.DESTROY(DFAState) -> Recursive state machine cleanup
- */
-void rift_dfa_destroy_states(DFAState* root) {
-    if (!root) return;
+bool rift_dfa_set_token_type(DFAState* state, TokenType token_type) {
+    if (!state) return false;
     
-    /* Recursive cleanup with cycle detection */
-    if (root->next_state && root->next_state != root) {
-        rift_dfa_destroy_states(root->next_state);
-    }
-    
-    /* Note: fail_state typically points to existing states, 
-     * so we don't recursively delete it to avoid double-free */
-    
-    free(root);
+    state->token_type = token_type;
+    return true;
 }
 
 /* =================================================================
- * REGEX COMPOSITION FUNCTIONS
+ * REGEX COMPOSITION IMPLEMENTATION
  * =================================================================
  */
 
-/**
- * Compile regex pattern into DFA
- * R.COMPILE(pattern, flags) -> Pattern to DFA transformation
- */
 RegexComposition* rift_regex_compile(const char* pattern, TokenFlags flags) {
     if (!pattern) return NULL;
     
-    RegexComposition* comp = malloc(sizeof(RegexComposition));
-    if (!comp) return NULL;
+    RegexComposition* regex = calloc(1, sizeof(RegexComposition));
+    if (!regex) return NULL;
     
-    /* Initialize composition structure */
-    comp->pattern = strdup(pattern);
-    if (!comp->pattern) {
-        free(comp);
+    size_t pattern_len = strlen(pattern);
+    regex->pattern = malloc(pattern_len + 1);
+    if (!regex->pattern) {
+        free(regex);
         return NULL;
     }
     
-    comp->flags = flags;
-    comp->pattern_length = strlen(pattern);
-    comp->is_composed = false;
+    strcpy(regex->pattern, pattern);
+    regex->pattern_length = pattern_len;
+    regex->flags = flags;
+    regex->is_compiled = false;
     
-    /* Create basic DFA for simple patterns */
-    uint32_t state_id = 0;
-    comp->start_state = rift_dfa_create_state(state_id++, false);
-    if (!comp->start_state) {
-        free(comp->pattern);
-        free(comp);
+    /* Create initial DFA state */
+    regex->start_state = rift_dfa_create_state(0, false);
+    if (!regex->start_state) {
+        free(regex->pattern);
+        free(regex);
         return NULL;
     }
     
-    comp->start_state->is_start = true;
-    
-    /* Build simple character-by-character DFA */
-    DFAState* current = comp->start_state;
-    
-    for (size_t i = 0; i < comp->pattern_length; i++) {
-        char ch = pattern[i];
-        
-        DFAState* next_state = rift_dfa_create_state(state_id++, 
-                                                     (i == comp->pattern_length - 1));
-        if (!next_state) {
-            rift_dfa_destroy_states(comp->start_state);
-            free(comp->pattern);
-            free(comp);
-            return NULL;
-        }
-        
-        rift_dfa_add_transition(current, next_state, ch);
-        current = next_state;
+    /* Allocate accept states array */
+    regex->accept_states = calloc(16, sizeof(DFAState*));
+    if (!regex->accept_states) {
+        rift_dfa_destroy_states(regex->start_state);
+        free(regex->pattern);
+        free(regex);
+        return NULL;
     }
     
-    /* Set final state properties */
-    if (current && current->is_final) {
-        current->token_type = TOKEN_IDENTIFIER; /* Default classification */
+    regex->accept_count = 0;
+    
+    /* Simple pattern compilation - extend for complex regex support */
+    if (_compile_simple_pattern(regex, pattern)) {
+        regex->is_compiled = true;
     }
     
-    comp->current_state = comp->start_state;
-    comp->is_composed = true;
-    
-    return comp;
+    return regex;
 }
 
-/**
- * Test regex match against input
- * R.MATCH(RegexComposition, input) -> Pattern matching validation
- */
-bool rift_regex_match(const RegexComposition* regex, const char* input, size_t length) {
-    if (!regex || !input || !regex->start_state) {
-        return false;
-    }
-    
-    DFAState* final_state = rift_dfa_process_input(regex->start_state, input, length);
-    return rift_dfa_is_accepting_state(final_state);
-}
-
-/**
- * Destroy regex composition
- * R.DESTROY(RegexComposition) -> Pattern cleanup
- */
 void rift_regex_destroy(RegexComposition* regex) {
     if (!regex) return;
-    
-    if (regex->pattern) {
-        free(regex->pattern);
-    }
     
     if (regex->start_state) {
         rift_dfa_destroy_states(regex->start_state);
     }
     
+    free(regex->accept_states);
+    free(regex->pattern);
     free(regex);
 }
 
+bool rift_regex_match(const RegexComposition* regex, const char* input, size_t length) {
+    if (!regex || !regex->is_compiled || !input) return false;
+    
+    DFAState* final_state = rift_dfa_process_input(regex->start_state, input, length);
+    return rift_dfa_is_accepting_state(final_state);
+}
+
+size_t rift_regex_extract_matches(const RegexComposition* regex, 
+                                  const char* input, 
+                                  size_t length,
+                                  TokenTriplet* matches, 
+                                  size_t max_matches) {
+    if (!regex || !input || !matches || max_matches == 0) return 0;
+    
+    size_t match_count = 0;
+    size_t pos = 0;
+    
+    while (pos < length && match_count < max_matches) {
+        /* Try to match at current position */
+        for (size_t end = pos + 1; end <= length; end++) {
+            if (rift_regex_match(regex, input + pos, end - pos)) {
+                /* Create token for this match */
+                matches[match_count] = rift_token_create(
+                    rift_dfa_get_token_type(regex->start_state),
+                    (uint16_t)pos,
+                    (uint8_t)regex->flags
+                );
+                match_count++;
+                pos = end;
+                break;
+            }
+        }
+        
+        if (pos == length) break;
+        pos++;
+    }
+    
+    return match_count;
+}
+
 /* =================================================================
- * PATTERN CACHE MANAGEMENT
+ * TOKEN TRIPLET OPERATIONS IMPLEMENTATION
  * =================================================================
  */
 
-/* Simple pattern cache for demonstration */
-static struct {
-    char* pattern_names[RIFT_TOKENIZER_MAX_PATTERNS];
-    RegexComposition* patterns[RIFT_TOKENIZER_MAX_PATTERNS];
-    size_t count;
-} pattern_cache = {0};
+TokenTriplet rift_token_create(uint8_t type, uint16_t mem_ptr, uint8_t value) {
+    TokenTriplet token;
+    token.type = type;
+    token.mem_ptr = mem_ptr;
+    token.value = value;
+    return token;
+}
 
-/**
- * Cache compiled pattern by name
- * R.CACHE(pattern_name, RegexComposition) -> Pattern storage
- */
-bool rift_tokenizer_cache_pattern(TokenizerContext* ctx, const char* name,
-                                   const char* pattern, TokenFlags flags) {
-    if (!ctx || !name || !pattern || pattern_cache.count >= RIFT_TOKENIZER_MAX_PATTERNS) {
-        return false;
-    }
+bool rift_token_validate(const TokenTriplet* token) {
+    if (!token) return false;
     
-    /* Compile pattern */
-    RegexComposition* comp = rift_regex_compile(pattern, flags);
-    if (!comp) {
-        return false;
-    }
+    /* Check for valid token type range */
+    if (token->type > TOKEN_ERROR) return false;
     
-    /* Store in cache */
-    size_t index = pattern_cache.count;
-    pattern_cache.pattern_names[index] = strdup(name);
-    pattern_cache.patterns[index] = comp;
-    pattern_cache.count++;
-    
-    /* Update context statistics */
-    ctx->stats.regex_patterns = pattern_cache.count;
+    /* Validate memory pointer is within reasonable bounds */
+    if (token->mem_ptr >= RIFT_TOKENIZER_MAX_TOKENS) return false;
     
     return true;
 }
 
-/**
- * Retrieve cached pattern by name
- * R.LOOKUP(pattern_name) -> Cached pattern retrieval
- */
-RegexComposition* rift_tokenizer_get_cached_pattern(TokenizerContext* ctx, const char* name) {
-    if (!ctx || !name) return NULL;
-    
-    for (size_t i = 0; i < pattern_cache.count; i++) {
-        if (pattern_cache.pattern_names[i] && 
-            strcmp(pattern_cache.pattern_names[i], name) == 0) {
-            return pattern_cache.patterns[i];
-        }
-    }
-    
-    return NULL;
+TokenType rift_token_get_type(const TokenTriplet* token) {
+    return token ? (TokenType)token->type : TOKEN_UNKNOWN;
+}
+
+uint16_t rift_token_get_mem_ptr(const TokenTriplet* token) {
+    return token ? token->mem_ptr : 0;
+}
+
+uint8_t rift_token_get_value(const TokenTriplet* token) {
+    return token ? token->value : 0;
+}
+
+TokenTriplet rift_token_set_flags(TokenTriplet token, TokenFlags flags) {
+    token.value = (uint8_t)flags;
+    return token;
 }
 
 /* =================================================================
- * THREAD SAFETY FUNCTIONS
+ * PATTERN MATCHING RULES IMPLEMENTATION
  * =================================================================
  */
 
-/**
- * Enable thread safety for tokenizer context
- * R.THREAD_SAFE(enable) -> Mutex initialization
- */
-bool rift_tokenizer_enable_thread_safety(TokenizerContext* ctx) {
+bool rift_rules_register_pattern(TokenizerContext* ctx, 
+                                 const char* pattern,
+                                 TokenType token_type,
+                                 TokenFlags flags) {
+    if (!ctx || !pattern || ctx->pattern_count >= ctx->pattern_capacity) {
+        if (ctx) {
+            snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                    "Cannot register pattern: invalid parameters or capacity exceeded");
+            ctx->error_code = RIFT_TOKENIZER_ERROR_INVALID_INPUT;
+            ctx->has_error = true;
+        }
+        return false;
+    }
+    
+    /* Compile the pattern */
+    RegexComposition* regex = rift_regex_compile(pattern, flags);
+    if (!regex) {
+        snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                "Failed to compile regex pattern: %s", pattern);
+        ctx->error_code = RIFT_TOKENIZER_ERROR_REGEX_COMPILATION_FAILED;
+        ctx->has_error = true;
+        return false;
+    }
+    
+    /* Set the token type for the compiled regex */
+    if (regex->start_state) {
+        rift_dfa_set_token_type(regex->start_state, token_type);
+    }
+    
+    /* Add to context patterns */
+    ctx->regex_patterns[ctx->pattern_count] = regex;
+    ctx->pattern_count++;
+    
+    /* Update statistics */
+    ctx->stats.regex_patterns++;
+    
+    return true;
+}
+
+bool rift_rules_unregister_pattern(TokenizerContext* ctx, const char* pattern) {
+    if (!ctx || !pattern) return false;
+    
+    /* Find pattern in registered patterns */
+    for (size_t i = 0; i < ctx->pattern_count; i++) {
+        RegexComposition* regex = ctx->regex_patterns[i];
+        if (regex && regex->pattern && strcmp(regex->pattern, pattern) == 0) {
+            /* Destroy the regex */
+            rift_regex_destroy(regex);
+            
+            /* Shift remaining patterns */
+            for (size_t j = i; j < ctx->pattern_count - 1; j++) {
+                ctx->regex_patterns[j] = ctx->regex_patterns[j + 1];
+            }
+            
+            ctx->pattern_count--;
+            ctx->regex_patterns[ctx->pattern_count] = NULL;
+            ctx->stats.regex_patterns--;
+            
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+ssize_t rift_rules_apply_all(TokenizerContext* ctx, const char* input, size_t length) {
+    if (!ctx || !input) return -1;
+    
+    size_t total_tokens = 0;
+    size_t pos = 0;
+    
+    while (pos < length) {
+        bool found_match = false;
+        size_t best_match_length = 0;
+        RegexComposition* best_regex = NULL;
+        
+        /* Try all patterns at current position */
+        for (size_t i = 0; i < ctx->pattern_count; i++) {
+            RegexComposition* regex = ctx->regex_patterns[i];
+            if (!regex) continue;
+            
+            /* Try progressively longer matches */
+            for (size_t end = pos + 1; end <= length; end++) {
+                if (rift_regex_match(regex, input + pos, end - pos)) {
+                    size_t match_length = end - pos;
+                    if (match_length > best_match_length) {
+                        best_match_length = match_length;
+                        best_regex = regex;
+                        found_match = true;
+                    }
+                }
+            }
+        }
+        
+        if (found_match && total_tokens < ctx->token_capacity) {
+            /* Create token for best match */
+            ctx->tokens[total_tokens] = rift_token_create(
+                rift_dfa_get_token_type(best_regex->start_state),
+                (uint16_t)pos,
+                (uint8_t)best_regex->flags
+            );
+            total_tokens++;
+            pos += best_match_length;
+        } else {
+            /* No match found, advance by one character */
+            if (total_tokens < ctx->token_capacity) {
+                ctx->tokens[total_tokens] = rift_token_create(
+                    TOKEN_UNKNOWN,
+                    (uint16_t)pos,
+                    0
+                );
+                total_tokens++;
+            }
+            pos++;
+        }
+        
+        /* Update position tracking */
+        if (input[pos - 1] == '\n') {
+            ctx->line_number++;
+            ctx->column_number = 1;
+        } else {
+            ctx->column_number++;
+        }
+    }
+    
+    ctx->token_count = total_tokens;
+    return (ssize_t)total_tokens;
+}
+
+size_t rift_rules_get_count(const TokenizerContext* ctx) {
+    return ctx ? ctx->pattern_count : 0;
+}
+
+bool rift_rules_clear_all(TokenizerContext* ctx) {
     if (!ctx) return false;
     
-    #ifdef RIFT_THREAD_SUPPORT
-    if (!ctx->mutex) {
-        ctx->mutex = malloc(sizeof(pthread_mutex_t));
-        if (!ctx->mutex) return false;
+    /* Destroy all patterns */
+    for (size_t i = 0; i < ctx->pattern_count; i++) {
+        if (ctx->regex_patterns[i]) {
+            rift_regex_destroy(ctx->regex_patterns[i]);
+            ctx->regex_patterns[i] = NULL;
+        }
+    }
+    
+    ctx->pattern_count = 0;
+    ctx->stats.regex_patterns = 0;
+    
+    return true;
+}
+
+/* =================================================================
+ * ERROR HANDLING IMPLEMENTATION
+ * =================================================================
+ */
+
+const char* rift_rules_get_last_error(const TokenizerContext* ctx) {
+    if (!ctx || !ctx->has_error) return NULL;
+    return ctx->error_message;
+}
+
+TokenizerErrorCode rift_rules_get_last_error_code(const TokenizerContext* ctx) {
+    if (!ctx) return RIFT_TOKENIZER_ERROR_NULL_CONTEXT;
+    return ctx->error_code;
+}
+
+void rift_rules_clear_error(TokenizerContext* ctx) {
+    if (!ctx) return;
+    
+    ctx->error_message[0] = '\0';
+    ctx->error_code = RIFT_TOKENIZER_SUCCESS;
+    ctx->has_error = false;
+}
+
+/* =================================================================
+ * INTERNAL HELPER FUNCTIONS
+ * =================================================================
+ */
+
+static bool _compile_simple_pattern(RegexComposition* regex, const char* pattern) {
+    if (!regex || !pattern) return false;
+    
+    /* Simple literal string matching for now */
+    /* TODO: Implement full regex compilation */
+    
+    DFAState* current = regex->start_state;
+    size_t pattern_len = strlen(pattern);
+    
+    for (size_t i = 0; i < pattern_len; i++) {
+        DFAState* next = rift_dfa_create_state(i + 1, i == pattern_len - 1);
+        if (!next) return false;
         
-        if (pthread_mutex_init((pthread_mutex_t*)ctx->mutex, NULL) != 0) {
-            free(ctx->mutex);
-            ctx->mutex = NULL;
+        if (!rift_dfa_add_transition(current, next, pattern[i])) {
+            rift_dfa_destroy_states(next);
             return false;
         }
+        
+        current = next;
+        
+        if (i == pattern_len - 1) {
+            /* Add to accept states */
+            regex->accept_states[regex->accept_count++] = current;
+        }
     }
-    ctx->thread_safe = true;
-    return true;
-    #else
-    return false;
-    #endif
-}
-
-/**
- * Disable thread safety
- * R.THREAD_SAFE(disable) -> Mutex cleanup
- */
-bool rift_tokenizer_disable_thread_safety(TokenizerContext* ctx) {
-    if (!ctx) return false;
-    
-    ctx->thread_safe = false;
-    
-    #ifdef RIFT_THREAD_SUPPORT
-    if (ctx->mutex) {
-        pthread_mutex_destroy((pthread_mutex_t*)ctx->mutex);
-        free(ctx->mutex);
-        ctx->mutex = NULL;
-    }
-    #endif
     
     return true;
-}
-
-/**
- * Check if thread safety is enabled
- * R.THREAD_SAFE(check) -> Thread safety status
- */
-bool rift_tokenizer_is_thread_safe(const TokenizerContext* ctx) {
-    return ctx ? ctx->thread_safe : false;
 }
