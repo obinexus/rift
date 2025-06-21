@@ -8,15 +8,19 @@
  */
 
 #include "rift-0/core/tokenizer.h"
+
+// Enable POSIX features for clock_gettime on Linux/Unix
+#if !defined(_WIN32)
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L
+#endif
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
 #include <sys/types.h> // For ssize_t
 
 #if !defined(_WIN32)
