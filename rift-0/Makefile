@@ -193,7 +193,7 @@ $(OBJ_DIR)/cli/%.o: $(CLI_SRC_DIR)/%.c | directories
 # PKG-CONFIG GENERATION
 # =================================================================
 
-$(PKG_CONFIG_FILE): | directories
+$(PKG_CONFIG_FILE): directories
 	@echo "📋 Generating pkg-config file: $@"
 	@cat > $@ << 'EOF'
 prefix=/usr/local
