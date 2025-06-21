@@ -11,6 +11,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <stdio.h>
+
+/* Forward declaration for internal helper */
+static bool _compile_simple_pattern(RegexComposition* regex, const char* pattern);
+
+
 
 /* =================================================================
  * DFA STATE MANAGEMENT IMPLEMENTATION
@@ -234,10 +240,10 @@ bool rift_token_validate(const TokenTriplet* token) {
     if (!token) return false;
     
     /* Check for valid token type range */
-    if (token->type > TOKEN_ERROR) return false;
+    if ((uint8_t)token->type > (uint8_t)TOKEN_ERROR) return false;
     
     /* Validate memory pointer is within reasonable bounds */
-    if (token->mem_ptr >= RIFT_TOKENIZER_MAX_TOKENS) return false;
+    if ((uint16_t)token->mem_ptr >= (uint16_t)RIFT_TOKENIZER_MAX_TOKENS) return false;
     
     return true;
 }
