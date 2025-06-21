@@ -1,4 +1,4 @@
-/*
+/**
  * =================================================================
  * tokenizer.h - RIFT-0 Core Tokenizer Interface
  * RIFT: RIFT Is a Flexible Translator
@@ -13,374 +13,319 @@
 #ifndef RIFT_0_CORE_TOKENIZER_H
 #define RIFT_0_CORE_TOKENIZER_H
 
+/* Hierarchical dependency - follows Sinphasé ordering */
+#include "rift-0/core/tokenizer_types.h"
+#include "rift-0/core/tokenizer_rules.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-
 /* =================================================================
- * RIFT-0 TOKEN DEFINITIONS
+ * TOKENIZER CONTEXT LIFECYCLE - PRIMARY INTERFACE
  * =================================================================
  */
 
-/* Hierarchical dependency - follows Sinphasé ordering */
-#include "rift-0/core/tokenizer_rules.h"
-
-/* =================================================================
- * TOKENIZER CONTEXT STRUCTURE - BOUNDED COMPLEXITY
- * =================================================================
+/**
+ * Create new tokenizer context with default configuration
+ * @return Initialized TokenizerContext or NULL on failure
  */
-/* Bitfield Token Format (32-bit packed structure) */
-typedef struct {
-    uint32_t type    : 8;   /* Token type identifier (0-255) */
-    uint32_t mem_ptr : 16;  /* Memory pointer/offset (0-65535) */
-    uint32_t value   : 8;   /* Token value/flags (0-255) */
-} TokenTriplet;
+TokenizerContext* rift_tokenizer_create(void);
 
-/* Token Type Enumeration */
-typedef enum {
-    TOKEN_UNKNOWN = 0,
-    TOKEN_IDENTIFIER,
-    TOKEN_KEYWORD,
-    TOKEN_LITERAL_NUMBER,
-    TOKEN_LITERAL_STRING,
-    TOKEN_OPERATOR,
-    TOKEN_PUNCTUATION,
-    TOKEN_WHITESPACE,
-    TOKEN_COMMENT,
-    TOKEN_EOF,
-    TOKEN_ERROR,
-    /* DFA-specific tokens */
-    TOKEN_REGEX_START,
-    TOKEN_REGEX_END,
-    TOKEN_COMPOSE_AND,
-    TOKEN_COMPOSE_OR,
-    TOKEN_COMPOSE_XOR,
-    TOKEN_COMPOSE_NAND,
-    TOKEN_DFA_STATE,
-    TOKEN_MAX = 255
-} TokenType;
-
-/* Token Flags (stored in value field) */
-typedef enum {
-    TOKEN_FLAG_NONE       = 0x00,
-    TOKEN_FLAG_GLOBAL     = 0x01,  /* g flag */
-    TOKEN_FLAG_MULTILINE  = 0x02,  /* m flag */
-    TOKEN_FLAG_IGNORECASE = 0x04,  /* i flag */
-    TOKEN_FLAG_TOPDOWN    = 0x08,  /* t flag */
-    TOKEN_FLAG_BOTTOMUP   = 0x10,  /* b flag */
-    TOKEN_FLAG_COMPOSED   = 0x20,  /* Composed regex */
-    TOKEN_FLAG_VALIDATED = 0x40,  /* DFA validated */
-    TOKEN_FLAG_ERROR      = 0x80   /* Error state */
-} TokenFlags;
-
-/* =================================================================
- * DFA AUTOMATON STRUCTURES
- * =================================================================
+/**
+ * Create tokenizer context with specific capacity
+ * @param token_capacity Initial token buffer capacity
+ * @param pattern_capacity Initial pattern array capacity
+ * @return Initialized TokenizerContext or NULL on failure
  */
-typedef struct {
-    /* Input management */
-    const char* input;               /* Source text */
-    size_t input_length;            /* Input length */
-    size_t position;                 /* Current position */
-    size_t line;                     /* Current line number */
-    size_t column;                   /* Current column */
-    
-    /* Token management */
-    TokenTriplet* tokens;            /* Token array */
-    size_t token_count;              /* Number of tokens */
-    size_t token_capacity;           /* Token buffer capacity */
-    
-    /* Pattern cache */
-    struct {
-        char* name;
-        RegexComposition* pattern;
-    }* pattern_cache;
-    size_t pattern_cache_size;
-    
-    /* Error handling */
-    char error_message[256];         /* Last error description */
-    size_t error_position;           /* Error location in input */
-    bool has_error;                  /* Error flag */
-    
-    /* Thread safety */
-    void* mutex_handle;              /* Platform-specific mutex */
-    bool thread_safe_mode;           /* Thread safety enabled */
-} TokenizerContext;
+TokenizerContext* rift_tokenizer_create_with_capacity(size_t token_capacity, 
+                                                     size_t pattern_capacity);
 
-/* =================================================================
- * PERFORMANCE STATISTICS - GOVERNANCE MONITORING
- * =================================================================
+/**
+ * Destroy tokenizer context and free all resources
+ * @param ctx Tokenizer context to destroy
  */
-
-typedef struct {
-    uint64_t total_tokens;
-    uint64_t total_characters;
-    uint64_t processing_time_ns;
-    uint64_t dfa_transitions;
-    uint64_t cache_hits;
-    uint64_t cache_misses;
-} TokenizerStats;
-
-/* =================================================================
- * TOKENIZER LIFECYCLE API - SYSTEM LEVEL INTERFACE
- * =================================================================
- */
-
-/* Context management */
-TokenizerContext* rift_tokenizer_create(size_t initial_capacity);
 void rift_tokenizer_destroy(TokenizerContext* ctx);
+
+/**
+ * Reset tokenizer context to initial state (preserving capacity)
+ * @param ctx Tokenizer context to reset
+ * @return true on success, false on failure
+ */
 bool rift_tokenizer_reset(TokenizerContext* ctx);
 
-/* Input processing */
-bool rift_tokenizer_set_input(TokenizerContext* ctx, const char* input, size_t length);
-bool rift_tokenizer_set_input_file(TokenizerContext* ctx, const char* filename);
+/* =================================================================
+ * CORE TOKENIZATION OPERATIONS - MAIN PROCESSING INTERFACE
+ * =================================================================
+ */
 
-/* Core tokenization */
-bool rift_tokenizer_process(TokenizerContext* ctx);
-TokenTriplet* rift_tokenizer_get_tokens(TokenizerContext* ctx, size_t* count);
-TokenTriplet rift_tokenizer_next_token(TokenizerContext* ctx);
+/**
+ * Tokenize input string using registered rules
+ * @param ctx Tokenizer context
+ * @param input Input string to tokenize
+ * @param length Input string length (or 0 for null-terminated)
+ * @return Number of tokens generated, or -1 on error
+ */
+ssize_t rift_tokenizer_process(TokenizerContext* ctx, const char* input, size_t length);
 
-/* Pattern management */
-bool rift_tokenizer_cache_pattern(TokenizerContext* ctx, const char* name,
-                                  const char* pattern, TokenFlags flags);
-RegexComposition* rift_tokenizer_get_cached_pattern(TokenizerContext* ctx, const char* name);
+/**
+ * Tokenize input string with specific flags
+ * @param ctx Tokenizer context
+ * @param input Input string to tokenize
+ * @param length Input string length
+ * @param flags Processing flags
+ * @return Number of tokens generated, or -1 on error
+ */
+ssize_t rift_tokenizer_process_with_flags(TokenizerContext* ctx, 
+                                         const char* input, 
+                                         size_t length,
+                                         TokenFlags flags);
 
-/* Error handling */
-const char* rift_tokenizer_get_error(const TokenizerContext* ctx);
+/**
+ * Get generated tokens from context
+ * @param ctx Tokenizer context
+ * @param tokens Output array for tokens (may be NULL to query count)
+ * @param max_tokens Maximum tokens to copy
+ * @return Number of available tokens
+ */
+size_t rift_tokenizer_get_tokens(const TokenizerContext* ctx, 
+                                 TokenTriplet* tokens, 
+                                 size_t max_tokens);
+
+/**
+ * Get specific token by index
+ * @param ctx Tokenizer context
+ * @param index Token index
+ * @param token Output token (may be NULL to check bounds)
+ * @return true if index is valid, false otherwise
+ */
+bool rift_tokenizer_get_token_at(const TokenizerContext* ctx, 
+                                size_t index, 
+                                TokenTriplet* token);
+
+/* =================================================================
+ * TOKENIZER CONFIGURATION - RUNTIME BEHAVIOR CONTROL
+ * =================================================================
+ */
+
+/**
+ * Set global tokenizer flags
+ * @param ctx Tokenizer context
+ * @param flags Global flags to set
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_set_flags(TokenizerContext* ctx, TokenFlags flags);
+
+/**
+ * Get current global tokenizer flags
+ * @param ctx Tokenizer context
+ * @return Current global flags
+ */
+TokenFlags rift_tokenizer_get_flags(const TokenizerContext* ctx);
+
+/**
+ * Enable debug mode with optional output callback
+ * @param ctx Tokenizer context
+ * @param enable Whether to enable debug mode
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_set_debug_mode(TokenizerContext* ctx, bool enable);
+
+/**
+ * Enable strict parsing mode
+ * @param ctx Tokenizer context
+ * @param strict Whether to enable strict mode
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_set_strict_mode(TokenizerContext* ctx, bool strict);
+
+/**
+ * Configure thread safety mode
+ * @param ctx Tokenizer context
+ * @param thread_safe Whether to enable thread safety
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_set_thread_safe_mode(TokenizerContext* ctx, bool thread_safe);
+
+/* =================================================================
+ * BUFFER MANAGEMENT - MEMORY AND CAPACITY CONTROL
+ * =================================================================
+ */
+
+/**
+ * Resize token buffer capacity
+ * @param ctx Tokenizer context
+ * @param new_capacity New token buffer capacity
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_resize_token_buffer(TokenizerContext* ctx, size_t new_capacity);
+
+/**
+ * Resize pattern array capacity
+ * @param ctx Tokenizer context
+ * @param new_capacity New pattern array capacity
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_resize_pattern_buffer(TokenizerContext* ctx, size_t new_capacity);
+
+/**
+ * Get current token buffer utilization
+ * @param ctx Tokenizer context
+ * @param used Output for used token count (may be NULL)
+ * @param capacity Output for total capacity (may be NULL)
+ * @return Buffer utilization ratio (0.0 to 1.0)
+ */
+double rift_tokenizer_get_token_utilization(const TokenizerContext* ctx, 
+                                           size_t* used, 
+                                           size_t* capacity);
+
+/**
+ * Compact token buffer to remove unused space
+ * @param ctx Tokenizer context
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_compact_buffers(TokenizerContext* ctx);
+
+/* =================================================================
+ * STATISTICS AND DIAGNOSTICS - PERFORMANCE MONITORING
+ * =================================================================
+ */
+
+/**
+ * Get tokenizer runtime statistics
+ * @param ctx Tokenizer context
+ * @param stats Output statistics structure
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_get_statistics(const TokenizerContext* ctx, TokenizerStats* stats);
+
+/**
+ * Reset tokenizer statistics counters
+ * @param ctx Tokenizer context
+ * @return true on success, false on failure
+ */
+bool rift_tokenizer_reset_statistics(TokenizerContext* ctx);
+
+/**
+ * Get current parsing position information
+ * @param ctx Tokenizer context
+ * @param position Output for character position (may be NULL)
+ * @param line Output for line number (may be NULL)
+ * @param column Output for column number (may be NULL)
+ * @return true if position tracking is active, false otherwise
+ */
+bool rift_tokenizer_get_position(const TokenizerContext* ctx, 
+                                size_t* position, 
+                                size_t* line, 
+                                size_t* column);
+
+/* =================================================================
+ * ERROR HANDLING - TOKENIZER-LEVEL ERROR MANAGEMENT
+ * =================================================================
+ */
+
+/**
+ * Check if tokenizer has error state
+ * @param ctx Tokenizer context
+ * @return true if error state is active, false otherwise
+ */
 bool rift_tokenizer_has_error(const TokenizerContext* ctx);
-void rift_tokenizer_clear_error(TokenizerContext* ctx);
 
-/* Thread safety */
-bool rift_tokenizer_enable_thread_safety(TokenizerContext* ctx);
-bool rift_tokenizer_disable_thread_safety(TokenizerContext* ctx);
-bool rift_tokenizer_is_thread_safe(const TokenizerContext* ctx);
-
-/* Performance monitoring */
-TokenizerStats rift_tokenizer_get_stats(const TokenizerContext* ctx);
-void rift_tokenizer_reset_stats(TokenizerContext* ctx);
-
-/* Utility functions */
-const char* rift_token_type_name(TokenType type);
-const char* rift_token_flags_string(TokenFlags flags);
-void rift_tokenizer_print_stats(const TokenizerContext* ctx);
-void rift_tokenizer_print_tokens(const TokenizerContext* ctx);
-bool rift_tokenizer_validate_dfa(const TokenizerContext* ctx);
-
-
-/* DFA State Structure (5-tuple automaton) */
-typedef struct DFAState {
-    uint32_t state_id;              /* Unique state identifier */
-    bool is_final;                  /* Final state flag */
-    bool is_start;                  /* Start state flag */
-    char transition_char;           /* Transition character */
-    struct DFAState* next_state;    /* Next state pointer */
-    struct DFAState* fail_state;    /* Failure state pointer */
-    TokenType token_type;           /* Associated token type */
-    uint32_t match_count;           /* Number of matches */
-} DFAState;
-
-/* Regex Composition Structure */
-typedef struct {
-    char* pattern;                  /* Raw regex pattern */
-    TokenFlags flags;               /* Compilation flags */
-    DFAState* start_state;          /* DFA start state */
-    DFAState* current_state;        /* Current processing state */
-    bool is_composed;               /* Composition status */
-    size_t pattern_length;          /* Pattern byte length */
-} RegexComposition;
-
-/* =================================================================
- * TOKENIZER CONTEXT & STATE
- * =================================================================
+/**
+ * Get last tokenizer error message
+ * @param ctx Tokenizer context
+ * @return Error message string or NULL if no error
  */
+const char* rift_tokenizer_get_error_message(const TokenizerContext* ctx);
 
-/* Tokenizer Context Structure */
-typedef struct {
-    const char* input_buffer;       /* Source input buffer */
-    size_t buffer_length;           /* Buffer size in bytes */
-    size_t current_position;        /* Current parsing position */
-    size_t line_number;             /* Current line (1-based) */
-    size_t column_number;           /* Current column (1-based) */
-    
-    /* Token output management */
-    TokenTriplet* token_buffer;     /* Output token array */
-    size_t token_capacity;          /* Maximum tokens */
-    size_t token_count;             /* Current token count */
-    
-    /* DFA processing state */
-    DFAState* dfa_root;             /* Root DFA state machine */
-    RegexComposition* compositions; /* Active regex compositions */
-    size_t composition_count;       /* Number of compositions */
-    
-    /* Error handling */
-    char error_message[256];        /* Last error description */
-    size_t error_position;          /* Error location in input */
-    bool has_error;                 /* Error flag */
-    
-    /* Thread safety */
-    void* mutex_handle;             /* Platform-specific mutex */
-    bool thread_safe_mode;          /* Thread safety enabled */
-} TokenizerContext;
-
-/* =================================================================
- * CORE TOKENIZER API
- * =================================================================
+/**
+ * Get last tokenizer error code
+ * @param ctx Tokenizer context
+ * @return TokenizerErrorCode value
  */
+TokenizerErrorCode rift_tokenizer_get_error_code(const TokenizerContext* ctx);
 
-/* Tokenizer Lifecycle Management */
-TokenizerContext* rift_tokenizer_create(size_t initial_capacity);
-void rift_tokenizer_destroy(TokenizerContext* ctx);
-bool rift_tokenizer_reset(TokenizerContext* ctx);
-
-/* Input Processing */
-bool rift_tokenizer_set_input(TokenizerContext* ctx, const char* input, size_t length);
-bool rift_tokenizer_set_input_file(TokenizerContext* ctx, const char* filename);
-
-/* Core Tokenization */
-bool rift_tokenizer_process(TokenizerContext* ctx);
-TokenTriplet* rift_tokenizer_get_tokens(TokenizerContext* ctx, size_t* count);
-TokenTriplet rift_tokenizer_next_token(TokenizerContext* ctx);
-
-/* =================================================================
- * REGEX COMPOSITION API (R"" and R'' syntax)
- * =================================================================
+/**
+ * Clear tokenizer error state
+ * @param ctx Tokenizer context
  */
-
-/* Regex Pattern Compilation */
-RegexComposition* rift_regex_compile(const char* pattern, TokenFlags flags);
-void rift_regex_destroy(RegexComposition* regex);
-
-/* Boolean Composition Operations */
-RegexComposition* rift_regex_compose_and(RegexComposition* a, RegexComposition* b);
-RegexComposition* rift_regex_compose_or(RegexComposition* a, RegexComposition* b);
-RegexComposition* rift_regex_compose_xor(RegexComposition* a, RegexComposition* b);
-RegexComposition* rift_regex_compose_nand(RegexComposition* a, RegexComposition* b);
-
-/* Pattern Matching with DFA */
-bool rift_regex_match(RegexComposition* regex, const char* input, size_t length);
-bool rift_regex_find(RegexComposition* regex, const char* input, size_t length, 
-                     size_t* match_start, size_t* match_length);
-
-/* =================================================================
- * DFA STATE MACHINE API
- * =================================================================
- */
-
-/* DFA Construction */
-DFAState* rift_dfa_create_state(uint32_t state_id, bool is_final);
-void rift_dfa_destroy_states(DFAState* root);
-bool rift_dfa_add_transition(DFAState* from, DFAState* to, char transition_char);
-
-/* DFA Processing */
-DFAState* rift_dfa_process_input(DFAState* start, const char* input, size_t length);
-bool rift_dfa_is_accepting_state(DFAState* state);
-TokenType rift_dfa_get_token_type(DFAState* state);
-
-/* =================================================================
- * UTILITY & VALIDATION API
- * =================================================================
- */
-
-/* Token Utilities */
-const char* rift_token_type_name(TokenType type);
-const char* rift_token_flags_string(TokenFlags flags);
-bool rift_token_is_valid(const TokenTriplet* token);
-
-/* Debug & Introspection */
-void rift_tokenizer_print_stats(const TokenizerContext* ctx);
-void rift_tokenizer_print_tokens(const TokenizerContext* ctx);
-bool rift_tokenizer_validate_dfa(const TokenizerContext* ctx);
-
-/* Error Handling */
-const char* rift_tokenizer_get_error(const TokenizerContext* ctx);
-bool rift_tokenizer_has_error(const TokenizerContext* ctx);
 void rift_tokenizer_clear_error(TokenizerContext* ctx);
 
 /* =================================================================
- * THREAD SAFETY API (for Gosilang integration)
+ * UTILITY FUNCTIONS - CONVENIENCE AND DEBUGGING HELPERS
  * =================================================================
  */
 
-/* Thread Safety Control */
-bool rift_tokenizer_enable_thread_safety(TokenizerContext* ctx);
-bool rift_tokenizer_disable_thread_safety(TokenizerContext* ctx);
-bool rift_tokenizer_is_thread_safe(const TokenizerContext* ctx);
+/**
+ * Get tokenizer version string
+ * @return Version string (e.g., "0.4.0")
+ */
+const char* rift_tokenizer_get_version(void);
 
-/* Thread-Safe Processing */
-TokenizerContext* rift_tokenizer_clone(const TokenizerContext* source);
-bool rift_tokenizer_merge_results(TokenizerContext* target, const TokenizerContext* source);
+/**
+ * Convert token type to string representation
+ * @param token_type Token type to convert
+ * @return String representation or "UNKNOWN"
+ */
+const char* rift_tokenizer_token_type_to_string(TokenType token_type);
+
+/**
+ * Convert token flags to string representation
+ * @param flags Token flags to convert
+ * @param buffer Output buffer for string
+ * @param buffer_size Size of output buffer
+ * @return Number of characters written (excluding null terminator)
+ */
+size_t rift_tokenizer_token_flags_to_string(TokenFlags flags, 
+                                           char* buffer, 
+                                           size_t buffer_size);
+
+/**
+ * Print token triplet for debugging
+ * @param token Token to print
+ * @param buffer Output buffer
+ * @param buffer_size Size of output buffer
+ * @return Number of characters written
+ */
+size_t rift_tokenizer_print_token(const TokenTriplet* token, 
+                                 char* buffer, 
+                                 size_t buffer_size);
+
+/**
+ * Validate tokenizer context integrity
+ * @param ctx Tokenizer context to validate
+ * @return true if context is valid, false otherwise
+ */
+bool rift_tokenizer_validate_context(const TokenizerContext* ctx);
 
 /* =================================================================
- * ADVANCED FEATURES
+ * THREAD SAFETY UTILITIES - CONCURRENT ACCESS SUPPORT
  * =================================================================
  */
 
-/* Pattern Caching */
-bool rift_tokenizer_cache_pattern(TokenizerContext* ctx, const char* name, 
-                                   const char* pattern, TokenFlags flags);
-RegexComposition* rift_tokenizer_get_cached_pattern(TokenizerContext* ctx, const char* name);
-
-/* Performance Monitoring */
-typedef struct {
-    uint64_t total_tokens;
-    uint64_t total_characters;
-    uint64_t processing_time_ns;
-    uint64_t dfa_transitions;
-    uint64_t cache_hits;
-    uint64_t cache_misses;
-} TokenizerStats;
-
-TokenizerStats rift_tokenizer_get_stats(const TokenizerContext* ctx);
-void rift_tokenizer_reset_stats(TokenizerContext* ctx);
-
-/* =================================================================
- * CONSTANTS & LIMITS
- * =================================================================
+/**
+ * Lock tokenizer context for exclusive access
+ * @param ctx Tokenizer context
+ * @return true on successful lock, false on failure
  */
+bool rift_tokenizer_lock(TokenizerContext* ctx);
 
-#define RIFT_TOKENIZER_VERSION_MAJOR    1
-#define RIFT_TOKENIZER_VERSION_MINOR    0
-#define RIFT_TOKENIZER_VERSION_PATCH    0
-
-#define RIFT_MAX_TOKEN_LENGTH           4096
-#define RIFT_MAX_PATTERN_LENGTH         1024
-#define RIFT_MAX_DFA_STATES             65536
-#define RIFT_DEFAULT_TOKEN_CAPACITY     1024
-#define RIFT_MAX_COMPOSITIONS           64
-#define RIFT_MAX_ERROR_MESSAGE          256
-
-/* Regex Composition Syntax Markers */
-#define RIFT_REGEX_RAW_QUOTE            "R\""
-#define RIFT_REGEX_RAW_SINGLE           "R'"
-#define RIFT_COMPOSE_AND                "R.AND"
-#define RIFT_COMPOSE_OR                 "R.OR"
-#define RIFT_COMPOSE_XOR                "R.XOR"
-#define RIFT_COMPOSE_NAND               "R.NAND"
-#define RIFT_COMPOSE_NOT                "R.NOT"
-
-/* =================================================================
- * VERSION & BUILD INFO
- * =================================================================
+/**
+ * Unlock tokenizer context
+ * @param ctx Tokenizer context
+ * @return true on successful unlock, false on failure
  */
+bool rift_tokenizer_unlock(TokenizerContext* ctx);
 
-/* Version Information */
-const char* rift_tokenizer_version(void);
-const char* rift_tokenizer_build_info(void);
-uint32_t rift_tokenizer_version_number(void);
-
-/* Feature Detection */
-bool rift_tokenizer_has_dfa_support(void);
-bool rift_tokenizer_has_regex_compose(void);
-bool rift_tokenizer_has_thread_safety(void);
-bool rift_tokenizer_has_caching(void);
+/**
+ * Try to lock tokenizer context without blocking
+ * @param ctx Tokenizer context
+ * @return true if lock acquired, false if would block
+ */
+bool rift_tokenizer_trylock(TokenizerContext* ctx);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* RIFT_0_CORE_TOKENIZER_H */
-

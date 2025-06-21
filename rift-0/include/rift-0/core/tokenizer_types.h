@@ -1,110 +1,208 @@
-/*
+/**
  * =================================================================
- * SINPHASÉ TOKENIZER ARCHITECTURE REORGANIZATION
- * RIFT: RIFT Is a Flexible Translator - Stage 0 Tokenization
- * OBINexus Computing Framework - AEGIS Methodology Compliance
+ * tokenizer_types.h - RIFT-0 Core Type Definitions (Recovery Base)
+ * RIFT: RIFT Is a Flexible Translator
+ * Component: Isolated struct and enum definitions for tokenizer subsystem
+ * OBINexus Computing Framework - Stage 0 Implementation
+ * Recovery from .bak files with structural integrity restoration
  * 
- * Dependency Hierarchy (Single-Pass Compilation):
- * tokenizer_types.h -> tokenizer_rules.h -> tokenizer.h -> rift_tokenizer.h
- * 
- * Cost-Based Isolation: Core types isolated to prevent redefinition
- * Phase Constraint: Each header maintains single responsibility
- * =================================================================
- */
-
-/* =================================================================
- * 1. CORE TYPES HEADER (tokenizer_types.h)
- * Foundation component - single source of truth for all types
+ * Toolchain: riftlang.exe → .so.a → rift.exe → gosilang
+ * Build Orchestration: nlink → polybuild (AEGIS Framework)
  * =================================================================
  */
 
 #ifndef RIFT_0_CORE_TOKENIZER_TYPES_H
 #define RIFT_0_CORE_TOKENIZER_TYPES_H
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <pthread.h>
+#include <stdatomic.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+/* Governance Policy Enforcement Pragma */
+#pragma rift_policy memory(aligned(4)) type(strict) value(static)
 
 /* =================================================================
- * TOKENTRIPLET BITFIELD STRUCTURE - AEGIS COMPLIANT
+ * COMPILATION CONSTANTS - RESOLVED FROM .BAK ANALYSIS
+ * =================================================================
+ */
+#define RIFT_TOKENIZER_VERSION "0.4.0"
+#define RIFT_TOKENIZER_MAX_TOKENS 65536
+#define RIFT_TOKENIZER_MAX_PATTERNS 256
+#define RIFT_TOKENIZER_DEFAULT_CAPACITY 1024
+#define RIFT_TOKENIZER_BUFFER_SIZE 8192
+#define RIFT_TOKENIZER_ERROR_MSG_SIZE 512
+
+/* DFA State Constants */
+#define DFA_MAX_STATES 1024
+#define DFA_MAX_TRANSITIONS 256
+#define DFA_INVALID_STATE_ID UINT32_MAX
+
+/* =================================================================
+ * CORE TOKEN STRUCTURES - CANONICAL FROM .BAK
  * =================================================================
  */
 
+/* TokenTriplet - matches .bak specification exactly */
 typedef struct __attribute__((packed)) {
     uint32_t type    : 8;   /* Token type identifier (0-255) */
     uint32_t mem_ptr : 16;  /* Memory pointer/offset (0-65535) */
     uint32_t value   : 8;   /* Token value/flags (0-255) */
 } TokenTriplet;
 
-/* Static assertions for deterministic builds */
-#if defined(__cplusplus)
-static_assert(sizeof(TokenTriplet) == 4, "TokenTriplet must be exactly 32 bits for single-pass compilation");
-#else
-_Static_assert(sizeof(TokenTriplet) == 4, "TokenTriplet must be exactly 32 bits for single-pass compilation");
-#endif
-
-/* =================================================================
- * TOKEN TYPE ENUMERATION - CORE CLASSIFICATION
- * =================================================================
- */
-
+/* TokenType - canonical enumeration from .bak */
 typedef enum {
     TOKEN_UNKNOWN = 0,
     TOKEN_IDENTIFIER,
     TOKEN_KEYWORD,
-    TOKEN_LITERAL_NUMBER,
     TOKEN_LITERAL_STRING,
+    TOKEN_LITERAL_NUMBER,
     TOKEN_OPERATOR,
     TOKEN_PUNCTUATION,
+    TOKEN_DELIMITER,
     TOKEN_WHITESPACE,
     TOKEN_COMMENT,
     TOKEN_EOF,
-    TOKEN_ERROR,
-    
-    /* R-syntax specific tokens */
-    TOKEN_REGEX_START,       /* R" or R' marker */
-    TOKEN_REGEX_END,         /* Closing quote marker */
-    TOKEN_COMPOSE_AND,       /* R.AND composition */
-    TOKEN_COMPOSE_OR,        /* R.OR composition */
-    TOKEN_COMPOSE_XOR,       /* R.XOR composition */
-    TOKEN_COMPOSE_NAND,      /* R.NAND composition */
-    
-    /* DFA state tokens */
-    TOKEN_DFA_STATE,         /* DFA state transition */
-    
-    TOKEN_MAX = 255          /* Maximum token type value */
+    /* DFA-specific tokens */
+    TOKEN_REGEX_START,
+    TOKEN_REGEX_END,
+    TOKEN_COMPOSE_AND,
+    TOKEN_COMPOSE_OR,
+    TOKEN_COMPOSE_XOR,
+    TOKEN_COMPOSE_NAND,
+    TOKEN_DFA_STATE,
+    TOKEN_ERROR = 255
 } TokenType;
 
-/* =================================================================
- * TOKEN FLAGS ENUMERATION - PROCESSING CONTROL
- * =================================================================
- */
-
+/* TokenFlags - from .bak with complete flag set */
 typedef enum {
     TOKEN_FLAG_NONE       = 0x00,
-    TOKEN_FLAG_GLOBAL     = 0x01,  /* g flag - global matching */
-    TOKEN_FLAG_MULTILINE  = 0x02,  /* m flag - multiline mode */
-    TOKEN_FLAG_IGNORECASE = 0x04,  /* i flag - case insensitive */
-    TOKEN_FLAG_TOPDOWN    = 0x08,  /* t flag - top-down evaluation */
-    TOKEN_FLAG_BOTTOMUP   = 0x10,  /* b flag - bottom-up evaluation */
-    TOKEN_FLAG_COMPOSED   = 0x20,  /* Token from composed regex */
-    TOKEN_FLAG_VALIDATED  = 0x40,  /* DFA validated token */
-    TOKEN_FLAG_ERROR      = 0x80   /* Error state marker */
+    TOKEN_FLAG_GLOBAL     = 0x01,  /* g flag */
+    TOKEN_FLAG_MULTILINE  = 0x02,  /* m flag */
+    TOKEN_FLAG_IGNORECASE = 0x04,  /* i flag */
+    TOKEN_FLAG_TOPDOWN    = 0x08,  /* t flag */
+    TOKEN_FLAG_BOTTOMUP   = 0x10,  /* b flag */
+    TOKEN_FLAG_COMPOSED   = 0x20,  /* Composed regex */
+    TOKEN_FLAG_VALIDATED  = 0x40,  /* DFA validated */
+    TOKEN_FLAG_ERROR      = 0x80   /* Error state */
 } TokenFlags;
 
 /* =================================================================
- * FORWARD DECLARATIONS - INTERFACE CONTRACTS
+ * DFA STRUCTURES - CANONICAL FROM .BAK
  * =================================================================
  */
 
-typedef struct DFAState DFAState;
-typedef struct RegexComposition RegexComposition;
-typedef struct TokenizerContext TokenizerContext;
-typedef struct TokenizerStats TokenizerStats;
+/* DFA State Structure - hierarchical state machine */
+typedef struct DFAState {
+    uint32_t            state_id;           /* Unique state identifier */
+    bool                is_final;           /* Accept state flag */
+    TokenType           token_type;         /* Associated token type */
+    struct DFAState**   transitions;        /* Transition table [256] */
+    size_t              transition_count;   /* Number of transitions */
+    uint32_t            flags;              /* State-specific flags */
+    void*               user_data;          /* Extensibility pointer */
+} DFAState;
+
+/* RegexComposition - DFA-based regex implementation */
+typedef struct RegexComposition {
+    DFAState*           start_state;        /* Initial DFA state */
+    DFAState**          accept_states;      /* Array of accept states */
+    size_t              accept_count;       /* Number of accept states */
+    TokenFlags          flags;              /* Compilation flags */
+    char*               pattern;            /* Original pattern string */
+    size_t              pattern_length;    /* Pattern length */
+    bool                is_compiled;        /* Compilation complete flag */
+    size_t              pattern_length;    /* Pattern length */
+} RegexComposition;
+
+/* =================================================================
+ * TOKENIZER CONTEXT STRUCTURES - THREAD-SAFE DESIGN
+ * =================================================================
+ */
+
+/* TokenizerStats - performance monitoring from .bak */
+typedef struct TokenizerStats {
+    size_t              tokens_processed;   /* Total tokens processed */
+    size_t              tokens_generated;   /* Total tokens generated */
+    size_t              memory_allocated;   /* Memory currently allocated */
+    size_t              memory_peak;        /* Peak memory usage */
+    size_t              dfa_states_created; /* Total DFA states */
+    size_t              regex_patterns;     /* Compiled regex patterns */
+    double              processing_time;    /* Total processing time */
+    uint32_t            error_count;        /* Total errors encountered */
+} TokenizerStats;
+
+/* TokenizerContext - main tokenizer state container */
+typedef struct TokenizerContext {
+    /* Core tokenization state */
+    TokenTriplet*       tokens;             /* Token array buffer */
+    size_t              token_count;        /* Current token count */
+    size_t              token_capacity;     /* Buffer capacity */
+    
+    /* Input processing state */
+    const char*         input_buffer;       /* Source text buffer */
+    size_t              input_length;       /* Input buffer length */
+    size_t              current_position;   /* Current parsing position */
+    size_t              line_number;        /* Current line number */
+    size_t              column_number;      /* Current column number */
+    
+    /* DFA and regex state */
+    DFAState*           current_dfa_state;  /* Active DFA state */
+    RegexComposition**  regex_patterns;     /* Compiled regex array */
+    size_t              pattern_count;      /* Number of patterns */
+    size_t              pattern_capacity;   /* Pattern array capacity */
+    
+    /* Thread safety and synchronization */
+    pthread_mutex_t     context_mutex;      /* Context protection mutex */
+    atomic_bool         thread_safe_mode;   /* Thread safety flag */
+    pthread_t           owner_thread;       /* Owning thread ID */
+    
+    /* Error handling and diagnostics */
+    char                error_message[RIFT_TOKENIZER_ERROR_MSG_SIZE];
+    uint32_t            error_code;         /* Last error code */
+    bool                has_error;          /* Error state flag */
+    
+    /* Performance statistics */
+    TokenizerStats      stats;              /* Runtime statistics */
+    
+    /* Configuration flags */
+    TokenFlags          global_flags;       /* Global tokenizer flags */
+    bool                debug_mode;         /* Debug output flag */
+    bool                strict_mode;        /* Strict parsing flag */
+} TokenizerContext;
+
+/* =================================================================
+ * FORWARD DECLARATIONS - BREAKS CIRCULAR DEPENDENCIES
+ * =================================================================
+ */
+
+/* Function pointer typedefs for extensibility */
+typedef TokenTriplet (*TokenCreateFunc)(uint8_t type, uint16_t mem_ptr, uint8_t value);
+typedef bool (*TokenValidateFunc)(const TokenTriplet* token);
+typedef DFAState* (*DFACreateStateFunc)(uint32_t state_id, bool is_final);
+typedef void (*DFADestroyStatesFunc)(DFAState* root);
+typedef bool (*DFAAddTransitionFunc)(DFAState* from, DFAState* to, char transition_char);
+typedef DFAState* (*DFAProcessInputFunc)(DFAState* start, const char* input, size_t length);
+typedef bool (*DFAIsAcceptingStateFunc)(DFAState* state);
+typedef TokenType (*DFAGetTokenTypeFunc)(DFAState* state);
+
+/* Error codes for tokenizer operations */
+typedef enum {
+    RIFT_TOKENIZER_SUCCESS = 0,
+    RIFT_TOKENIZER_ERROR_NULL_CONTEXT,
+    RIFT_TOKENIZER_ERROR_INVALID_INPUT,
+    RIFT_TOKENIZER_ERROR_BUFFER_OVERFLOW,
+    RIFT_TOKENIZER_ERROR_DFA_CREATION_FAILED,
+    RIFT_TOKENIZER_ERROR_REGEX_COMPILATION_FAILED,
+    RIFT_TOKENIZER_ERROR_THREAD_SAFETY_VIOLATION,
+    RIFT_TOKENIZER_ERROR_MEMORY_ALLOCATION_FAILED,
+    RIFT_TOKENIZER_ERROR_UNKNOWN = 255
+} TokenizerErrorCode;
 
 #ifdef __cplusplus
 }
