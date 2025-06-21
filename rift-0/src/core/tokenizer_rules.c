@@ -238,13 +238,26 @@ TokenTriplet rift_token_create(uint8_t type, uint16_t mem_ptr, uint8_t value) {
 
 bool rift_token_validate(const TokenTriplet* token) {
     if (!token) return false;
-    
-    /* Check for valid token type range */
-    if ((uint8_t)token->type > (uint8_t)TOKEN_ERROR) return false;
-    
-    /* Validate memory pointer is within reasonable bounds */
-    if ((uint16_t)token->mem_ptr >= (uint16_t)RIFT_TOKENIZER_MAX_TOKENS) return false;
-    
+
+    /* Validate token type is within defined TokenType enum range */
+    switch ((TokenType)token->type) {
+        case TOKEN_UNKNOWN:
+        case TOKEN_IDENTIFIER:
+        case TOKEN_LITERAL_NUMBER:
+        case TOKEN_LITERAL_STRING:
+        case TOKEN_OPERATOR:
+        case TOKEN_KEYWORD:
+        case TOKEN_WHITESPACE:
+        case TOKEN_COMMENT:
+        case TOKEN_ERROR:
+            break;
+        default:
+            return false;
+    }
+
+    /* Validate memory pointer is within allowed bounds */
+    if (token->mem_ptr >= RIFT_TOKENIZER_MAX_TOKENS) return false;
+
     return true;
 }
 
