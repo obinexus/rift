@@ -37,27 +37,26 @@ LDFLAGS = -shared
 LIBS = -lpthread
 
 # Directory structure
-SRCDIR = src/core
-INCDIR = include
-BUILDDIR = build
-OBJDIR = $(BUILDDIR)/obj
-LIBDIR_BUILD = $(BUILDDIR)/lib
-BINDIR_BUILD = $(BUILDDIR)/bin
+SRC_DIR = src
+INC_DIR = include
+BUILD_DIR = build
+BIN_DIR = $(BUILD_DIR)/bin
+OBJ_DIR = $(BUILD_DIR)/obj
+LIB_DIR = $(BUILD_DIR)/lib
 
 # Source files
-SOURCES = $(SRCDIR)/tokenizer.c \
-          $(SRCDIR)/tokenizer_rules.c
+SOURCES = $(wildcard $(SRC_DIR)/core/*.c) $(SRC_DIR)/cli/main.c
 
 # Object files
-OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SOURCES))
 DEPS = $(OBJECTS:.o=.d)
 
 # Target files
-STATIC_LIB = $(LIBDIR_BUILD)/librift-0.a
-SHARED_LIB = $(LIBDIR_BUILD)/librift-0.so.$(VERSION)
-SHARED_LIB_LINK = $(LIBDIR_BUILD)/librift-0.so
-EXECUTABLE = $(BINDIR_BUILD)/rift-0
-PKGCONFIG = $(BUILDDIR)/rift-0.pc
+STATIC_LIB = $(LIB_DIR)/librift-0.a
+SHARED_LIB = $(LIB_DIR)/librift-0.so.$(VERSION)
+SHARED_LIB_LINK = $(LIB_DIR)/librift-0.so
+EXECUTABLE = $(BIN_DIR)/rift-0
+PKGCONFIG = $(BUILD_DIR)/rift-0.pc
 
 # =================================================================
 # BUILD TARGETS
@@ -71,15 +70,17 @@ all: setup $(STATIC_LIB) $(SHARED_LIB) $(EXECUTABLE) $(PKGCONFIG)
 # Setup build directories
 setup:
 	@echo "Setting up RIFT-0 build environment..."
-	@mkdir -p $(OBJDIR)
-	@mkdir -p $(LIBDIR_BUILD)
-	@mkdir -p $(BINDIR_BUILD)
-	@mkdir -p $(BUILDDIR)
+	@mkdir -p $(OBJ_DIR)/core
+	@mkdir -p $(OBJ_DIR)/cli
+	@mkdir -p $(LIB_DIR)
+	@mkdir -p $(BIN_DIR)
+	@mkdir -p $(BUILD_DIR)
 
 # Compile object files with dependency generation
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo "Compiling $< ..."
-	@$(CC) $(CFLAGS) -MMD -MP -I$(INCDIR) -I. -c $< -o $@
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -MMD -MP -I$(INC_DIR) -I. -c $< -o $@
 
 # Static library
 $(STATIC_LIB): $(OBJECTS)
@@ -97,7 +98,7 @@ $(SHARED_LIB): $(OBJECTS)
 # Executable (using static library)
 $(EXECUTABLE): $(STATIC_LIB)
 	@echo "Creating executable $@..."
-	@$(CC) $(CFLAGS) -I$(INCDIR) -DRIFT_STANDALONE_BUILD \
+	@$(CC) $(CFLAGS) -I$(INC_DIR) -DRIFT_STANDALONE_BUILD \
 		-o $@ $(STATIC_LIB) $(LIBS)
 	@echo "Executable created successfully"
 
@@ -142,7 +143,7 @@ install: all
 	@install -m 644 $(STATIC_LIB) $(DESTDIR)$(LIBDIR)/
 	@install -m 755 $(SHARED_LIB) $(DESTDIR)$(LIBDIR)/
 	@ln -sf librift-0.so.$(VERSION) $(DESTDIR)$(LIBDIR)/librift-0.so
-	@install -m 644 $(INCDIR)/*.h $(DESTDIR)$(INCLUDEDIR)/
+	@install -m 644 $(INC_DIR)/*.h $(DESTDIR)$(INCLUDEDIR)/
 	@install -m 644 $(PKGCONFIG) $(DESTDIR)$(PKGCONFIGDIR)/
 	@install -m 755 $(EXECUTABLE) $(DESTDIR)$(PREFIX)/bin/
 	@ldconfig
@@ -163,7 +164,7 @@ uninstall:
 
 clean:
 	@echo "Cleaning build artifacts..."
-	@rm -rf $(BUILDDIR)
+	@rm -rf $(BUILD_DIR)
 	@echo "Clean completed"
 
 help:
