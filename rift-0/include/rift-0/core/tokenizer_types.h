@@ -17,20 +17,38 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#if defined(_WIN32) || defined(_WIN64)
+// Windows platform: pthreads and stdatomic are not available by default
+#include <windows.h>
+typedef HANDLE pthread_mutex_t;
+typedef DWORD pthread_t;
+typedef int atomic_bool;
+#define ATOMIC_VAR_INIT(value) (value)
+#else
 #include <pthread.h>
 #include <stdatomic.h>
+#endif
 
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma rift_policy memory(aligned(4)) type(strict) value(static)
+
+#ifndef _SSIZE_T_DEFINED
+typedef long ssize_t;
+#define _SSIZE_T_DEFINED
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
+/* =================================================================
+ * TYPE DEFINITIONS - CORE TYPES AND ENUMERATIONS
+ * =================================================================
+ */
 
 /* Governance Policy Enforcement Pragma */
 #pragma rift_policy memory(aligned(4)) type(strict) value(static)
 
-/* =================================================================
- * COMPILATION CONSTANTS - RESOLVED FROM .BAK ANALYSIS
- * =================================================================
- */
+/* Version and Configuration Constants */
+
 #define RIFT_TOKENIZER_VERSION "0.4.0"
 #define RIFT_TOKENIZER_MAX_TOKENS 65536
 #define RIFT_TOKENIZER_MAX_PATTERNS 256
@@ -117,7 +135,6 @@ typedef struct RegexComposition {
     char*               pattern;            /* Original pattern string */
     size_t              pattern_length;    /* Pattern length */
     bool                is_compiled;        /* Compilation complete flag */
-    size_t              pattern_length;    /* Pattern length */
 } RegexComposition;
 
 /* =================================================================

@@ -17,8 +17,11 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 #include <sys/types.h> // For ssize_t
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
 
 // Provide ssize_t if not defined (for Windows/MSVC)
 #if defined(_MSC_VER) && !defined(_SSIZE_T_DEFINED)
@@ -32,6 +35,10 @@ typedef ptrdiff_t ssize_t;
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
 #endif
+struct timespec {
+    time_t tv_sec;
+    long tv_nsec;
+};
 static int clock_gettime(int clk_id, struct timespec* t) {
     LARGE_INTEGER freq, count;
     QueryPerformanceFrequency(&freq);
@@ -209,19 +216,12 @@ bool rift_tokenizer_reset(TokenizerContext* ctx) {
     return true;
 }
 
-/* =================================================================
- * CORE TOKENIZATION OPERATIONS IMPLEMENTATION
- * =================================================================
- */
-
-ssize_t rift_tokenizer_process(TokenizerContext* ctx, const char* input, size_t length) {
-    return rift_tokenizer_process_with_flags(ctx, input, length, ctx->global_flags);
-}
-
 ssize_t rift_tokenizer_process_with_flags(TokenizerContext* ctx, 
                                          const char* input, 
                                          size_t length,
                                          TokenFlags flags) {
+    (void)flags; // Prevent unused parameter warning
+
     if (!ctx || !input) {
         if (ctx) {
             snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
@@ -276,6 +276,9 @@ ssize_t rift_tokenizer_process_with_flags(TokenizerContext* ctx,
     
     return result;
 }
+
+
+    
 
 size_t rift_tokenizer_get_tokens(const TokenizerContext* ctx, 
                                  TokenTriplet* tokens, 
