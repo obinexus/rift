@@ -9,10 +9,41 @@
 
 #include "rift-0/core/tokenizer.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/types.h> // For ssize_t
 
+// Provide ssize_t if not defined (for Windows/MSVC)
+#if defined(_MSC_VER) && !defined(_SSIZE_T_DEFINED)
+typedef ptrdiff_t ssize_t;
+#define _SSIZE_T_DEFINED
+#endif
+
+// For clock_gettime and CLOCK_MONOTONIC on Windows
+#if defined(_WIN32)
+#include <windows.h>
+#ifndef CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC 1
+#endif
+static int clock_gettime(int clk_id, struct timespec* t) {
+    LARGE_INTEGER freq, count;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&count);
+    t->tv_sec = (time_t)(count.QuadPart / freq.QuadPart);
+    t->tv_nsec = (long)(((count.QuadPart % freq.QuadPart) * 1000000000) / freq.QuadPart);
+    return 0;
+}
+#endif
+
+// Ignore non-standard pragma warning (optional)
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 /* =================================================================
  * INTERNAL HELPER FUNCTIONS - STATIC SCOPE
  * =================================================================
