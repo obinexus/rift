@@ -38,7 +38,7 @@ LIBS = -lpthread
 
 # Directory structure
 SRCDIR = src/core
-INCDIR = include/rift-0/core
+INCDIR = include
 BUILDDIR = build
 OBJDIR = $(BUILDDIR)/obj
 LIBDIR_BUILD = $(BUILDDIR)/lib
@@ -79,7 +79,7 @@ setup:
 # Compile object files with dependency generation
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@echo "Compiling $< ..."
-	@$(CC) $(CFLAGS) -MMD -MP -I$(INCDIR) -c $< -o $@
+	@$(CC) $(CFLAGS) -MMD -MP -I$(INCDIR) -I. -c $< -o $@
 
 # Static library
 $(STATIC_LIB): $(OBJECTS)
