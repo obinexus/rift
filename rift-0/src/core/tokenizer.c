@@ -5,7 +5,7 @@
  * OBINexus Computing Framework - Technical Implementation
  */
 
-#include "rift-0/core/tokenizer.h"
+#include "rift-0/core/rift_tokenizer.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
