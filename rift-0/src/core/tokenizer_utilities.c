@@ -1,515 +1,446 @@
 /**
  * =================================================================
- * tokenizer_utilities.c - RIFT-0 Tokenizer Utility Functions
+ * tokenizer_utilities.c - RIFT-0 Tokenizer Utility Implementation
  * RIFT: RIFT Is a Flexible Translator
- * Component: Utility functions for pattern matching and validation
+ * Component: Buffer management, statistics, and utility functions
  * OBINexus Computing Framework - Stage 0 Implementation
  * =================================================================
  */
 
-#include "rift-0/core/tokenizer_rules.h"
+#include "rift-0/core/tokenizer.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <ctype.h>
-#include <regex.h>
-#include <pthread.h>
 #include <errno.h>
 
-/* Pattern matching cache for performance optimization */
-static pthread_mutex_t pattern_cache_mutex = PTHREAD_MUTEX_INITIALIZER;
-static CompiledPattern* pattern_cache[MAX_COMPILED_PATTERNS];
-static size_t pattern_cache_count = 0;
-
-/**
- * Match pattern at specific position
- * Internal utility for R-macro operations
+/* =================================================================
+ * BUFFER MANAGEMENT IMPLEMENTATION
+ * =================================================================
  */
-bool match_pattern_at_position(const CompiledPattern* pattern, const char* text, size_t pos) {
-    if (!pattern || !text || !pattern->pattern_data) {
+
+bool rift_tokenizer_resize_token_buffer(TokenizerContext* ctx, size_t new_capacity) {
+    if (!ctx || new_capacity == 0 || new_capacity > RIFT_TOKENIZER_MAX_TOKENS) {
+        if (ctx) {
+            snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                    "Invalid token buffer capacity: %zu (max: %d)", 
+                    new_capacity, RIFT_TOKENIZER_MAX_TOKENS);
+            ctx->error_code = RIFT_TOKENIZER_ERROR_INVALID_INPUT;
+            ctx->has_error = true;
+        }
         return false;
     }
     
-    // Bounds checking
-    size_t text_len = strlen(text);
-    if (pos >= text_len) {
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return false;
+    }
+    
+    /* Preserve existing tokens up to the smaller of old/new capacity */
+    size_t preserve_count = (ctx->token_count < new_capacity) ? 
+                           ctx->token_count : new_capacity;
+    
+    TokenTriplet* new_buffer = calloc(new_capacity, sizeof(TokenTriplet));
+    if (!new_buffer) {
+        snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                "Failed to allocate token buffer: %s", strerror(errno));
+        ctx->error_code = RIFT_TOKENIZER_ERROR_MEMORY_ALLOCATION_FAILED;
+        ctx->has_error = true;
+        
+        if (atomic_load(&ctx->thread_safe_mode)) {
+            rift_tokenizer_unlock(ctx);
+        }
         return false;
     }
     
-    // Simple pattern matching implementation
-    // In a production system, this would use the compiled DFA
-    const char* pattern_str = (const char*)pattern->pattern_data;
-    const char* test_position = text + pos;
-    
-    // Handle different token types based on pattern type
-    switch (pattern->token_type) {
-        case TOKEN_IDENTIFIER:
-            return is_identifier_start(*test_position) ||
-                   (pos > 0 && is_identifier_continue(*test_position));
-            
-        case TOKEN_LITERAL_NUMBER:
-            return isdigit(*test_position) || *test_position == '.';
-            
-        case TOKEN_OPERATOR:
-            return strchr("+-*/%=<>!&|^~", *test_position) != NULL;
-            
-        case TOKEN_DELIMITER:
-            return strchr("(){}[];,.", *test_position) != NULL;
-            
-        case TOKEN_WHITESPACE:
-            return isspace(*test_position);
-            
-        case TOKEN_R_PATTERN:
-            // R-pattern matching requires more sophisticated logic
-            return strncmp(test_position, "R\"", 2) == 0 || strncmp(test_position, "R'", 2) == 0;
-            
-        default:
-            return false;
-    }
-}
-
-/**
- * Parse R-pattern flags from string
- */
-static uint32_t parse_r_pattern_flags(const char* flag_str) {
-    uint32_t flags = 0;
-    
-    if (!flag_str) return flags;
-    
-    for (const char* p = flag_str; *p; p++) {
-        switch (*p) {
-            case 'g': flags |= DFA_FLAG_GLOBAL; break;
-            case 'm': flags |= DFA_FLAG_MULTILINE; break;
-            case 'i': flags |= DFA_FLAG_INSENSITIVE; break;
-            case 't': flags |= DFA_FLAG_TOP_DOWN; break;
-            case 'b': flags |= DFA_FLAG_BOTTOM_UP; break;
-            // Ignore other characters
-        }
+    /* Copy existing tokens */
+    if (preserve_count > 0) {
+        memcpy(new_buffer, ctx->tokens, preserve_count * sizeof(TokenTriplet));
     }
     
-    return flags;
-}
-
-/**
- * Extract delimiter from R-pattern string
- */
-static int extract_r_pattern_delimiter(const char* pattern_str, char* delimiter, size_t max_len) {
-    if (!pattern_str || !delimiter || max_len == 0) {
-        return -1;
+    /* Update context */
+    free(ctx->tokens);
+    ctx->tokens = new_buffer;
+    ctx->token_capacity = new_capacity;
+    ctx->token_count = preserve_count;
+    
+    /* Update statistics */
+    size_t new_allocated = new_capacity * sizeof(TokenTriplet);
+    if (new_allocated > ctx->stats.memory_allocated) {
+        ctx->stats.memory_peak = new_allocated;
     }
+    ctx->stats.memory_allocated = new_allocated;
     
-    // Look for R" or R' prefix
-    if (strncmp(pattern_str, "R\"", 2) != 0 && strncmp(pattern_str, "R'", 2) != 0) {
-        return -1;
-    }
-    
-    const char* start = pattern_str + 2;
-    const char* content_start = strchr(start, '(');
-    
-    if (!content_start) {
-        return -1;
-    }
-    
-    size_t delim_len = content_start - start;
-    if (delim_len >= max_len) {
-        return -1;
-    }
-    
-    strncpy(delimiter, start, delim_len);
-    delimiter[delim_len] = '\0';
-    
-    return (int)delim_len;
-}
-
-/**
- * Compile R"" pattern string into DFA structure
- */
-CompiledPattern* compile_r_pattern(const char* pattern_str, uint32_t* flags) {
-    if (!pattern_str || !flags) {
-        return NULL;
-    }
-    
-    // Check pattern cache first
-    pthread_mutex_lock(&pattern_cache_mutex);
-    for (size_t i = 0; i < pattern_cache_count; i++) {
-        if (pattern_cache[i] && pattern_cache[i]->pattern_data) {
-            const char* cached_pattern = (const char*)pattern_cache[i]->pattern_data;
-            if (strcmp(cached_pattern, pattern_str) == 0) {
-                // Found in cache, increment reference count
-                atomic_fetch_add(&pattern_cache[i]->ref_count, 1);
-                *flags = pattern_cache[i]->flags;
-                pthread_mutex_unlock(&pattern_cache_mutex);
-                return pattern_cache[i];
-            }
-        }
-    }
-    pthread_mutex_unlock(&pattern_cache_mutex);
-    
-    // Allocate new compiled pattern
-    CompiledPattern* compiled = malloc(sizeof(CompiledPattern));
-    if (!compiled) {
-        return NULL;
-    }
-    
-    memset(compiled, 0, sizeof(CompiledPattern));
-    
-    // Parse pattern string
-    char delimiter[MAX_DELIMITER_LENGTH];
-    int delim_len = extract_r_pattern_delimiter(pattern_str, delimiter, sizeof(delimiter));
-    
-    if (delim_len < 0) {
-        // Not an R-pattern, treat as regular pattern
-        compiled->token_type = TOKEN_IDENTIFIER; // Default
-        *flags = 0;
-    } else {
-        compiled->token_type = TOKEN_R_PATTERN;
-        
-        // Extract flags from pattern end
-        const char* flag_start = strrchr(pattern_str, ')');
-        if (flag_start) {
-            flag_start = strchr(flag_start, '"');
-            if (flag_start) {
-                flag_start++;
-                *flags = parse_r_pattern_flags(flag_start);
-            }
-        }
-    }
-    
-    // Store pattern data (simplified - in production would compile to DFA)
-    size_t pattern_len = strlen(pattern_str);
-    compiled->pattern_data = malloc(pattern_len + 1);
-    if (!compiled->pattern_data) {
-        free(compiled);
-        return NULL;
-    }
-    
-    strcpy((char*)compiled->pattern_data, pattern_str);
-    compiled->pattern_size = pattern_len + 1;
-    compiled->flags = *flags;
-    atomic_store(&compiled->ref_count, 1);
-    compiled->last_match_valid = false;
-    
-    // Add to cache if space available
-    pthread_mutex_lock(&pattern_cache_mutex);
-    if (pattern_cache_count < MAX_COMPILED_PATTERNS) {
-        pattern_cache[pattern_cache_count++] = compiled;
-    }
-    pthread_mutex_unlock(&pattern_cache_mutex);
-    
-    return compiled;
-}
-
-/**
- * Release compiled pattern memory
- */
-void release_compiled_pattern(CompiledPattern* pattern) {
-    if (!pattern) {
-        return;
-    }
-    
-    int ref_count = atomic_fetch_sub(&pattern->ref_count, 1);
-    
-    if (ref_count <= 1) {
-        // Last reference, cleanup
-        if (pattern->pattern_data) {
-            free(pattern->pattern_data);
-            pattern->pattern_data = NULL;
-        }
-        
-        // Remove from cache
-        pthread_mutex_lock(&pattern_cache_mutex);
-        for (size_t i = 0; i < pattern_cache_count; i++) {
-            if (pattern_cache[i] == pattern) {
-                // Shift remaining patterns
-                for (size_t j = i; j < pattern_cache_count - 1; j++) {
-                    pattern_cache[j] = pattern_cache[j + 1];
-                }
-                pattern_cache_count--;
-                break;
-            }
-        }
-        pthread_mutex_unlock(&pattern_cache_mutex);
-        
-        free(pattern);
-    }
-}
-
-/**
- * Validate TokenTriplet structure compliance
- */
-int validate_token_triplet(const TokenTriplet* token) {
-    if (!token) {
-        return RIFT_ERROR_NULL_POINTER;
-    }
-    
-    // Check bitfield constraints
-    if (token->type > 255) {
-        return RIFT_ERROR_POLICY_VIOLATION; // Type field is 8 bits
-    }
-    
-    if (token->mem_ptr > 65535) {
-        return RIFT_ERROR_POLICY_VIOLATION; // Memory pointer is 16 bits
-    }
-    
-    if (token->value > 255) {
-        return RIFT_ERROR_POLICY_VIOLATION; // Value field is 8 bits
-    }
-    
-    // Check token type validity
-    if (token->type >= TOKEN_ERROR && token->type != TOKEN_ERROR) {
-        return RIFT_ERROR_POLICY_VIOLATION; // Invalid token type
-    }
-    
-    // Memory alignment check (should be 4-byte aligned)
-    if (sizeof(TokenTriplet) != 4) {
-        return RIFT_ERROR_POLICY_VIOLATION; // Structure size violation
-    }
-    
-    return 0; // Valid
-}
-
-/**
- * Advanced pattern matching with DFA simulation
- */
-static bool simulate_dfa_match(const char* pattern, const char* text, size_t pos, uint32_t flags) {
-    if (!pattern || !text) {
-        return false;
-    }
-    
-    // Simple DFA simulation for basic patterns
-    size_t pattern_len = strlen(pattern);
-    size_t text_len = strlen(text);
-    
-    if (pos >= text_len) {
-        return false;
-    }
-    
-    // Handle case insensitive flag
-    bool case_insensitive = (flags & DFA_FLAG_INSENSITIVE) != 0;
-    
-    // Simple character-by-character matching
-    for (size_t i = 0; i < pattern_len && pos + i < text_len; i++) {
-        char pattern_char = pattern[i];
-        char text_char = text[pos + i];
-        
-        if (case_insensitive) {
-            pattern_char = tolower(pattern_char);
-            text_char = tolower(text_char);
-        }
-        
-        if (pattern_char != text_char) {
-            return false;
-        }
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
     }
     
     return true;
 }
 
-/**
- * Character classification utility functions
- */
-bool is_identifier_start(char c) {
-    return isalpha(c) || c == '_';
-}
-
-bool is_identifier_continue(char c) {
-    return isalnum(c) || c == '_';
-}
-
-bool is_operator_char(char c) {
-    return strchr("+-*/%=<>!&|^~", c) != NULL;
-}
-
-bool is_delimiter_char(char c) {
-    return strchr("(){}[];,.", c) != NULL;
-}
-
-/**
- * Thread context management utilities
- */
-void signal_context_switch(bool is_top_down) {
-    // Implementation moved to tokenizer_rules.c to avoid duplication
-    // This is a stub for compatibility
-}
-
-bool wait_for_context(bool need_top_down) {
-    // Implementation moved to tokenizer_rules.c to avoid duplication
-    // This is a stub for compatibility
-    return true;
-}
-
-/**
- * Pattern string parsing utilities
- */
-static bool is_valid_r_pattern_syntax(const char* pattern_str) {
-    if (!pattern_str) {
+bool rift_tokenizer_resize_pattern_buffer(TokenizerContext* ctx, size_t new_capacity) {
+    if (!ctx || new_capacity == 0 || new_capacity > RIFT_TOKENIZER_MAX_PATTERNS) {
+        if (ctx) {
+            snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                    "Invalid pattern buffer capacity: %zu (max: %d)", 
+                    new_capacity, RIFT_TOKENIZER_MAX_PATTERNS);
+            ctx->error_code = RIFT_TOKENIZER_ERROR_INVALID_INPUT;
+            ctx->has_error = true;
+        }
         return false;
     }
     
-    // Check for R" or R' prefix
-    if (strncmp(pattern_str, "R\"", 2) != 0 && strncmp(pattern_str, "R'", 2) != 0) {
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return false;
+    }
+    
+    /* Check if downsizing would lose patterns */
+    if (new_capacity < ctx->pattern_count) {
+        snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                "Cannot downsize pattern buffer: would lose %zu patterns", 
+                ctx->pattern_count - new_capacity);
+        ctx->error_code = RIFT_TOKENIZER_ERROR_INVALID_INPUT;
+        ctx->has_error = true;
+        
+        if (atomic_load(&ctx->thread_safe_mode)) {
+            rift_tokenizer_unlock(ctx);
+        }
         return false;
     }
     
-    // Find opening parenthesis
-    const char* open_paren = strchr(pattern_str + 2, '(');
-    if (!open_paren) {
+    RegexComposition** new_buffer = calloc(new_capacity, sizeof(RegexComposition*));
+    if (!new_buffer) {
+        snprintf(ctx->error_message, RIFT_TOKENIZER_ERROR_MSG_SIZE,
+                "Failed to allocate pattern buffer: %s", strerror(errno));
+        ctx->error_code = RIFT_TOKENIZER_ERROR_MEMORY_ALLOCATION_FAILED;
+        ctx->has_error = true;
+        
+        if (atomic_load(&ctx->thread_safe_mode)) {
+            rift_tokenizer_unlock(ctx);
+        }
         return false;
     }
     
-    // Find closing parenthesis and matching quote
-    const char* close_paren = strrchr(pattern_str, ')');
-    if (!close_paren || close_paren <= open_paren) {
-        return false;
+    /* Copy existing patterns */
+    if (ctx->pattern_count > 0) {
+        memcpy(new_buffer, ctx->regex_patterns, 
+               ctx->pattern_count * sizeof(RegexComposition*));
     }
     
-    // Check for matching quote after closing parenthesis
-    char quote_char = pattern_str[1]; // " or '
-    const char* close_quote = strchr(close_paren, quote_char);
-    if (!close_quote) {
-        return false;
+    /* Update context */
+    free(ctx->regex_patterns);
+    ctx->regex_patterns = new_buffer;
+    ctx->pattern_capacity = new_capacity;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
     }
     
     return true;
 }
 
-/**
- * Enhanced pattern compilation with error reporting
- */
-CompiledPattern* compile_r_pattern_with_validation(const char* pattern_str, uint32_t* flags, char* error_buffer, size_t error_buffer_size) {
-    if (!pattern_str || !flags) {
-        if (error_buffer && error_buffer_size > 0) {
-            snprintf(error_buffer, error_buffer_size, "NULL pattern string or flags pointer");
+double rift_tokenizer_get_token_utilization(const TokenizerContext* ctx, 
+                                           size_t* used, 
+                                           size_t* capacity) {
+    if (!ctx) return 0.0;
+    
+    if (used) *used = ctx->token_count;
+    if (capacity) *capacity = ctx->token_capacity;
+    
+    return ctx->token_capacity > 0 ? 
+           (double)ctx->token_count / (double)ctx->token_capacity : 0.0;
+}
+
+bool rift_tokenizer_compact_buffers(TokenizerContext* ctx) {
+    if (!ctx) return false;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return false;
+    }
+    
+    bool success = true;
+    
+    /* Compact token buffer if underutilized */
+    if (ctx->token_count > 0 && ctx->token_count < ctx->token_capacity / 2) {
+        size_t new_capacity = ctx->token_count * 2; /* 50% overhead */
+        if (new_capacity < RIFT_TOKENIZER_DEFAULT_CAPACITY) {
+            new_capacity = RIFT_TOKENIZER_DEFAULT_CAPACITY;
         }
-        return NULL;
-    }
-    
-    // Validate pattern syntax
-    if (!is_valid_r_pattern_syntax(pattern_str)) {
-        if (error_buffer && error_buffer_size > 0) {
-            snprintf(error_buffer, error_buffer_size, "Invalid R-pattern syntax: %s", pattern_str);
-        }
-        return NULL;
-    }
-    
-    // Compile pattern
-    CompiledPattern* result = compile_r_pattern(pattern_str, flags);
-    if (!result && error_buffer && error_buffer_size > 0) {
-        snprintf(error_buffer, error_buffer_size, "Failed to compile pattern: memory allocation error");
-    }
-    
-    return result;
-}
-
-/**
- * Utility function to get token type name for debugging
- */
-const char* get_token_type_name(TokenType type) {
-    switch (type) {
-        case TOKEN_UNKNOWN: return "UNKNOWN";
-        case TOKEN_IDENTIFIER: return "IDENTIFIER";
-        case TOKEN_KEYWORD: return "KEYWORD";
-        case TOKEN_LITERAL_STRING: return "LITERAL_STRING";
-        case TOKEN_LITERAL_NUMBER: return "LITERAL_NUMBER";
-        case TOKEN_OPERATOR: return "OPERATOR";
-        case TOKEN_DELIMITER: return "DELIMITER";
-        case TOKEN_R_PATTERN: return "R_PATTERN";
-        case TOKEN_NULL_KEYWORD: return "NULL_KEYWORD";
-        case TOKEN_NIL_KEYWORD: return "NIL_KEYWORD";
-        case TOKEN_WHITESPACE: return "WHITESPACE";
-        case TOKEN_COMMENT: return "COMMENT";
-        case TOKEN_EOF: return "EOF";
-        case TOKEN_ERROR: return "ERROR";
-        default: return "INVALID";
-    }
-}
-
-/**
- * Memory management utilities for TokenTriplet arrays
- */
-TokenTriplet* allocate_token_array(size_t count) {
-    if (count == 0 || count > CLI_MAX_TOKENS) {
-        return NULL;
-    }
-    
-    size_t total_size = count * sizeof(TokenTriplet);
-    TokenTriplet* tokens = aligned_alloc(4, total_size); // 4-byte alignment for bitfields
-    
-    if (tokens) {
-        memset(tokens, 0, total_size);
-    }
-    
-    return tokens;
-}
-
-void deallocate_token_array(TokenTriplet* tokens) {
-    if (tokens) {
-        free(tokens);
-    }
-}
-
-/**
- * Performance monitoring utilities
- */
-static struct {
-    size_t total_patterns_compiled;
-    size_t total_matches_attempted;
-    size_t successful_matches;
-    double total_match_time;
-    pthread_mutex_t stats_mutex;
-} performance_stats = {
-    .total_patterns_compiled = 0,
-    .total_matches_attempted = 0,
-    .successful_matches = 0,
-    .total_match_time = 0.0,
-    .stats_mutex = PTHREAD_MUTEX_INITIALIZER
-};
-
-void record_pattern_compilation(void) {
-    pthread_mutex_lock(&performance_stats.stats_mutex);
-    performance_stats.total_patterns_compiled++;
-    pthread_mutex_unlock(&performance_stats.stats_mutex);
-}
-
-void record_match_attempt(bool successful, double time_ms) {
-    pthread_mutex_lock(&performance_stats.stats_mutex);
-    performance_stats.total_matches_attempted++;
-    if (successful) {
-        performance_stats.successful_matches++;
-    }
-    performance_stats.total_match_time += time_ms;
-    pthread_mutex_unlock(&performance_stats.stats_mutex);
-}
-
-void get_performance_stats(size_t* compiled, size_t* attempted, size_t* successful, double* avg_time) {
-    pthread_mutex_lock(&performance_stats.stats_mutex);
-    if (compiled) *compiled = performance_stats.total_patterns_compiled;
-    if (attempted) *attempted = performance_stats.total_matches_attempted;
-    if (successful) *successful = performance_stats.successful_matches;
-    if (avg_time) {
-        *avg_time = performance_stats.total_matches_attempted > 0 ? 
-                    performance_stats.total_match_time / performance_stats.total_matches_attempted : 0.0;
-    }
-    pthread_mutex_unlock(&performance_stats.stats_mutex);
-}
-
-/**
- * Cleanup all utility resources
- */
-void cleanup_tokenizer_utilities(void) {
-    // Clear pattern cache
-    pthread_mutex_lock(&pattern_cache_mutex);
-    for (size_t i = 0; i < pattern_cache_count; i++) {
-        if (pattern_cache[i]) {
-            release_compiled_pattern(pattern_cache[i]);
-            pattern_cache[i] = NULL;
+        
+        if (!rift_tokenizer_resize_token_buffer(ctx, new_capacity)) {
+            success = false;
         }
     }
-    pattern_cache_count = 0;
-    pthread_mutex_unlock(&pattern_cache_mutex);
     
-    // Reset performance stats
-    pthread_mutex_lock(&performance_stats.stats_mutex);
-    memset(&performance_stats, 0, sizeof(performance_stats));
-    pthread_mutex_unlock(&performance_stats.stats_mutex);
+    /* Compact pattern buffer if underutilized */
+    if (ctx->pattern_count > 0 && ctx->pattern_count < ctx->pattern_capacity / 2) {
+        size_t new_capacity = ctx->pattern_count * 2; /* 50% overhead */
+        if (new_capacity < 16) {
+            new_capacity = 16;
+        }
+        
+        if (!rift_tokenizer_resize_pattern_buffer(ctx, new_capacity)) {
+            success = false;
+        }
+    }
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
+    }
+    
+    return success;
+}
+
+/* =================================================================
+ * STATISTICS AND DIAGNOSTICS IMPLEMENTATION
+ * =================================================================
+ */
+
+bool rift_tokenizer_get_statistics(const TokenizerContext* ctx, TokenizerStats* stats) {
+    if (!ctx || !stats) return false;
+    
+    /* Copy current statistics */
+    memcpy(stats, &ctx->stats, sizeof(TokenizerStats));
+    
+    /* Update current memory usage */
+    stats->memory_allocated = (ctx->token_capacity * sizeof(TokenTriplet)) +
+                             (ctx->pattern_capacity * sizeof(RegexComposition*));
+    
+    return true;
+}
+
+bool rift_tokenizer_reset_statistics(TokenizerContext* ctx) {
+    if (!ctx) return false;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        if (!rift_tokenizer_lock(ctx)) return false;
+    }
+    
+    /* Preserve current memory allocation values */
+    size_t current_allocated = ctx->stats.memory_allocated;
+    size_t current_peak = ctx->stats.memory_peak;
+    
+    /* Reset all statistics */
+    memset(&ctx->stats, 0, sizeof(TokenizerStats));
+    
+    /* Restore memory values */
+    ctx->stats.memory_allocated = current_allocated;
+    ctx->stats.memory_peak = current_peak;
+    
+    if (atomic_load(&ctx->thread_safe_mode)) {
+        rift_tokenizer_unlock(ctx);
+    }
+    
+    return true;
+}
+
+bool rift_tokenizer_get_position(const TokenizerContext* ctx, 
+                                size_t* position, 
+                                size_t* line, 
+                                size_t* column) {
+    if (!ctx) return false;
+    
+    if (position) *position = ctx->current_position;
+    if (line) *line = ctx->line_number;
+    if (column) *column = ctx->column_number;
+    
+    return ctx->input_buffer != NULL;
+}
+
+/* =================================================================
+ * UTILITY STRING CONVERSION FUNCTIONS
+ * =================================================================
+ */
+
+size_t rift_tokenizer_token_flags_to_string(TokenFlags flags, 
+                                           char* buffer, 
+                                           size_t buffer_size) {
+    if (!buffer || buffer_size == 0) return 0;
+    
+    buffer[0] = '\0';
+    size_t written = 0;
+    
+    if (flags == TOKEN_FLAG_NONE) {
+        written = snprintf(buffer, buffer_size, "NONE");
+        return (written < buffer_size) ? written : buffer_size - 1;
+    }
+    
+    bool first = true;
+    
+    if (flags & TOKEN_FLAG_GLOBAL) {
+        written += snprintf(buffer + written, buffer_size - written, 
+                           "%sGLOBAL", first ? "" : "|");
+        first = false;
+    }
+    
+    if (flags & TOKEN_FLAG_MULTILINE) {
+        written += snprintf(buffer + written, buffer_size - written, 
+                           "%sMULTILINE", first ? "" : "|");
+        first = false;
+    }
+    
+    if (flags & TOKEN_FLAG_IGNORECASE) {
+        written += snprintf(buffer + written, buffer_size - written, 
+                           "%sIGNORECASE", first ? "" : "|");
+        first = false;
+    }
+    
+    if (flags & TOKEN_FLAG_TOPDOWN) {
+        written += snprintf(buffer + written, buffer_size - written, 
+                           "%sTOPDOWN", first ? "" : "|");
+        first = false;
+    }
+    
+    if (flags & TOKEN_FLAG_BOTTOMUP) {
+        written += snprintf(buffer + written, buffer_size - written, 
+                           "%sBOTTOMUP", first ? "" : "|");
+        first = false;
+    }
+    
+    if (flags & TOKEN_FLAG_COMPOSED) {
+        written += snprintf(buffer + written, buffer_size - written, 
+                           "%sCOMPOSED", first ? "" : "|");
+        first = false;
+    }
+    
+    if (flags & TOKEN_FLAG_VALIDATED) {
+        written += snprintf(buffer + written, buffer_size - written, 
+                           "%sVALIDATED", first ? "" : "|");
+        first = false;
+    }
+    
+    if (flags & TOKEN_FLAG_ERROR) {
+        written += snprintf(buffer + written, buffer_size - written, 
+                           "%sERROR", first ? "" : "|");
+        first = false;
+    }
+    
+    return (written < buffer_size) ? written : buffer_size - 1;
+}
+
+size_t rift_tokenizer_print_token(const TokenTriplet* token, 
+                                 char* buffer, 
+                                 size_t buffer_size) {
+    if (!token || !buffer || buffer_size == 0) return 0;
+    
+    const char* type_str = rift_tokenizer_token_type_to_string(
+        (TokenType)token->type);
+    
+    char flags_str[256];
+    rift_tokenizer_token_flags_to_string((TokenFlags)token->value, 
+                                        flags_str, sizeof(flags_str));
+    
+    return snprintf(buffer, buffer_size,
+                   "Token{type=%s(%u), mem_ptr=%u, flags=%s(%u)}", 
+                   type_str, token->type, token->mem_ptr, 
+                   flags_str, token->value);
+}
+
+/* =================================================================
+ * ADVANCED DIAGNOSTIC FUNCTIONS
+ * =================================================================
+ */
+
+bool rift_tokenizer_dump_state(const TokenizerContext* ctx, 
+                               char* buffer, 
+                               size_t buffer_size) {
+    if (!ctx || !buffer || buffer_size < 512) return false;
+    
+    size_t written = 0;
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "=== RIFT-0 Tokenizer State Dump ===\n");
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Version: %s\n", RIFT_TOKENIZER_VERSION);
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Token Buffer: %zu/%zu (%.1f%% utilized)\n",
+                       ctx->token_count, ctx->token_capacity,
+                       rift_tokenizer_get_token_utilization(ctx, NULL, NULL) * 100.0);
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Pattern Buffer: %zu/%zu patterns\n",
+                       ctx->pattern_count, ctx->pattern_capacity);
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Current Position: %zu (line %zu, col %zu)\n",
+                       ctx->current_position, ctx->line_number, ctx->column_number);
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Thread Safe Mode: %s\n",
+                       atomic_load(&ctx->thread_safe_mode) ? "enabled" : "disabled");
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Debug Mode: %s\n", ctx->debug_mode ? "enabled" : "disabled");
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Strict Mode: %s\n", ctx->strict_mode ? "enabled" : "disabled");
+    
+    char flags_str[256];
+    rift_tokenizer_token_flags_to_string(ctx->global_flags, flags_str, sizeof(flags_str));
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Global Flags: %s\n", flags_str);
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Error State: %s\n", ctx->has_error ? "ERROR" : "OK");
+    
+    if (ctx->has_error) {
+        written += snprintf(buffer + written, buffer_size - written,
+                           "Last Error: %s (code %u)\n",
+                           ctx->error_message, ctx->error_code);
+    }
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "Statistics:\n");
+    written += snprintf(buffer + written, buffer_size - written,
+                       "  Tokens Processed: %zu\n", ctx->stats.tokens_processed);
+    written += snprintf(buffer + written, buffer_size - written,
+                       "  Tokens Generated: %zu\n", ctx->stats.tokens_generated);
+    written += snprintf(buffer + written, buffer_size - written,
+                       "  Memory Allocated: %zu bytes\n", ctx->stats.memory_allocated);
+    written += snprintf(buffer + written, buffer_size - written,
+                       "  Memory Peak: %zu bytes\n", ctx->stats.memory_peak);
+    written += snprintf(buffer + written, buffer_size - written,
+                       "  DFA States Created: %zu\n", ctx->stats.dfa_states_created);
+    written += snprintf(buffer + written, buffer_size - written,
+                       "  Processing Time: %.3f seconds\n", ctx->stats.processing_time);
+    written += snprintf(buffer + written, buffer_size - written,
+                       "  Error Count: %u\n", ctx->stats.error_count);
+    
+    written += snprintf(buffer + written, buffer_size - written,
+                       "=== End State Dump ===\n");
+    
+    return written < buffer_size;
+}
+
+/* =================================================================
+ * PERFORMANCE PROFILING UTILITIES
+ * =================================================================
+ */
+
+bool rift_tokenizer_benchmark_processing(TokenizerContext* ctx,
+                                        const char* test_input,
+                                        size_t iterations,
+                                        double* avg_time_ms) {
+    if (!ctx || !test_input || iterations == 0 || !avg_time_ms) return false;
+    
+    size_t input_length = strlen(test_input);
+    struct timespec start, end;
+    double total_time = 0.0;
+    
+    for (size_t i = 0; i < iterations; i++) {
+        rift_tokenizer_reset(ctx);
+        
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        ssize_t result = rift_tokenizer_process(ctx, test_input, input_length);
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        
+        if (result < 0) return false;
+        
+        double iteration_time = (end.tv_sec - start.tv_sec) * 1000.0 +
+                               (end.tv_nsec - start.tv_nsec) / 1e6;
+        total_time += iteration_time;
+    }
+    
+    *avg_time_ms = total_time / iterations;
+    return true;
 }
