@@ -1,0 +1,47 @@
+# =================================================================
+# rift-0.pc.in - pkg-config template for RIFT-0 Tokenizer
+# RIFT: RIFT Is a Flexible Translator
+# Component: Package configuration for system integration
+# OBINexus Computing Framework - Build System Integration
+# =================================================================
+
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: rift-0
+Description: RIFT Tokenizer Stage with DFA and R-syntax support - OBINexus Computing Framework
+Version: @PROJECT_VERSION@
+URL: https://github.com/OBINexus/rift
+Author: OBINexus Nnamdi Michael Okpala
+Maintainer: OBINexus Computing Team
+
+# Dependencies
+Requires:
+Requires.private:
+Conflicts:
+
+# Compiler and linker flags
+Libs: -L${libdir} -lrift-0
+Libs.private: @RIFT_PRIVATE_LIBS@
+Cflags: -I${includedir} -I${includedir}/rift-0
+
+# RIFT-specific metadata
+Features: dfa-automaton regex-compose token-triplet r-syntax-support governance-active thread-safe
+Toolchain: riftlang.exe→.so.a→rift.exe→gosilang
+Framework: nlink→polybuild-aegis
+Stage: 0
+Component: tokenizer
+
+# Build configuration
+BuildType: @CMAKE_BUILD_TYPE@
+CompilerFlags: @RIFT_COMMON_C_FLAGS@
+GovernanceLevel: aegis-compliant
+ThreadSafety: @RIFT_ENABLE_THREAD_SAFETY@
+DFASupport: @RIFT_ENABLE_DFA@
+RSyntaxSupport: @RIFT_ENABLE_R_SYNTAX@
+
+# Integration points
+CMakeConfig: ${libdir}/cmake/rift-0/rift-0-config.cmake
+CMakeTargets: ${libdir}/cmake/rift-0/rift-0-targets.cmake
