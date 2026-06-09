@@ -1,0 +1,1592 @@
+/**
+ #include <ctype.h>
+#include "core/dsl/rift_dsl_parser.h
+tmp/librift_analysis/librift-4933472-W/src/core/dsl/rift_dsl_parser.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/dsl/rift_dsl_parser.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/dsl/rift_dsl_parser.h"
+ #include <ctype.h>
+ #include <ctype.h>
+ #include <stdbool.h>
+ #include <stdbool.h>
+ #include <stddef.h>
+ #include <stddef.h>
+ #include <stdio.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <string.h>
+#include "core/parser/parser.h"
+#include "core/syntax/lexer.h"
+#include "core/syntax/parser.h"
+ #include <stdbool.h>
+ #include <stddef.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ * @file rift_dsl_parser.c
+ * @brief Implementation of the parser for the .rift DSL file format
+ *
+ * This file implements the core parsing functionality for the .rift Domain-Specific
+ * Language used for regex pattern definition, testing, and serialization.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <ctype.h>
+ #include <stdbool.h>
+ #include <stddef.h>
+ #include "core/dsl/rift_dsl_parser.h"
+ 
+
+ 
+ /**
+  * @brief Parse a .rift file from a string
+  * 
+  * @param source The source string
+  * @param source_length Length of the source string
+  * @return Parsed DSL file structure or NULL on error
+  */
+ static rift_dsl_file_t *
+ rift_dsl_parse_source(const char *source, size_t source_length)
+ {
+     rift_dsl_lexer_t lexer;
+     rift_dsl_lexer_init(&lexer, source, source_length);
+     
+     rift_dsl_file_t *file = rift_dsl_file_create();
+     if (!file) {
+         return NULL;
+     }
+     
+     while (!rift_dsl_lexer_is_at_end(&lexer)) {
+         rift_dsl_token_t token = rift_dsl_lexer_next_token(&lexer);
+         
+         if (token.type == RIFT_DSL_TOKEN_EOF) {
+             rift_dsl_token_free(&token);
+             break;
+         }
+         
+         if (token.type == RIFT_DSL_TOKEN_AT_SIGN) {
+             // This is a directive
+             rift_dsl_token_free(&token);
+             
+             // Check what type of directive
+             token = rift_dsl_lexer_next_token(&lexer);
+             
+             if (token.type != RIFT_DSL_TOKEN_IDENTIFIER) {
+                 rift_dsl_lexer_error(&lexer, "Expected identifier after @");
+                 rift_dsl_token_free(&token);
+                 continue;
+             }
+             
+             if (strcmp(token.value, "pattern") == 0) {
+                 rift_dsl_token_free(&token);
+                 rift_dsl_parse_pattern(&lexer, file);
+             }
+             else if (strcmp(token.value, "flags") == 0) {
+                 rift_dsl_token_free(&token);
+                 rift_dsl_parse_flags(&lexer, file);
+             }
+             else if (strcmp(token.value, "test_case") == 0) {
+                 rift_dsl_token_free(&token);
+                 rift_dsl_parse_test_case(&lexer, file);
+             }
+             else {
+                 char message[128];
+                 snprintf(message, sizeof(message), "Unknown directive: @%s", token.value);
+                 rift_dsl_lexer_error(&lexer, message);
+                 rift_dsl_token_free(&token);
+             }
+         }
+         else {
+             char message[128];
+             snprintf(message, sizeof(message), "Expected directive starting with @, got token type %d", 
+                      token.type);
+             rift_dsl_lexer_error(&lexer, message);
+             rift_dsl_token_free(&token);
+         }
+         
+         // Check for lexer errors
+         if (lexer.has_error) {
+             rift_dsl_file_error(file, lexer.error_message);
+             break;
+         }
+     }
+     
+     // Check for lexer errors
+     if (lexer.has_error) {
+         rift_dsl_file_error(file, lexer.error_message);
+     }
+     
+     return file;
+ }
+ 
+ /**
+  * @brief Free resources associated with a pattern
+  * 
+  * @param pattern The pattern to free
+  */
+ static void
+ rift_dsl_pattern_free(rift_dsl_pattern_t *pattern)
+ {
+     if (!pattern) {
+         return;
+     }
+     
+     free(pattern->name);
+     free(pattern->pattern);
+     
+     for (size_t i = 0; i < pattern->flag_count; i++) {
+         free(pattern->flags[i]);
+     }
+     
+     free(pattern->flags);
+     free(pattern);
+ }
+ 
+ /**
+  * @brief Free resources associated with a test case
+  * 
+  * @param test_case The test case to free
+  */
+ static void
+ rift_dsl_test_case_free(rift_dsl_test_case_t *test_case)
+ {
+     if (!test_case) {
+         return;
+     }
+     
+     free(test_case->input);
+     
+     for (size_t i = 0; i < test_case->group_count; i++) {
+         free(test_case->match_groups[i]);
+     }
+     
+     free(test_case->match_groups);
+ }
+ 
+ /**
+  * @brief Free resources associated with a DSL file
+  * 
+  * @param file The DSL file to free
+  */
+ static void
+ rift_dsl_file_free(rift_dsl_file_t *file)
+ {
+     if (!file) {
+         return;
+     }
+     
+     // Free patterns
+     rift_dsl_pattern_t *pattern = file->patterns;
+     while (pattern) {
+         rift_dsl_pattern_t *next = pattern->next;
+         rift_dsl_pattern_free(pattern);
+         pattern = next;
+     }
+     
+     // Free test cases
+     rift_dsl_test_case_list_t *test_case = file->test_cases;
+     while (test_case) {
+         rift_dsl_test_case_list_t *next = test_case->next;
+         rift_dsl_test_case_free(&test_case->test_case);
+         free(test_case);
+         test_case = next;
+     }
+     
+     free(file);
+ }
+ 
+ /* Public API functions */
+ 
+ /**
+  * @brief Parse a .rift file from a string
+  * 
+  * @param source The source string
+  * @return Opaque handle to parsed file or NULL on error
+  */
+ void *
+ rift_dsl_parse(const char *source)
+ {
+     if (!source) {
+         return NULL;
+     }
+     
+     return rift_dsl_parse_source(source, strlen(source));
+ }
+ 
+ /**
+  * @brief Load and parse a .rift file from disk
+  * 
+  * @param filename The filename
+  * @return Opaque handle to parsed file or NULL on error
+  */
+ void *
+ rift_dsl_load_file(const char *filename)
+ {
+     if (!filename) {
+         return NULL;
+     }
+     
+     FILE *file = fopen(filename, "r");
+     if (!file) {
+         return NULL;
+     }
+     
+     // Get file size
+     fseek(file, 0, SEEK_END);
+     long file_size = ftell(file);
+     fseek(file, 0, SEEK_SET);
+     
+     if (file_size <= 0) {
+         fclose(file);
+         return NULL;
+     }
+     
+     // Allocate buffer for file contents
+     char *buffer = (char *)malloc(file_size + 1);
+     if (!buffer) {
+         fclose(file);
+         return NULL;
+     }
+     
+     // Read file contents
+     size_t bytes_read = fread(buffer, 1, file_size, file);
+     fclose(file);
+     
+     if (bytes_read != (size_t)file_size) {
+         free(buffer);
+         return NULL;
+     }
+     
+     // Null-terminate the buffer
+     buffer[file_size] = '\0';
+     
+     // Parse the file
+     void *result = rift_dsl_parse(buffer);
+     
+     // Free the buffer
+     free(buffer);
+     
+     return result;
+ }
+ 
+ /**
+  * @brief Free resources associated with a parsed .rift file
+  * 
+  * @param handle Opaque handle returned by rift_dsl_parse or rift_dsl_load_file
+  */
+ void
+ rift_dsl_free(void *handle)
+ {
+     rift_dsl_file_free((rift_dsl_file_t *)handle);
+ }
+ 
+ /**
+  * @brief Get error message from a parsed .rift file
+  * 
+  * @param handle Opaque handle returned by rift_dsl_parse or rift_dsl_load_file
+  * @return Error message or NULL if no error
+  */
+ const char *
+ rift_dsl_get_error_message(void *handle)
+ {
+     rift_dsl_file_t *file = (rift_dsl_file_t *)handle;
+     if (!file || !file->has_error) {
+         return NULL;
+     }
+     
+     return file->error_message;
+ }
+ 
+ /**
+  * @brief Get number of patterns in a parsed .rift file
+  * 
+  * @param handle Opaque handle returned by rift_dsl_parse or rift_dsl_load_file
+  * @return Number of patterns
+  */
+ size_t
+ rift_dsl_get_pattern_count(void *handle)
+ {
+     rift_dsl_file_t *file = (rift_dsl_file_t *)handle;
+     if (!file) {
+         return 0;
+     }
+     
+     size_t count = 0;
+     rift_dsl_pattern_t *pattern = file->patterns;
+     
+     while (pattern) {
+         count++;
+         pattern = pattern->next;
+     }
+     
+     return count;
+ }
+ 
+ /**
+  * @brief Get pattern by index
+  * 
+  * @param handle Opaque handle returned by rift_dsl_parse or rift_dsl_load_file
+  * @param index The pattern index
+  * @param name Pointer to store pattern name
+  * @param pattern Pointer to store pattern string
+  * @return true if successful, false otherwise
+  */
+ bool
+ rift_dsl_get_pattern(void *handle, size_t index, const char **name, const char **pattern)
+ {
+     rift_dsl_file_t *file = (rift_dsl_file_t *)handle;
+     if (!file || !name || !pattern) {
+         return false;
+     }
+     
+     size_t current = 0;
+     rift_dsl_pattern_t *current_pattern = file->patterns;
+     
+     while (current_pattern) {
+         if (current == index) {
+             *name = current_pattern->name;
+             *pattern = current_pattern->pattern;
+             return true;
+         }
+         
+         current++;
+         current_pattern = current_pattern->next;
+     }
+     
+     return false;
+ }
+ 
+ /**
+  * @brief Get pattern flags by index
+  * 
+  * @param handle Opaque handle returned by rift_dsl_parse or rift_dsl_load_file
+  * @param index The pattern index
+  * @param flags Pointer to store flags array
+  * @param count Pointer to store flags count
+  * @return true if successful, false otherwise
+  */
+ bool
+ rift_dsl_get_pattern_flags(void *handle, size_t index, const char ***flags, size_t *count)
+ {
+     rift_dsl_file_t *file = (rift_dsl_file_t *)handle;
+     if (!file || !flags || !count) {
+         return false;
+     }
+     
+     size_t current = 0;
+     rift_dsl_pattern_t *current_pattern = file->patterns;
+     
+     while (current_pattern) {
+         if (current == index) {
+             *flags = (const char **)current_pattern->flags;
+             *count = current_pattern->flag_count;
+             return true;
+         }
+         
+         current++;
+         current_pattern = current_pattern->next;
+     }
+     
+     return false;
+ }
+ 
+ /**
+  * @brief Get number of test cases in a parsed .rift file
+  * 
+  * @param handle Opaque handle returned by rift_dsl_parse or rift_dsl_load_file
+  * @return Number of test cases
+  */
+ size_t
+ rift_dsl_get_test_case_count(void *handle)
+ {
+     rift_dsl_file_t *file = (rift_dsl_file_t *)handle;
+     if (!file) {
+         return 0;
+     }
+     
+     size_t count = 0;
+     rift_dsl_test_case_list_t *test_case = file->test_cases;
+     
+     while (test_case) {
+         count++;
+         test_case = test_case->next;
+     }
+     
+     return count;
+ }
+ 
+ /**
+  * @brief Get test case by index
+  * 
+  * @param handle Opaque handle returned by rift_dsl_parse or rift_dsl_load_file
+  * @param index The test case index
+  * @param input Pointer to store input string
+  * @param expect_match Pointer to store expected match flag
+  * @return true if successful, false otherwise
+  */
+ bool
+ rift_dsl_get_test_case(void *handle, size_t index, const char **input, bool *expect_match)
+ {
+     rift_dsl_file_t *file = (rift_dsl_file_t *)handle;
+     if (!file || !input || !expect_match) {
+         return false;
+     }
+     
+     size_t current = 0;
+     rift_dsl_test_case_list_t *current_test_case = file->test_cases;
+     
+     while (current_test_case) {
+         if (current == index) {
+             *input = current_test_case->test_case.input;
+             *expect_match = current_test_case->test_case.expect_match;
+             return true;
+         }
+         
+         current++;
+         current_test_case = current_test_case->next;
+     }
+     
+     return false;
+ }
+ 
+ /**
+  * @brief Get test case match groups by index
+  * 
+  * @param handle Opaque handle returned by rift_dsl_parse or rift_dsl_load_file
+  * @param index The test case index
+  * @param groups Pointer to store groups array
+  * @param count Pointer to store groups count
+  * @return true if successful, false otherwise
+  */
+ bool
+ rift_dsl_get_test_case_groups(void *handle, size_t index, const char ***groups, size_t *count)
+ {
+     rift_dsl_file_t *file = (rift_dsl_file_t *)handle;
+     if (!file || !groups || !count) {
+         return false;
+     }
+     
+     size_t current = 0;
+     rift_dsl_test_case_list_t *current_test_case = file->test_cases;
+     
+     while (current_test_case) {
+         if (current == index) {
+             *groups = (const char **)current_test_case->test_case.match_groups;
+             *count = current_test_case->test_case.group_count;
+             return true;
+         }
+         
+         current++;
+         current_test_case = current_test_case->next;
+     }
+     
+     return false;
+ } rift_dsl_token_type_t;
+ 
+ typedef struct {
+     rift_dsl_token_type_t type;
+     char *value;
+     size_t line;
+     size_t column;
+ } rift_dsl_token_t;
+ 
+ typedef struct {
+     const char *source;
+     size_t source_length;
+     size_t position;
+     size_t line;
+     size_t column;
+     char error_message[256];
+     bool has_error;
+ } rift_dsl_lexer_t;
+ 
+ typedef struct rift_dsl_pattern_struct {
+     char *name;
+     char *pattern;
+     char **flags;
+     size_t flag_count;
+     struct rift_dsl_pattern_struct *next;
+ } rift_dsl_pattern_t;
+ 
+ typedef struct {
+     char *input;
+     bool expect_match;
+     char **match_groups;
+     size_t group_count;
+ } rift_dsl_test_case_t;
+ 
+ typedef struct rift_dsl_test_case_list {
+     rift_dsl_test_case_t test_case;
+     struct rift_dsl_test_case_list *next;
+ } rift_dsl_test_case_list_t;
+ 
+ typedef struct {
+     rift_dsl_pattern_t *patterns;
+     rift_dsl_test_case_list_t *test_cases;
+     char error_message[256];
+     bool has_error;
+ } rift_dsl_file_t;
+ 
+ /* Lexer functions */
+ 
+ /**
+  * @brief Initialize a lexer with source code
+  * 
+  * @param lexer The lexer to initialize
+  * @param source The source code
+  * @param source_length Length of the source code
+  */
+ static void
+ rift_dsl_lexer_init(rift_dsl_lexer_t *lexer, const char *source, size_t source_length)
+ {
+     lexer->source = source;
+     lexer->source_length = source_length;
+     lexer->position = 0;
+     lexer->line = 1;
+     lexer->column = 1;
+     lexer->has_error = false;
+     lexer->error_message[0] = '\0';
+ }
+ 
+ /**
+  * @brief Set an error on the lexer
+  * 
+  * @param lexer The lexer
+  * @param message The error message
+  */
+ static void
+ rift_dsl_lexer_error(rift_dsl_lexer_t *lexer, const char *message)
+ {
+     lexer->has_error = true;
+     snprintf(lexer->error_message, sizeof(lexer->error_message), 
+              "Line %zu, Column %zu: %s", lexer->line, lexer->column, message);
+ }
+ 
+ /**
+  * @brief Check if the lexer is at the end of the source
+  * 
+  * @param lexer The lexer
+  * @return true if at the end, false otherwise
+  */
+ static bool
+ rift_dsl_lexer_is_at_end(rift_dsl_lexer_t *lexer)
+ {
+     return lexer->position >= lexer->source_length;
+ }
+ 
+ /**
+  * @brief Peek at the current character without advancing
+  * 
+  * @param lexer The lexer
+  * @return The current character, or '\0' if at the end
+  */
+ static char
+ rift_dsl_lexer_peek(rift_dsl_lexer_t *lexer)
+ {
+     if (rift_dsl_lexer_is_at_end(lexer)) {
+         return '\0';
+     }
+     return lexer->source[lexer->position];
+ }
+ 
+ /**
+  * @brief Peek at a character ahead of the current position
+  * 
+  * @param lexer The lexer
+  * @param offset The offset from the current position
+  * @return The character at the offset, or '\0' if out of bounds
+  */
+ static char
+ rift_dsl_lexer_peek_ahead(rift_dsl_lexer_t *lexer, size_t offset)
+ {
+     if (lexer->position + offset >= lexer->source_length) {
+         return '\0';
+     }
+     return lexer->source[lexer->position + offset];
+ }
+ 
+ /**
+  * @brief Advance the lexer by one character
+  * 
+  * @param lexer The lexer
+  * @return The character that was consumed
+  */
+ static char
+ rift_dsl_lexer_advance(rift_dsl_lexer_t *lexer)
+ {
+     char c = rift_dsl_lexer_peek(lexer);
+     
+     lexer->position++;
+     
+     if (c == '\n') {
+         lexer->line++;
+         lexer->column = 1;
+     } else {
+         lexer->column++;
+     }
+     
+     return c;
+ }
+ 
+ /**
+  * @brief Skip whitespace characters
+  * 
+  * @param lexer The lexer
+  */
+ static void
+ rift_dsl_lexer_skip_whitespace(rift_dsl_lexer_t *lexer)
+ {
+     while (!rift_dsl_lexer_is_at_end(lexer)) {
+         char c = rift_dsl_lexer_peek(lexer);
+         if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+             rift_dsl_lexer_advance(lexer);
+         } else {
+             break;
+         }
+     }
+ }
+ 
+ /**
+  * @brief Skip a line comment starting with #
+  * 
+  * @param lexer The lexer
+  */
+ static void
+ rift_dsl_lexer_skip_comment(rift_dsl_lexer_t *lexer)
+ {
+     while (!rift_dsl_lexer_is_at_end(lexer)) {
+         char c = rift_dsl_lexer_peek(lexer);
+         if (c == '\n') {
+             break;
+         }
+         rift_dsl_lexer_advance(lexer);
+     }
+ }
+ 
+ /**
+  * @brief Check if a character is alphabetic
+  * 
+  * @param c The character
+  * @return true if alphabetic, false otherwise
+  */
+ static bool
+ rift_dsl_is_alpha(char c)
+ {
+     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+ }
+ 
+ /**
+  * @brief Check if a character is a digit
+  * 
+  * @param c The character
+  * @return true if a digit, false otherwise
+  */
+ static bool
+ rift_dsl_is_digit(char c)
+ {
+     return c >= '0' && c <= '9';
+ }
+ 
+ /**
+  * @brief Check if a character is alphanumeric
+  * 
+  * @param c The character
+  * @return true if alphanumeric, false otherwise
+  */
+ static bool
+ rift_dsl_is_alnum(char c)
+ {
+     return rift_dsl_is_alpha(c) || rift_dsl_is_digit(c);
+ }
+ 
+ /**
+  * @brief Parse an identifier
+  * 
+  * @param lexer The lexer
+  * @return The parsed identifier token
+  */
+ static rift_dsl_token_t
+ rift_dsl_lexer_identifier(rift_dsl_lexer_t *lexer)
+ {
+     size_t start = lexer->position;
+     size_t line = lexer->line;
+     size_t column = lexer->column;
+     
+     while (!rift_dsl_lexer_is_at_end(lexer) && 
+            (rift_dsl_is_alnum(rift_dsl_lexer_peek(lexer)))) {
+         rift_dsl_lexer_advance(lexer);
+     }
+     
+     size_t length = lexer->position - start;
+     char *value = (char *)malloc(length + 1);
+     if (!value) {
+         rift_dsl_token_t token = {
+             .type = RIFT_DSL_TOKEN_UNKNOWN,
+             .value = NULL,
+             .line = line,
+             .column = column
+         };
+         rift_dsl_lexer_error(lexer, "Memory allocation failed");
+         return token;
+     }
+     
+     memcpy(value, lexer->source + start, length);
+     value[length] = '\0';
+     
+     rift_dsl_token_t token = {
+         .type = RIFT_DSL_TOKEN_IDENTIFIER,
+         .value = value,
+         .line = line,
+         .column = column
+     };
+     
+     return token;
+ }
+ 
+ /**
+  * @brief Parse a string literal
+  * 
+  * @param lexer The lexer
+  * @return The parsed string token
+  */
+ static rift_dsl_token_t
+ rift_dsl_lexer_string(rift_dsl_lexer_t *lexer)
+ {
+     size_t line = lexer->line;
+     size_t column = lexer->column;
+     
+     // Consume the opening quote
+     char quote = rift_dsl_lexer_advance(lexer);
+     
+     size_t start = lexer->position;
+     
+     // Find the closing quote
+     while (!rift_dsl_lexer_is_at_end(lexer) && rift_dsl_lexer_peek(lexer) != quote) {
+         // Handle escape sequences
+         if (rift_dsl_lexer_peek(lexer) == '\\' && !rift_dsl_lexer_is_at_end(lexer)) {
+             rift_dsl_lexer_advance(lexer); // Skip the backslash
+             rift_dsl_lexer_advance(lexer); // Skip the escaped character
+         } else {
+             rift_dsl_lexer_advance(lexer);
+         }
+     }
+     
+     if (rift_dsl_lexer_is_at_end(lexer)) {
+         rift_dsl_token_t token = {
+             .type = RIFT_DSL_TOKEN_UNKNOWN,
+             .value = NULL,
+             .line = line,
+             .column = column
+         };
+         rift_dsl_lexer_error(lexer, "Unterminated string");
+         return token;
+     }
+     
+     size_t length = lexer->position - start;
+     
+     // Allocate memory for the string value (excluding quotes)
+     char *value = (char *)malloc(length + 1);
+     if (!value) {
+         rift_dsl_token_t token = {
+             .type = RIFT_DSL_TOKEN_UNKNOWN,
+             .value = NULL,
+             .line = line,
+             .column = column
+         };
+         rift_dsl_lexer_error(lexer, "Memory allocation failed");
+         return token;
+     }
+     
+     // Copy the string value
+     memcpy(value, lexer->source + start, length);
+     value[length] = '\0';
+     
+     // Consume the closing quote
+     rift_dsl_lexer_advance(lexer);
+     
+     rift_dsl_token_t token = {
+         .type = RIFT_DSL_TOKEN_STRING,
+         .value = value,
+         .line = line,
+         .column = column
+     };
+     
+     return token;
+ }
+ 
+ /**
+  * @brief Get the next token from the lexer
+  * 
+  * @param lexer The lexer
+  * @return The next token
+  */
+ static rift_dsl_token_t
+ rift_dsl_lexer_next_token(rift_dsl_lexer_t *lexer)
+ {
+     // Skip whitespace and comments
+     while (!rift_dsl_lexer_is_at_end(lexer)) {
+         rift_dsl_lexer_skip_whitespace(lexer);
+         
+         if (rift_dsl_lexer_peek(lexer) == '#') {
+             rift_dsl_lexer_skip_comment(lexer);
+         } else {
+             break;
+         }
+     }
+     
+     if (rift_dsl_lexer_is_at_end(lexer)) {
+         rift_dsl_token_t token = {
+             .type = RIFT_DSL_TOKEN_EOF,
+             .value = NULL,
+             .line = lexer->line,
+             .column = lexer->column
+         };
+         return token;
+     }
+     
+     char c = rift_dsl_lexer_peek(lexer);
+     size_t line = lexer->line;
+     size_t column = lexer->column;
+     
+     // Handle simple tokens
+     switch (c) {
+         case '@':
+             rift_dsl_lexer_advance(lexer);
+             return (rift_dsl_token_t){
+                 .type = RIFT_DSL_TOKEN_AT_SIGN,
+                 .value = NULL,
+                 .line = line,
+                 .column = column
+             };
+         case '=':
+             rift_dsl_lexer_advance(lexer);
+             return (rift_dsl_token_t){
+                 .type = RIFT_DSL_TOKEN_EQUALS,
+                 .value = NULL,
+                 .line = line,
+                 .column = column
+             };
+         case '{':
+             rift_dsl_lexer_advance(lexer);
+             return (rift_dsl_token_t){
+                 .type = RIFT_DSL_TOKEN_LBRACE,
+                 .value = NULL,
+                 .line = line,
+                 .column = column
+             };
+         case '}':
+             rift_dsl_lexer_advance(lexer);
+             return (rift_dsl_token_t){
+                 .type = RIFT_DSL_TOKEN_RBRACE,
+                 .value = NULL,
+                 .line = line,
+                 .column = column
+             };
+         case '[':
+             rift_dsl_lexer_advance(lexer);
+             return (rift_dsl_token_t){
+                 .type = RIFT_DSL_TOKEN_LBRACKET,
+                 .value = NULL,
+                 .line = line,
+                 .column = column
+             };
+         case ']':
+             rift_dsl_lexer_advance(lexer);
+             return (rift_dsl_token_t){
+                 .type = RIFT_DSL_TOKEN_RBRACKET,
+                 .value = NULL,
+                 .line = line,
+                 .column = column
+             };
+         case ',':
+             rift_dsl_lexer_advance(lexer);
+             return (rift_dsl_token_t){
+                 .type = RIFT_DSL_TOKEN_COMMA,
+                 .value = NULL,
+                 .line = line,
+                 .column = column
+             };
+         case '"':
+         case '\'':
+             return rift_dsl_lexer_string(lexer);
+     }
+     
+     // Handle identifiers
+     if (rift_dsl_is_alpha(c)) {
+         return rift_dsl_lexer_identifier(lexer);
+     }
+     
+     // Unknown character
+     rift_dsl_lexer_advance(lexer); // Consume the character anyway
+     
+     char message[64];
+     snprintf(message, sizeof(message), "Unexpected character: '%c'", c);
+     rift_dsl_lexer_error(lexer, message);
+     
+     return (rift_dsl_token_t){
+         .type = RIFT_DSL_TOKEN_UNKNOWN,
+         .value = NULL,
+         .line = line,
+         .column = column
+     };
+ }
+ 
+ /**
+  * @brief Free resources associated with a token
+  * 
+  * @param token The token to free
+  */
+ static void
+ rift_dsl_token_free(rift_dsl_token_t *token)
+ {
+     if (token && token->value) {
+         free(token->value);
+         token->value = NULL;
+     }
+ }
+ 
+ /* Parser functions */
+ 
+ /**
+  * @brief Initialize a new DSL file structure
+  * 
+  * @return An initialized DSL file structure
+  */
+ static rift_dsl_file_t *
+ rift_dsl_file_create(void)
+ {
+     rift_dsl_file_t *file = (rift_dsl_file_t *)malloc(sizeof(rift_dsl_file_t));
+     if (!file) {
+         return NULL;
+     }
+     
+     file->patterns = NULL;
+     file->test_cases = NULL;
+     file->has_error = false;
+     file->error_message[0] = '\0';
+     
+     return file;
+ }
+ 
+ /**
+  * @brief Set an error on a DSL file
+  * 
+  * @param file The DSL file
+  * @param message The error message
+  */
+ static void
+ rift_dsl_file_error(rift_dsl_file_t *file, const char *message)
+ {
+     file->has_error = true;
+     strncpy(file->error_message, message, sizeof(file->error_message) - 1);
+     file->error_message[sizeof(file->error_message) - 1] = '\0';
+ }
+ 
+ /**
+  * @brief Add a pattern to a DSL file
+  * 
+  * @param file The DSL file
+  * @param pattern The pattern to add
+  * @return true if successful, false otherwise
+  */
+ static bool
+ rift_dsl_file_add_pattern(rift_dsl_file_t *file, rift_dsl_pattern_t *pattern)
+ {
+     if (!file || !pattern) {
+         return false;
+     }
+     
+     // Add at the beginning of the list for simplicity
+     pattern->next = file->patterns;
+     file->patterns = pattern;
+     
+     return true;
+ }
+ 
+ /**
+  * @brief Add a test case to a DSL file
+  * 
+  * @param file The DSL file
+  * @param test_case The test case to add
+  * @return true if successful, false otherwise
+  */
+ static bool
+ rift_dsl_file_add_test_case(rift_dsl_file_t *file, rift_dsl_test_case_t *test_case)
+ {
+     if (!file || !test_case) {
+         return false;
+     }
+     
+     rift_dsl_test_case_list_t *list_item = 
+         (rift_dsl_test_case_list_t *)malloc(sizeof(rift_dsl_test_case_list_t));
+     if (!list_item) {
+         return false;
+     }
+     
+     list_item->test_case = *test_case;
+     list_item->next = NULL;
+     
+     // Add at the end of the list
+     if (!file->test_cases) {
+         file->test_cases = list_item;
+     } else {
+         rift_dsl_test_case_list_t *current = file->test_cases;
+         while (current->next) {
+             current = current->next;
+         }
+         current->next = list_item;
+     }
+     
+     return true;
+ }
+ 
+ /**
+  * @brief Parse a pattern definition
+  * 
+  * @param lexer The lexer
+  * @param file The DSL file to add the pattern to
+  */
+ static void
+ rift_dsl_parse_pattern(rift_dsl_lexer_t *lexer, rift_dsl_file_t *file)
+ {
+     // Expect: @pattern NAME = "pattern"
+     
+     // Skip the @pattern token
+     rift_dsl_token_t token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_IDENTIFIER) {
+         rift_dsl_lexer_error(lexer, "Expected identifier after @");
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     // Check if it's a "pattern" directive
+     if (strcmp(token.value, "pattern") != 0) {
+         char message[128];
+         snprintf(message, sizeof(message), "Unknown directive: @%s", token.value);
+         rift_dsl_lexer_error(lexer, message);
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     rift_dsl_token_free(&token);
+     
+     // Get the pattern name
+     token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_IDENTIFIER) {
+         rift_dsl_lexer_error(lexer, "Expected pattern name");
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     // Create a new pattern
+     rift_dsl_pattern_t *pattern = (rift_dsl_pattern_t *)malloc(sizeof(rift_dsl_pattern_t));
+     if (!pattern) {
+         rift_dsl_lexer_error(lexer, "Memory allocation failed");
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     pattern->name = token.value;
+     pattern->pattern = NULL;
+     pattern->flags = NULL;
+     pattern->flag_count = 0;
+     pattern->next = NULL;
+     
+     token.value = NULL; // Prevent double free
+     rift_dsl_token_free(&token);
+     
+     // Expect equals sign
+     token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_EQUALS) {
+         rift_dsl_lexer_error(lexer, "Expected = after pattern name");
+         free(pattern->name);
+         free(pattern);
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     rift_dsl_token_free(&token);
+     
+     // Get the pattern string
+     token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_STRING) {
+         rift_dsl_lexer_error(lexer, "Expected pattern string");
+         free(pattern->name);
+         free(pattern);
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     pattern->pattern = token.value;
+     token.value = NULL; // Prevent double free
+     rift_dsl_token_free(&token);
+     
+     // Add the pattern to the file
+     if (!rift_dsl_file_add_pattern(file, pattern)) {
+         rift_dsl_lexer_error(lexer, "Failed to add pattern to file");
+         free(pattern->name);
+         free(pattern->pattern);
+         free(pattern);
+         return;
+     }
+ }
+ 
+ /**
+  * @brief Parse a flags definition
+  * 
+  * @param lexer The lexer
+  * @param file The DSL file to add the flags to
+  */
+ static void
+ rift_dsl_parse_flags(rift_dsl_lexer_t *lexer, rift_dsl_file_t *file)
+ {
+     // Expect: @flags = [FLAG1, FLAG2, ...]
+     
+     // Skip the @flags token
+     rift_dsl_token_t token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_IDENTIFIER) {
+         rift_dsl_lexer_error(lexer, "Expected identifier after @");
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     // Check if it's a "flags" directive
+     if (strcmp(token.value, "flags") != 0) {
+         char message[128];
+         snprintf(message, sizeof(message), "Unknown directive: @%s", token.value);
+         rift_dsl_lexer_error(lexer, message);
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     rift_dsl_token_free(&token);
+     
+     // Expect equals sign
+     token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_EQUALS) {
+         rift_dsl_lexer_error(lexer, "Expected = after flags directive");
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     rift_dsl_token_free(&token);
+     
+     // Expect opening bracket
+     token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_LBRACKET) {
+         rift_dsl_lexer_error(lexer, "Expected [ after = in flags directive");
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     rift_dsl_token_free(&token);
+     
+     // If there's no pattern defined yet, we can't add flags
+     if (!file->patterns) {
+         rift_dsl_lexer_error(lexer, "Flags must be defined after a pattern");
+         return;
+     }
+     
+     // Parse the flags
+     rift_dsl_pattern_t *pattern = file->patterns; // Get the most recent pattern
+     
+     // Temporary storage for flags
+     char **flags = NULL;
+     size_t flag_count = 0;
+     
+     while (1) {
+         token = rift_dsl_lexer_next_token(lexer);
+         
+         if (token.type == RIFT_DSL_TOKEN_RBRACKET) {
+             // End of flags list
+             rift_dsl_token_free(&token);
+             break;
+         }
+         
+         if (token.type != RIFT_DSL_TOKEN_IDENTIFIER) {
+             rift_dsl_lexer_error(lexer, "Expected flag identifier");
+             rift_dsl_token_free(&token);
+             
+             // Free any flags we've already parsed
+             for (size_t i = 0; i < flag_count; i++) {
+                 free(flags[i]);
+             }
+             free(flags);
+             
+             return;
+         }
+         
+         // Add this flag to our temporary list
+         char **new_flags = (char **)realloc(flags, (flag_count + 1) * sizeof(char *));
+         if (!new_flags) {
+             rift_dsl_lexer_error(lexer, "Memory allocation failed");
+             rift_dsl_token_free(&token);
+             
+             // Free any flags we've already parsed
+             for (size_t i = 0; i < flag_count; i++) {
+                 free(flags[i]);
+             }
+             free(flags);
+             
+             return;
+         }
+         
+         flags = new_flags;
+         flags[flag_count] = token.value;
+         flag_count++;
+         
+         token.value = NULL; // Prevent double free
+         rift_dsl_token_free(&token);
+         
+         // Check for comma or closing bracket
+         token = rift_dsl_lexer_next_token(lexer);
+         if (token.type == RIFT_DSL_TOKEN_RBRACKET) {
+             // End of flags list
+             rift_dsl_token_free(&token);
+             break;
+         }
+         
+         if (token.type != RIFT_DSL_TOKEN_COMMA) {
+             rift_dsl_lexer_error(lexer, "Expected comma between flags");
+             rift_dsl_token_free(&token);
+             
+             // Free all flags
+             for (size_t i = 0; i < flag_count; i++) {
+                 free(flags[i]);
+             }
+             free(flags);
+             
+             return;
+         }
+         
+         rift_dsl_token_free(&token);
+     }
+     
+     // Set the flags on the pattern
+     pattern->flags = flags;
+     pattern->flag_count = flag_count;
+ }
+ 
+ /**
+  * @brief Parse a test case definition
+  * 
+  * @param lexer The lexer
+  * @param file The DSL file to add the test case to
+  */
+ static void
+ rift_dsl_parse_test_case(rift_dsl_lexer_t *lexer, rift_dsl_file_t *file)
+ {
+     // Expect: @test_case { ... }
+     
+     // Skip the @test_case token
+     rift_dsl_token_t token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_IDENTIFIER) {
+         rift_dsl_lexer_error(lexer, "Expected identifier after @");
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     // Check if it's a "test_case" directive
+     if (strcmp(token.value, "test_case") != 0) {
+         char message[128];
+         snprintf(message, sizeof(message), "Unknown directive: @%s", token.value);
+         rift_dsl_lexer_error(lexer, message);
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     rift_dsl_token_free(&token);
+     
+     // Expect opening brace
+     token = rift_dsl_lexer_next_token(lexer);
+     if (token.type != RIFT_DSL_TOKEN_LBRACE) {
+         rift_dsl_lexer_error(lexer, "Expected { after test_case directive");
+         rift_dsl_token_free(&token);
+         return;
+     }
+     
+     rift_dsl_token_free(&token);
+     
+     // Initialize a new test case
+     rift_dsl_test_case_t test_case = {
+         .input = NULL,
+         .expect_match = false,
+         .match_groups = NULL,
+         .group_count = 0
+     };
+     
+     // Parse test case properties
+     while (1) {
+         token = rift_dsl_lexer_next_token(lexer);
+         
+         if (token.type == RIFT_DSL_TOKEN_RBRACE) {
+             // End of test case
+             rift_dsl_token_free(&token);
+             break;
+         }
+         
+         if (token.type != RIFT_DSL_TOKEN_IDENTIFIER) {
+             rift_dsl_lexer_error(lexer, "Expected property name in test case");
+             rift_dsl_token_free(&token);
+             
+             // Free any resources we've already allocated
+             free(test_case.input);
+             for (size_t i = 0; i < test_case.group_count; i++) {
+                 free(test_case.match_groups[i]);
+             }
+             free(test_case.match_groups);
+             
+             return;
+         }
+         
+         // Handle property based on name
+         char *property_name = token.value;
+         token.value = NULL; // Prevent double free
+         rift_dsl_token_free(&token);
+         
+         // Expect equals sign
+         token = rift_dsl_lexer_next_token(lexer);
+         if (token.type != RIFT_DSL_TOKEN_EQUALS) {
+             char message[128];
+             snprintf(message, sizeof(message), "Expected = after property name '%s'", property_name);
+             rift_dsl_lexer_error(lexer, message);
+             
+             free(property_name);
+             
+             // Free any resources we've already allocated
+             free(test_case.input);
+             for (size_t i = 0; i < test_case.group_count; i++) {
+                 free(test_case.match_groups[i]);
+             }
+             free(test_case.match_groups);
+             
+             rift_dsl_token_free(&token);
+             return;
+         }
+         
+         rift_dsl_token_free(&token);
+         
+         // Handle different properties
+         if (strcmp(property_name, "input") == 0) {
+             // Get string value
+             token = rift_dsl_lexer_next_token(lexer);
+             if (token.type != RIFT_DSL_TOKEN_STRING) {
+                 rift_dsl_lexer_error(lexer, "Expected string value for input property");
+                 
+                 free(property_name);
+                 
+                 // Free any resources we've already allocated
+                 free(test_case.input);
+                 for (size_t i = 0; i < test_case.group_count; i++) {
+                     free(test_case.match_groups[i]);
+                 }
+                 free(test_case.match_groups);
+                 
+                 rift_dsl_token_free(&token);
+                 return;
+             }
+             
+             // Free any existing input
+             free(test_case.input);
+             
+             // Set the input
+             test_case.input = token.value;
+             token.value = NULL; // Prevent double free
+             rift_dsl_token_free(&token);
+         } 
+         else if (strcmp(property_name, "expect_match") == 0) {
+             // Get boolean value (true/false identifier)
+             token = rift_dsl_lexer_next_token(lexer);
+             if (token.type != RIFT_DSL_TOKEN_IDENTIFIER) {
+                 rift_dsl_lexer_error(lexer, "Expected true or false for expect_match property");
+                 
+                 free(property_name);
+                 
+                 // Free any resources we've already allocated
+                 free(test_case.input);
+                 for (size_t i = 0; i < test_case.group_count; i++) {
+                     free(test_case.match_groups[i]);
+                 }
+                 free(test_case.match_groups);
+                 
+                 rift_dsl_token_free(&token);
+                 return;
+             }
+             
+             if (strcmp(token.value, "true") == 0) {
+                 test_case.expect_match = true;
+             }
+             else if (strcmp(token.value, "false") == 0) {
+                 test_case.expect_match = false;
+             }
+             else {
+                 char message[128];
+                 snprintf(message, sizeof(message), 
+                          "Expected true or false for expect_match, got '%s'", token.value);
+                 rift_dsl_lexer_error(lexer, message);
+                 
+                 free(property_name);
+                 
+                 // Free any resources we've already allocated
+                 free(test_case.input);
+                 for (size_t i = 0; i < test_case.group_count; i++) {
+                     free(test_case.match_groups[i]);
+                 }
+                 free(test_case.match_groups);
+                 
+                 rift_dsl_token_free(&token);
+                 return;
+             }
+             
+             rift_dsl_token_free(&token);
+         }
+         else if (strcmp(property_name, "match_groups") == 0) {
+             // Expect array of strings: [group1, group2, ...]
+             
+             // Expect opening bracket
+             token = rift_dsl_lexer_next_token(lexer);
+             if (token.type != RIFT_DSL_TOKEN_LBRACKET) {
+                 rift_dsl_lexer_error(lexer, "Expected [ for match_groups property");
+                 
+                 free(property_name);
+                 
+                 // Free any resources we've already allocated
+                 free(test_case.input);
+                 for (size_t i = 0; i < test_case.group_count; i++) {
+                     free(test_case.match_groups[i]);
+                 }
+                 free(test_case.match_groups);
+                 
+                 rift_dsl_token_free(&token);
+                 return;
+             }
+             
+             rift_dsl_token_free(&token);
+             
+             // Free any existing match groups
+             for (size_t i = 0; i < test_case.group_count; i++) {
+                 free(test_case.match_groups[i]);
+             }
+             free(test_case.match_groups);
+             test_case.match_groups = NULL;
+             test_case.group_count = 0;
+             
+             // Parse the match groups array
+             while (1) {
+                 token = rift_dsl_lexer_next_token(lexer);
+                 
+                 if (token.type == RIFT_DSL_TOKEN_RBRACKET) {
+                     // End of match groups array
+                     rift_dsl_token_free(&token);
+                     break;
+                 }
+                 
+                 if (token.type != RIFT_DSL_TOKEN_STRING) {
+                     rift_dsl_lexer_error(lexer, "Expected string in match_groups array");
+                     
+                     free(property_name);
+                     
+                     // Free any resources we've already allocated
+                     free(test_case.input);
+                     for (size_t i = 0; i < test_case.group_count; i++) {
+                         free(test_case.match_groups[i]);
+                     }
+                     free(test_case.match_groups);
+                     
+                     rift_dsl_token_free(&token);
+                     return;
+                 }
+                 
+                 // Add this group to our list
+                 char **new_groups = (char **)realloc(test_case.match_groups, 
+                                                    (test_case.group_count + 1) * sizeof(char *));
+                 if (!new_groups) {
+                     rift_dsl_lexer_error(lexer, "Memory allocation failed");
+                     
+                     free(property_name);
+                     
+                     // Free any resources we've already allocated
+                     free(test_case.input);
+                     for (size_t i = 0; i < test_case.group_count; i++) {
+                         free(test_case.match_groups[i]);
+                     }
+                     free(test_case.match_groups);
+                     
+                     rift_dsl_token_free(&token);
+                     return;
+                 }
+                 
+                 test_case.match_groups = new_groups;
+                 test_case.match_groups[test_case.group_count] = token.value;
+                 test_case.group_count++;
+                 
+                 token.value = NULL; // Prevent double free
+                 rift_dsl_token_free(&token);
+                 
+                 // Check for comma or closing bracket
+                 token = rift_dsl_lexer_next_token(lexer);
+                 if (token.type == RIFT_DSL_TOKEN_RBRACKET) {
+                     // End of match groups array
+                     rift_dsl_token_free(&token);
+                     break;
+                 }
+                 
+                 if (token.type != RIFT_DSL_TOKEN_COMMA) {
+                     rift_dsl_lexer_error(lexer, "Expected comma between match groups");
+                     
+                     free(property_name);
+                     
+                     // Free any resources we've already allocated
+                     free(test_case.input);
+                     for (size_t i = 0; i < test_case.group_count; i++) {
+                         free(test_case.match_groups[i]);
+                     }
+                     free(test_case.match_groups);
+                     
+                     rift_dsl_token_free(&token);
+                     return;
+                 }
+                 
+                 rift_dsl_token_free(&token);
+             }
+         }
+         else {
+             char message[128];
+             snprintf(message, sizeof(message), "Unknown test case property: '%s'", property_name);
+             rift_dsl_lexer_error(lexer, message);
+             
+             free(property_name);
+             
+             // Free any resources we've already allocated
+             free(test_case.input);
+             for (size_t i = 0; i < test_case.group_count; i++) {
+                 free(test_case.match_groups[i]);
+             }
+             free(test_case.match_groups);
+             
+             return;
+         }
+         
+         free(property_name);
+     }
+     
+     // Add the test case to the file
+     if (!rift_dsl_file_add_test_case(file, &test_case)) {
+         rift_dsl_lexer_error(lexer, "Failed to add test case to file");
+         
+         // Free resources
+         free(test_case.input);
+         for (size_t i = 0; i < test_case.group_count; i++) {
+             free(test_case.match_groups[i]);
+         }
+         free(test_case.match_groups);
+         
+         return;
+     }
+ }

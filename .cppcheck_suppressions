@@ -1,0 +1,4 @@
+// Suppress warnings for variadic arguments in our API functions
+variableScope
+unusedFunction
+missingInclude

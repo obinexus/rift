@@ -1,0 +1,671 @@
+/**
+ * @file bytecode_program.c
+ * @brief Implementation of bytecode program operations for LibRift
+ *
+ * This file implements the operations for managing bytecode programs,
+ * including creation, validation, and optimization.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+
+#include "core/bytecode/bytecode_system.h
+tmp/librift_analysis/librift-4933472-W/src/core/bytecode/bytecode_system.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/bytecode/bytecode_system.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/bytecode/bytecode_system.h"
+#include "core/bytecode/bytecode.h"
+
+/**
+ * @brief Allocate a new bytecode program
+ *
+ * @param initial_capacity Initial capacity for instructions
+ * @param flags Compilation flags
+ * @return New bytecode program or NULL on failure
+ */
+rift_bytecode_program_t *
+rift_bytecode_program_create(size_t initial_capacity, rift_regex_flags_t flags)
+{
+    if (initial_capacity == 0) {
+        initial_capacity = 16; /* Default initial capacity */
+    }
+
+    rift_bytecode_program_t *program =
+        (rift_bytecode_program_t *)rift_malloc(sizeof(rift_bytecode_program_t));
+
+    if (!program) {
+        return NULL;
+    }
+
+    program->instructions = (rift_bytecode_instruction_t *)rift_malloc(
+        initial_capacity * sizeof(rift_bytecode_instruction_t));
+
+    if (!program->instructions) {
+        rift_free(program);
+        return NULL;
+    }
+
+    program->instruction_count = 0;
+    program->capacity = initial_capacity;
+    program->group_count = 0;
+    program->flags = flags;
+    program->original_pattern = NULL;
+    program->char_class_map = NULL;
+
+    return program;
+}
+
+/**
+ * @brief Ensure the bytecode program has sufficient capacity
+ *
+ * @param program The program to resize
+ * @param capacity The required capacity
+ * @return true if successful, false on allocation failure
+ */
+bool
+rift_bytecode_program_ensure_capacity(rift_bytecode_program_t *program, size_t capacity)
+{
+    if (!program) {
+        return false;
+    }
+
+    if (program->capacity >= capacity) {
+        return true; /* Already has sufficient capacity */
+    }
+
+    /* Double the capacity until it's sufficient */
+    size_t new_capacity = program->capacity;
+    while (new_capacity < capacity) {
+        new_capacity *= 2;
+    }
+
+    /* Reallocate the instructions array */
+    rift_bytecode_instruction_t *new_instructions = (rift_bytecode_instruction_t *)rift_realloc(
+        program->instructions, new_capacity * sizeof(rift_bytecode_instruction_t));
+
+    if (!new_instructions) {
+        return false;
+    }
+
+    program->instructions = new_instructions;
+    program->capacity = new_capacity;
+    return true;
+}
+
+/**
+ * @brief Add an instruction to a bytecode program
+ *
+ * @param program The program to modify
+ * @param opcode The opcode for the instruction
+ * @return Index of the new instruction or -1 on failure
+ */
+int32_t
+rift_bytecode_program_add_instruction(rift_bytecode_program_t *program,
+                                      rift_bytecode_opcode_t opcode)
+{
+    if (!program) {
+        return -1;
+    }
+
+    /* Ensure there's enough capacity */
+    if (!rift_bytecode_program_ensure_capacity(program, program->instruction_count + 1)) {
+        return -1;
+    }
+
+    /* Initialize the new instruction */
+    int32_t index = program->instruction_count;
+    program->instructions[index].opcode = opcode;
+
+    /* Clear the operand union (important to avoid memory issues) */
+    memset(&program->instructions[index].operand, 0, sizeof(program->instructions[index].operand));
+
+    program->instruction_count++;
+    return index;
+}
+
+/**
+ * @brief Set the operand for a character match instruction
+ *
+ * @param program The bytecode program
+ * @param index The instruction index
+ * @param character The character to match
+ * @return true if successful, false otherwise
+ */
+bool
+rift_bytecode_program_set_char_operand(rift_bytecode_program_t *program, int32_t index,
+                                       char character)
+{
+    if (!program || index < 0 || index >= (int32_t)program->instruction_count ||
+        program->instructions[index].opcode != RIFT_OP_MATCH_CHAR) {
+        return false;
+    }
+
+    program->instructions[index].operand.character = character;
+    return true;
+}
+
+/**
+ * @brief Set the operand for a character class match instruction
+ *
+ * @param program The bytecode program
+ * @param index The instruction index
+ * @param class_pattern The character class pattern
+ * @param pattern_length The length of the pattern
+ * @return true if successful, false otherwise
+ */
+bool
+rift_bytecode_program_set_class_operand(rift_bytecode_program_t *program, int32_t index,
+                                        const char *class_pattern, uint32_t pattern_length)
+{
+    if (!program || index < 0 || index >= (int32_t)program->instruction_count ||
+        program->instructions[index].opcode != RIFT_OP_MATCH_CLASS || !class_pattern) {
+        return false;
+    }
+
+    /* Allocate memory for the class pattern */
+    char *pattern_copy = (char *)rift_malloc(pattern_length);
+    if (!pattern_copy) {
+        return false;
+    }
+
+    /* Copy the pattern */
+    memcpy(pattern_copy, class_pattern, pattern_length);
+
+    /* Free any existing pattern */
+    if (program->instructions[index].operand.char_class.class_pattern) {
+        rift_free(program->instructions[index].operand.char_class.class_pattern);
+    }
+
+    /* Set the new pattern */
+    program->instructions[index].operand.char_class.class_pattern = pattern_copy;
+    program->instructions[index].operand.char_class.pattern_length = pattern_length;
+
+    return true;
+}
+
+/**
+ * @brief Set the operand for a jump instruction
+ *
+ * @param program The bytecode program
+ * @param index The instruction index
+ * @param target_index The target instruction index
+ * @return true if successful, false otherwise
+ */
+bool
+rift_bytecode_program_set_jump_target(rift_bytecode_program_t *program, int32_t index,
+                                      uint32_t target_index)
+{
+    if (!program || index < 0 || index >= (int32_t)program->instruction_count ||
+        (program->instructions[index].opcode != RIFT_OP_JUMP &&
+         program->instructions[index].opcode != RIFT_OP_SPLIT) ||
+        target_index >= program->instruction_count) {
+        return false;
+    }
+
+    program->instructions[index].operand.jump_target = target_index;
+    return true;
+}
+
+/**
+ * @brief Set the operand for a capture group instruction
+ *
+ * @param program The bytecode program
+ * @param index The instruction index
+ * @param group_index The capture group index
+ * @return true if successful, false otherwise
+ */
+bool
+rift_bytecode_program_set_group_operand(rift_bytecode_program_t *program, int32_t index,
+                                        uint32_t group_index)
+{
+    if (!program || index < 0 || index >= (int32_t)program->instruction_count ||
+        (program->instructions[index].opcode != RIFT_OP_SAVE_START &&
+         program->instructions[index].opcode != RIFT_OP_SAVE_END &&
+         program->instructions[index].opcode != RIFT_OP_BACKREF)) {
+        return false;
+    }
+
+    program->instructions[index].operand.group_index = group_index;
+    return true;
+}
+
+/**
+ * @brief Set the operand for a repeat instruction
+ *
+ * @param program The bytecode program
+ * @param index The instruction index
+ * @param min Minimum repetitions
+ * @param max Maximum repetitions
+ * @param greedy Whether the repetition is greedy
+ * @return true if successful, false otherwise
+ */
+bool
+rift_bytecode_program_set_repeat_operand(rift_bytecode_program_t *program, int32_t index,
+                                         uint32_t min, uint32_t max, bool greedy)
+{
+    if (!program || index < 0 || index >= (int32_t)program->instruction_count ||
+        program->instructions[index].opcode != RIFT_OP_REPEAT_START) {
+        return false;
+    }
+
+    program->instructions[index].operand.repeat.min = min;
+    program->instructions[index].operand.repeat.max = max;
+    program->instructions[index].operand.repeat.greedy = greedy;
+
+    return true;
+}
+
+/**
+ * @brief Set the original pattern for a bytecode program
+ *
+ * @param program The bytecode program
+ * @param pattern The original pattern string
+ * @return true if successful, false otherwise
+ */
+bool
+rift_bytecode_program_set_pattern(rift_bytecode_program_t *program, const char *pattern)
+{
+    if (!program || !pattern) {
+        return false;
+    }
+
+    /* Free any existing pattern */
+    if (program->original_pattern) {
+        rift_free(program->original_pattern);
+    }
+
+    /* Copy the pattern */
+    program->original_pattern = rift_strdup(pattern);
+    return program->original_pattern != NULL;
+}
+
+/**
+ * @brief Set the group count for a bytecode program
+ *
+ * @param program The bytecode program
+ * @param group_count The number of capture groups
+ * @return true if successful, false otherwise
+ */
+bool
+rift_bytecode_program_set_group_count(rift_bytecode_program_t *program, uint32_t group_count)
+{
+    if (!program) {
+        return false;
+    }
+
+    program->group_count = group_count;
+    return true;
+}
+
+/**
+ * @brief Clone a bytecode program
+ *
+ * @param program The program to clone
+ * @return Cloned program or NULL on failure
+ */
+rift_bytecode_program_t *
+rift_bytecode_program_clone(const rift_bytecode_program_t *program)
+{
+    if (!program) {
+        return NULL;
+    }
+
+    /* Create new program with same capacity */
+    rift_bytecode_program_t *clone =
+        rift_bytecode_program_create(program->capacity, program->flags);
+    if (!clone) {
+        return NULL;
+    }
+
+    /* Copy instruction count and group count */
+    clone->instruction_count = program->instruction_count;
+    clone->group_count = program->group_count;
+
+    /* Copy instructions */
+    memcpy(clone->instructions, program->instructions,
+           program->instruction_count * sizeof(rift_bytecode_instruction_t));
+
+    /* Clone any dynamically allocated operands */
+    for (size_t i = 0; i < program->instruction_count; i++) {
+        if (program->instructions[i].opcode == RIFT_OP_MATCH_CLASS &&
+            program->instructions[i].operand.char_class.class_pattern) {
+
+            uint32_t pattern_length = program->instructions[i].operand.char_class.pattern_length;
+            const char *pattern = program->instructions[i].operand.char_class.class_pattern;
+
+            /* We need to copy the pattern */
+            char *pattern_copy = (char *)rift_malloc(pattern_length);
+            if (!pattern_copy) {
+                rift_bytecode_program_free(clone);
+                return NULL;
+            }
+
+            memcpy(pattern_copy, pattern, pattern_length);
+            clone->instructions[i].operand.char_class.class_pattern = pattern_copy;
+        }
+    }
+
+    /* Clone original pattern if present */
+    if (program->original_pattern) {
+        clone->original_pattern = rift_strdup(program->original_pattern);
+        if (!clone->original_pattern) {
+            rift_bytecode_program_free(clone);
+            return NULL;
+        }
+    }
+
+    /* Clone character class map if present */
+    if (program->char_class_map) {
+        /* This would require knowing the size of the map which isn't stored */
+        /* For now, we leave it as NULL and handle it at runtime */
+        clone->char_class_map = NULL;
+    }
+
+    return clone;
+}
+
+/**
+ * @brief Free a bytecode program
+ *
+ * @param program Program to free
+ */
+void
+rift_bytecode_program_free(rift_bytecode_program_t *program)
+{
+    if (!program) {
+        return;
+    }
+
+    /* Free the instructions array */
+    if (program->instructions) {
+        /* Free any dynamically allocated operands */
+        for (size_t i = 0; i < program->instruction_count; i++) {
+            if (program->instructions[i].opcode == RIFT_OP_MATCH_CLASS &&
+                program->instructions[i].operand.char_class.class_pattern) {
+                rift_free(program->instructions[i].operand.char_class.class_pattern);
+            }
+        }
+
+        rift_free(program->instructions);
+    }
+
+    /* Free the original pattern string */
+    if (program->original_pattern) {
+        rift_free(program->original_pattern);
+    }
+
+    /* Free the character class map */
+    if (program->char_class_map) {
+        rift_free(program->char_class_map);
+    }
+
+    /* Free the program itself */
+    rift_free(program);
+}
+
+/**
+ * @brief Validate a bytecode program
+ *
+ * @param program Bytecode program to validate
+ * @param error Error information (can be NULL)
+ * @return bool True if valid, false otherwise
+ */
+bool
+rift_bytecode_validate(rift_bytecode_program_t *program, rift_regex_error_t *error)
+{
+    if (!program) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+            strncpy(error->message, "Null bytecode program",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+            error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+        }
+        return false;
+    }
+
+    /* Validate program fields */
+        if (!program->instructions || program->instruction_count == 0) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_AUTOMATON;
+            strncpy(error->message, "Empty bytecode program",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+            error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+        }
+        return false;
+    }
+
+    /* Validate instruction range */
+    for (uint32_t i = 0; i < program->instruction_count; i++) {
+        rift_bytecode_instruction_t *instr = &program->instructions[i];
+
+        /* Validate jump and split targets */
+        if (instr->opcode == RIFT_OP_JUMP || instr->opcode == RIFT_OP_SPLIT) {
+            if (instr->operand.jump_target >= program->instruction_count) {
+                if (error) {
+                    error->code = RIFT_REGEX_ERROR_INVALID_AUTOMATON;
+                    snprintf(error->message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH,
+                             "Invalid jump target at instruction %u: %u >= %u", i,
+                             instr->operand.jump_target, program->instruction_count);
+                }
+                return false;
+            }
+        }
+
+        /* Validate capture group indices */
+        if ((instr->opcode == RIFT_OP_SAVE_START || instr->opcode == RIFT_OP_SAVE_END ||
+             instr->opcode == RIFT_OP_BACKREF) &&
+            instr->operand.group_index > program->group_count) {
+            if (error) {
+                error->code = RIFT_REGEX_ERROR_INVALID_AUTOMATON;
+                snprintf(error->message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH,
+                         "Invalid capture group index at instruction %u: %u > %u", i,
+                         instr->operand.group_index, program->group_count);
+            }
+            return false;
+        }
+
+        /* Validate character class pointers */
+        if (instr->opcode == RIFT_OP_MATCH_CLASS) {
+            if (!instr->operand.char_class.class_pattern &&
+                instr->operand.char_class.pattern_length > 0) {
+                if (error) {
+                    error->code = RIFT_REGEX_ERROR_INVALID_AUTOMATON;
+                    snprintf(error->message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH,
+                             "Invalid character class at instruction %u: NULL pointer with "
+                             "non-zero length",
+                             i);
+                }
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Optimize a bytecode program
+ *
+ * @param program Bytecode program to optimize
+ * @param error Error information (can be NULL)
+ * @return bool True if optimization was successful, false otherwise
+ */
+bool
+rift_bytecode_optimize(rift_bytecode_program_t *program, rift_regex_error_t *error)
+{
+    if (!program) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+            strncpy(error->message, "Null bytecode program",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+            error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+        }
+        return false;
+    }
+
+    /* Validate the program before optimization */
+    if (!rift_bytecode_validate(program, error)) {
+        return false;
+    }
+
+    /* Remove NOP instructions */
+    uint32_t write_idx = 0;
+    uint32_t *remap = (uint32_t *)rift_malloc(program->instruction_count * sizeof(uint32_t));
+
+    if (!remap) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_MEMORY_ALLOCATION;
+            strncpy(error->message, "Failed to allocate memory for instruction remapping",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+            error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+        }
+        return false;
+    }
+
+    /* First pass: count NOPs and build the remapping table */
+    for (uint32_t read_idx = 0; read_idx < program->instruction_count; read_idx++) {
+        if (program->instructions[read_idx].opcode != RIFT_OP_NOP) {
+            remap[read_idx] = write_idx++;
+        } else {
+            remap[read_idx] = (uint32_t)-1; /* Mark NOP for deletion */
+        }
+    }
+
+    /* If no NOPs, nothing to do */
+    if (write_idx == program->instruction_count) {
+        rift_free(remap);
+        return true;
+    }
+
+    /* Second pass: compact the instruction array */
+    write_idx = 0;
+    for (uint32_t read_idx = 0; read_idx < program->instruction_count; read_idx++) {
+        if (program->instructions[read_idx].opcode != RIFT_OP_NOP) {
+            if (write_idx != read_idx) {
+                program->instructions[write_idx] = program->instructions[read_idx];
+            }
+            write_idx++;
+        }
+    }
+
+    /* Third pass: update jump targets */
+    for (uint32_t i = 0; i < write_idx; i++) {
+        rift_bytecode_instruction_t *instr = &program->instructions[i];
+
+        if (instr->opcode == RIFT_OP_JUMP || instr->opcode == RIFT_OP_SPLIT) {
+            uint32_t old_target = instr->operand.jump_target;
+
+            /* Skip over NOPs for jump targets */
+            while (old_target < program->instruction_count && remap[old_target] == (uint32_t)-1) {
+                old_target++;
+            }
+
+            if (old_target < program->instruction_count) {
+                instr->operand.jump_target = remap[old_target];
+            } else {
+                /* Jump to end of program (which might be ACCEPT) */
+                instr->operand.jump_target = write_idx - 1;
+            }
+        }
+    }
+
+    /* Update instruction count */
+    program->instruction_count = write_idx;
+
+    /* Free the remapping table */
+    rift_free(remap);
+
+    return true;
+}
+
+/**
+ * @brief Generate debug information for a bytecode program
+ *
+ * @param program Bytecode program
+ * @param output Output file or NULL to print to stdout
+ * @return bool True if debug info generated successfully
+ */
+bool
+rift_bytecode_debug_info(rift_bytecode_program_t *program, FILE *output)
+{
+    if (!program) {
+        return false;
+    }
+
+    FILE *dest = output ? output : stdout;
+
+    /* Print program metadata */
+    fprintf(dest, "Bytecode Program Debug Information\n");
+    fprintf(dest, "==================================\n");
+    fprintf(dest, "Original Pattern: %s\n",
+            program->original_pattern ? program->original_pattern : "N/A");
+    fprintf(dest, "Instruction Count: %u\n", program->instruction_count);
+    fprintf(dest, "Capacity: %u\n", program->capacity);
+    fprintf(dest, "Group Count: %u\n", program->group_count);
+    fprintf(dest, "Compilation Flags: 0x%X\n", program->flags);
+    fprintf(dest, "\nInstructions:\n");
+
+    /* Print detailed instruction information */
+    for (uint32_t i = 0; i < program->instruction_count; i++) {
+        rift_bytecode_instruction_t *instr = &program->instructions[i];
+        fprintf(dest, "[%u] ", i);
+
+        switch (instr->opcode) {
+        case RIFT_OP_NOP:
+            fprintf(dest, "NOP\n");
+            break;
+        case RIFT_OP_MATCH_CHAR:
+            fprintf(dest, "MATCH_CHAR '%c'\n", instr->operand.character);
+            break;
+        case RIFT_OP_MATCH_CLASS:
+            fprintf(dest, "MATCH_CLASS (len: %u)\n", instr->operand.char_class.pattern_length);
+            break;
+        case RIFT_OP_JUMP:
+            fprintf(dest, "JUMP to %u\n", instr->operand.jump_target);
+            break;
+        case RIFT_OP_SPLIT:
+            fprintf(dest, "SPLIT to %u\n", instr->operand.jump_target);
+            break;
+        case RIFT_OP_SAVE_START:
+            fprintf(dest, "SAVE_START group %u\n", instr->operand.group_index);
+            break;
+        case RIFT_OP_SAVE_END:
+            fprintf(dest, "SAVE_END group %u\n", instr->operand.group_index);
+            break;
+        case RIFT_OP_MATCH_ANY:
+            fprintf(dest, "MATCH_ANY\n");
+            break;
+        case RIFT_OP_ACCEPT:
+            fprintf(dest, "ACCEPT\n");
+            break;
+        case RIFT_OP_FAIL:
+            fprintf(dest, "FAIL\n");
+            break;
+        case RIFT_OP_REPEAT_START:
+            fprintf(dest, "REPEAT_START (min: %u, max: %u, greedy: %s)\n",
+                    instr->operand.repeat.min, instr->operand.repeat.max,
+                    instr->operand.repeat.greedy ? "true" : "false");
+            break;
+        case RIFT_OP_REPEAT_END:
+            fprintf(dest, "REPEAT_END\n");
+            break;
+        case RIFT_OP_BOUNDARY:
+            fprintf(dest, "BOUNDARY\n");
+            break;
+        case RIFT_OP_BACKREF:
+            fprintf(dest, "BACKREF group %u\n", instr->operand.group_index);
+            break;
+        case RIFT_OP_LOOKAHEAD:
+            fprintf(dest, "LOOKAHEAD\n");
+            break;
+        case RIFT_OP_NEG_LOOKAHEAD:
+            fprintf(dest, "NEG_LOOKAHEAD\n");
+            break;
+        default:
+            fprintf(dest, "UNKNOWN OPCODE %u\n", instr->opcode);
+            break;
+        }
+    }
+
+    return true;
+}

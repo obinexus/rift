@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/Public/Public RIFT/rift/dist/cmake_install.cmake",
+		"C:/Users/Public/Public RIFT/rift/dist/tests/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

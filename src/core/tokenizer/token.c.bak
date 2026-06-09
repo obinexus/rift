@@ -1,0 +1,301 @@
+/**
+ * @file token.c
+ * @brief Implementation of token functions for the LibRift regex engine
+ *
+ * This file implements the functions for creating, manipulating, and destroying
+ * tokens in the LibRift regex engine.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+
+#include "core/tokenizer/token.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/tokenizer/token.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/tokenizer/token.h
+tmp/librift_analysis/librift-4933472-W/src/core/tokenizer/token.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/tokenizer/token.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/tokenizer/token.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/tokenizer/token.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/tokenizer/token.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/tokenizer/token.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/tokenizer/token.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "librift/parser/token.h"
+
+/**
+ * @brief Create a new token
+ *
+ * @param type The token type
+ * @param value The token value (will be copied, can be NULL)
+ * @param position The position in the input string
+ * @return A new token
+ */
+rift_regex_token_t
+rift_regex_token_create(rift_regex_token_type_t type, const char *value, size_t position)
+{
+    rift_regex_token_t token;
+    token.type = type;
+    token.position = position;
+
+    if (value) {
+        token.value = strdup(value);
+        if (!token.value && type != RIFT_REGEX_TOKEN_ERROR) {
+            // Set as error token if memory allocation fails
+            token.type = RIFT_REGEX_TOKEN_ERROR;
+            token.value = strdup("Memory allocation failed");
+        }
+    } else {
+        token.value = NULL;
+    }
+
+    return token;
+}
+
+/**
+ * @brief Create a token with null value
+ *
+ * @param type The token type
+ * @param position The position in the input string
+ * @return A new token with NULL value
+ */
+rift_regex_token_t
+rift_regex_token_create_simple(rift_regex_token_type_t type, size_t position)
+{
+    rift_regex_token_t token;
+    token.type = type;
+    token.value = NULL;
+    token.position = position;
+
+    return token;
+}
+
+/**
+ * @brief Create an error token
+ *
+ * @param message The error message (will be copied)
+ * @param position The position in the input string
+ * @return An error token
+ */
+rift_regex_token_t
+rift_regex_token_create_error(const char *message, size_t position)
+{
+    return rift_regex_token_create(RIFT_REGEX_TOKEN_ERROR, message, position);
+}
+
+/**
+ * @brief Create an end token
+ *
+ * @param position The position in the input string
+ * @return An end token
+ */
+rift_regex_token_t
+rift_regex_token_create_end(size_t position)
+{
+    return rift_regex_token_create_simple(RIFT_REGEX_TOKEN_END, position);
+}
+
+/**
+ * @brief Copy a token
+ *
+ * @param token The token to copy
+ * @return A copy of the token
+ */
+rift_regex_token_t
+rift_regex_token_copy(const rift_regex_token_t *token)
+{
+    if (!token) {
+        return rift_regex_token_create_error("NULL token", 0);
+    }
+
+    return rift_regex_token_create(token->type, token->value, token->position);
+}
+
+/**
+ * @brief Free resources associated with a token
+ *
+ * @param token Pointer to the token to free
+ */
+void
+rift_regex_token_free(rift_regex_token_t *token)
+{
+    if (!token) {
+        return;
+    }
+
+    if (token->value) {
+        free(token->value);
+        token->value = NULL;
+    }
+
+    // Note: We don't free the token itself as it may be stack-allocated
+}
+
+/**
+ * @brief Free the value of a token without freeing the token itself
+ *
+ * @param token Pointer to the token
+ */
+void
+rift_regex_token_free_value(rift_regex_token_t *token)
+{
+    if (!token) {
+        return;
+    }
+
+    if (token->value) {
+        free(token->value);
+        token->value = NULL;
+    }
+}
+
+/**
+ * @brief Check if a token is of a specific type
+ *
+ * @param token The token to check
+ * @param type The type to check against
+ * @return true if the token is of the specified type, false otherwise
+ */
+bool
+rift_regex_token_is_type(const rift_regex_token_t *token, rift_regex_token_type_t type)
+{
+    return token && token->type == type;
+}
+
+/**
+ * @brief Check if a token is an error
+ *
+ * @param token The token to check
+ * @return true if the token is an error, false otherwise
+ */
+bool
+rift_regex_token_is_error(const rift_regex_token_t *token)
+{
+    return rift_regex_token_is_type(token, RIFT_REGEX_TOKEN_ERROR);
+}
+
+/**
+ * @brief Check if a token is the end token
+ *
+ * @param token The token to check
+ * @return true if the token is the end token, false otherwise
+ */
+bool
+rift_regex_token_is_end(const rift_regex_token_t *token)
+{
+    return rift_regex_token_is_type(token, RIFT_REGEX_TOKEN_END);
+}
+
+/**
+ * @brief Check if a token has a value
+ *
+ * @param token The token to check
+ * @return true if the token has a value, false otherwise
+ */
+bool
+rift_regex_token_has_value(const rift_regex_token_t *token)
+{
+    return token && token->value != NULL;
+}
+
+/**
+ * @brief Get the value of a token
+ *
+ * @param token The token
+ * @return The token value or NULL if the token has no value
+ */
+const char *
+rift_regex_token_get_value(const rift_regex_token_t *token)
+{
+    return token ? token->value : NULL;
+}
+
+/**
+ * @brief Get the position of a token
+ *
+ * @param token The token
+ * @return The token position
+ */
+size_t
+rift_regex_token_get_position(const rift_regex_token_t *token)
+{
+    return token ? token->position : 0;
+}
+
+/**
+ * @brief Get the type of a token
+ *
+ * @param token The token
+ * @return The token type
+ */
+rift_regex_token_type_t
+rift_regex_token_get_type(const rift_regex_token_t *token)
+{
+    return token ? token->type : RIFT_REGEX_TOKEN_ERROR;
+}
+
+/**
+ * @brief Create a string representation of a token
+ *
+ * @param token The token
+ * @param buffer Buffer to store the string
+ * @param buffer_size Size of the buffer
+ * @return true if the token was successfully converted to a string, false otherwise
+ */
+bool
+rift_regex_token_to_string(const rift_regex_token_t *token, char *buffer, size_t buffer_size)
+{
+    if (!token || !buffer || buffer_size == 0) {
+        return false;
+    }
+
+    int written;
+
+    if (token->value) {
+        written =
+            snprintf(buffer, buffer_size, "Token(%s, '%s', pos=%zu)",
+                     rift_regex_token_type_to_string(token->type), token->value, token->position);
+    } else {
+        written = snprintf(buffer, buffer_size, "Token(%s, NULL, pos=%zu)",
+                           rift_regex_token_type_to_string(token->type), token->position);
+    }
+
+    return (written > 0 && (size_t)written < buffer_size);
+}
+
+/**
+ * @brief Check if two tokens are equal
+ *
+ * @param token1 The first token
+ * @param token2 The second token
+ * @return true if the tokens are equal, false otherwise
+ */
+bool
+rift_regex_token_equals(const rift_regex_token_t *token1, const rift_regex_token_t *token2)
+{
+    if (!token1 || !token2) {
+        return token1 == token2; // Both NULL means equal
+    }
+
+    // Compare types
+    if (token1->type != token2->type) {
+        return false;
+    }
+
+    // Compare values
+    if ((token1->value == NULL) != (token2->value == NULL)) {
+        return false; // One has a value, the other doesn't
+    }
+
+    if (token1->value && token2->value) {
+        if (strcmp(token1->value, token2->value) != 0) {
+            return false;
+        }
+    }
+
+    // We don't compare positions as they are not essential for semantic equality
+
+    return true;
+}

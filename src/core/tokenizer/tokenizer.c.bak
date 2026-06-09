@@ -1,0 +1,805 @@
+/**
+ * @file tokenizer.c
+ * @brief Implementation of tokenizer functions for the LibRift regex engine
+ *
+ * This file implements the tokenization of regular expression patterns,
+ * converting string patterns into a sequence of tokens for parsing.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+
+#include "core/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-4933472-W/src/core/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/tokenizer/tokenizer.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/tokenizer/tokenizer.h"
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+#include "librift/parser/tokenizer.h"
+
+#define RIFT_REGEX_MAX_ERROR_LENGTH 256
+
+/**
+ * Internal tokenizer structure implementation
+ */
+struct rift_regex_tokenizer {
+    const char *input;                            /**< Input string being tokenized */
+    size_t input_length;                          /**< Length of the input string */
+    size_t position;                              /**< Current position in the input */
+    char last_error[RIFT_REGEX_MAX_ERROR_LENGTH]; /**< Last error message */
+    rift_regex_token_t current_token;             /**< Current token */
+    bool has_current_token;                       /**< Whether current_token is valid */
+};
+
+/**
+ * @brief Create a new tokenizer for the given input string
+ *
+ * @param input The input string to tokenize
+ * @return A new tokenizer or NULL on failure
+ */
+rift_regex_tokenizer_t *
+rift_regex_tokenizer_create(const char *input)
+{
+    if (!input) {
+        return NULL;
+    }
+
+    rift_regex_tokenizer_t *tokenizer =
+        (rift_regex_tokenizer_t *)malloc(sizeof(rift_regex_tokenizer_t));
+    if (!tokenizer) {
+        return NULL;
+    }
+
+    tokenizer->input = input;
+    tokenizer->input_length = strlen(input);
+    tokenizer->position = 0;
+    tokenizer->last_error[0] = '\0';
+    tokenizer->has_current_token = false;
+
+    // Initialize the current token
+    tokenizer->current_token.type = RIFT_REGEX_TOKEN_END;
+    tokenizer->current_token.value = NULL;
+    tokenizer->current_token.position = 0;
+
+    return tokenizer;
+}
+
+/**
+ * @brief Free resources associated with a tokenizer
+ *
+ * @param tokenizer The tokenizer to free
+ */
+void
+rift_regex_tokenizer_free(rift_regex_tokenizer_t *tokenizer)
+{
+    if (!tokenizer) {
+        return;
+    }
+
+    // Free the current token value if allocated
+    if (tokenizer->current_token.value) {
+        free(tokenizer->current_token.value);
+    }
+
+    free(tokenizer);
+}
+
+/**
+ * @brief Check if the current position is at the end of input
+ *
+ * @param tokenizer The tokenizer
+ * @return true if at the end of input, false otherwise
+ */
+bool
+rift_regex_tokenizer_is_at_end(const rift_regex_tokenizer_t *tokenizer)
+{
+    if (!tokenizer) {
+        return true;
+    }
+
+    return tokenizer->position >= tokenizer->input_length;
+}
+
+/**
+ * @brief Get the current character at the input position
+ *
+ * @param tokenizer The tokenizer
+ * @return The current character or '\0' if at the end
+ */
+char
+rift_regex_tokenizer_get_current_char(const rift_regex_tokenizer_t *tokenizer)
+{
+    if (!tokenizer || rift_regex_tokenizer_is_at_end(tokenizer)) {
+        return '\0';
+    }
+
+    return tokenizer->input[tokenizer->position];
+}
+
+/**
+ * @brief Get the character at the specified offset from current position
+ *
+ * @param tokenizer The tokenizer
+ * @param offset Offset from current position
+ * @return The character at the offset or '\0' if out of bounds
+ */
+static char
+peek_char_offset(const rift_regex_tokenizer_t *tokenizer, size_t offset)
+{
+    if (!tokenizer || tokenizer->position + offset >= tokenizer->input_length) {
+        return '\0';
+    }
+
+    return tokenizer->input[tokenizer->position + offset];
+}
+
+/**
+ * @brief Advance the position by one character
+ *
+ * @param tokenizer The tokenizer
+ * @return The character that was advanced past
+ */
+static char
+advance(rift_regex_tokenizer_t *tokenizer)
+{
+    if (rift_regex_tokenizer_is_at_end(tokenizer)) {
+        return '\0';
+    }
+
+    return tokenizer->input[tokenizer->position++];
+}
+
+/**
+ * @brief Scan a character class expression
+ *
+ * @param tokenizer The tokenizer
+ * @return A token representing the character class
+ */
+static rift_regex_token_t
+scan_character_class(rift_regex_tokenizer_t *tokenizer)
+{
+    rift_regex_token_t token;
+    token.type = RIFT_REGEX_TOKEN_CHAR_CLASS;
+    token.position = tokenizer->position - 1; // Account for the opening '['
+
+    // Skip the opening bracket
+    size_t start_pos = tokenizer->position;
+    bool escaped = false;
+    int bracket_depth = 1;
+
+    while (!rift_regex_tokenizer_is_at_end(tokenizer) && bracket_depth > 0) {
+        char c = advance(tokenizer);
+
+        if (escaped) {
+            escaped = false;
+        } else {
+            if (c == '\\') {
+                escaped = true;
+            } else if (c == '[') {
+                bracket_depth++;
+            } else if (c == ']') {
+                bracket_depth--;
+            }
+        }
+    }
+
+    if (bracket_depth > 0) {
+        // Unclosed character class
+        snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                 "Unclosed character class at position %zu", token.position);
+        token.type = RIFT_REGEX_TOKEN_ERROR;
+        token.value = NULL;
+        return token;
+    }
+
+    // Extract the character class content
+    size_t length = tokenizer->position - start_pos - 1; // Exclude the closing bracket
+    token.value = (char *)malloc(length + 1);
+    if (!token.value) {
+        snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH, "Memory allocation failed");
+        token.type = RIFT_REGEX_TOKEN_ERROR;
+        return token;
+    }
+
+    strncpy(token.value, tokenizer->input + start_pos, length);
+    token.value[length] = '\0';
+
+    return token;
+}
+
+/**
+ * @brief Scan an escape sequence
+ *
+ * @param tokenizer The tokenizer
+ * @return A token representing the escape sequence
+ */
+static rift_regex_token_t
+scan_escape_sequence(rift_regex_tokenizer_t *tokenizer)
+{
+    rift_regex_token_t token;
+    token.position = tokenizer->position - 1; // Account for the backslash
+
+    if (rift_regex_tokenizer_is_at_end(tokenizer)) {
+        // Backslash at end of input
+        snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                 "Trailing backslash at end of pattern");
+        token.type = RIFT_REGEX_TOKEN_ERROR;
+        token.value = NULL;
+        return token;
+    }
+
+    char c = advance(tokenizer);
+    token.value = (char *)malloc(2);
+    if (!token.value) {
+        snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH, "Memory allocation failed");
+        token.type = RIFT_REGEX_TOKEN_ERROR;
+        return token;
+    }
+
+    token.value[0] = c;
+    token.value[1] = '\0';
+
+    // Determine token type based on the escaped character
+    switch (c) {
+    case 'd':
+    case 'D':
+    case 'w':
+    case 'W':
+    case 's':
+    case 'S':
+    case 'h':
+    case 'H':
+    case 'v':
+    case 'V':
+        token.type = RIFT_REGEX_TOKEN_ESCAPE_SEQUENCE;
+        break;
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+        token.type = RIFT_REGEX_TOKEN_BACKREFERENCE;
+        break;
+    case 'b':
+        token.type = RIFT_REGEX_TOKEN_WORD_BOUNDARY;
+        break;
+    case 'B':
+        token.type = RIFT_REGEX_TOKEN_NOT_WORD_BOUNDARY;
+        break;
+    case 'A':
+        token.type = RIFT_REGEX_TOKEN_START_OF_INPUT;
+        break;
+    case 'Z':
+    case 'z':
+        token.type = RIFT_REGEX_TOKEN_END_OF_INPUT;
+        break;
+    case 'K':
+        token.type = RIFT_REGEX_TOKEN_BACKREF_RESET;
+        break;
+    case 'k':
+        // Named backreference - needs further parsing
+        token.type = RIFT_REGEX_TOKEN_NAMED_BACKREFERENCE;
+        break;
+    default:
+        // Escaped literal character
+        token.type = RIFT_REGEX_TOKEN_LITERAL;
+    }
+
+    return token;
+}
+
+/**
+ * @brief Scan a group specifier
+ *
+ * @param tokenizer The tokenizer
+ * @return A token representing the group specifier
+ */
+static rift_regex_token_t
+scan_group_specifier(rift_regex_tokenizer_t *tokenizer)
+{
+    rift_regex_token_t token;
+    token.position = tokenizer->position - 2; // Account for "(?""
+
+    if (rift_regex_tokenizer_is_at_end(tokenizer)) {
+        snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                 "Incomplete group specifier at position %zu", token.position);
+        token.type = RIFT_REGEX_TOKEN_ERROR;
+        token.value = NULL;
+        return token;
+    }
+
+    char c = advance(tokenizer);
+
+    switch (c) {
+    case ':':
+        token.type = RIFT_REGEX_TOKEN_NON_CAPTURING;
+        token.value = NULL;
+        return token;
+    case '=':
+        token.type = RIFT_REGEX_TOKEN_LOOKAHEAD;
+        token.value = NULL;
+        return token;
+    case '!':
+        token.type = RIFT_REGEX_TOKEN_NEGATIVE_LOOKAHEAD;
+        token.value = NULL;
+        return token;
+    case '<':
+        // Could be lookbehind or named group
+        if (rift_regex_tokenizer_is_at_end(tokenizer)) {
+            snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                     "Incomplete group specifier at position %zu", token.position);
+            token.type = RIFT_REGEX_TOKEN_ERROR;
+            token.value = NULL;
+            return token;
+        }
+
+        c = advance(tokenizer);
+        if (c == '=') {
+            token.type = RIFT_REGEX_TOKEN_LOOKBEHIND;
+            token.value = NULL;
+            return token;
+        } else if (c == '!') {
+            token.type = RIFT_REGEX_TOKEN_NEGATIVE_LOOKBEHIND;
+            token.value = NULL;
+            return token;
+        } else {
+            // Named capturing group - read the name
+            token.type = RIFT_REGEX_TOKEN_NAMED_GROUP;
+
+            // Extract the group name until '>'
+            size_t start_pos = tokenizer->position - 1; // Include the first name character
+            size_t name_length = 0;
+
+            while (!rift_regex_tokenizer_is_at_end(tokenizer)) {
+                c = advance(tokenizer);
+                name_length++;
+                if (c == '>') {
+                    name_length--; // Don't include the '>'
+                    break;
+                }
+            }
+
+            if (c != '>') {
+                snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                         "Unclosed named group at position %zu", token.position);
+                token.type = RIFT_REGEX_TOKEN_ERROR;
+                token.value = NULL;
+                return token;
+            }
+
+            token.value = (char *)malloc(name_length + 1);
+            if (!token.value) {
+                snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                         "Memory allocation failed");
+                token.type = RIFT_REGEX_TOKEN_ERROR;
+                return token;
+            }
+
+            strncpy(token.value, tokenizer->input + start_pos, name_length);
+            token.value[name_length] = '\0';
+
+            return token;
+        }
+        break;
+    case '>':
+        token.type = RIFT_REGEX_TOKEN_ATOMIC_GROUP;
+        token.value = NULL;
+        return token;
+    case '#':
+        // Comment - skip until closing parenthesis
+        token.type = RIFT_REGEX_TOKEN_COMMENT;
+
+        size_t start_pos = tokenizer->position;
+        size_t comment_length = 0;
+
+        while (!rift_regex_tokenizer_is_at_end(tokenizer)) {
+            c = advance(tokenizer);
+            comment_length++;
+            if (c == ')') {
+                comment_length--; // Don't include the ')'
+                break;
+            }
+        }
+
+        if (c != ')') {
+            snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                     "Unclosed comment at position %zu", token.position);
+            token.type = RIFT_REGEX_TOKEN_ERROR;
+            token.value = NULL;
+            return token;
+        }
+
+        token.value = (char *)malloc(comment_length + 1);
+        if (!token.value) {
+            snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                     "Memory allocation failed");
+            token.type = RIFT_REGEX_TOKEN_ERROR;
+            return token;
+        }
+
+        strncpy(token.value, tokenizer->input + start_pos, comment_length);
+        token.value[comment_length] = '\0';
+
+        return token;
+    default:
+        // Option setting
+        if (strchr("imsxUJ", c)) {
+            token.type = RIFT_REGEX_TOKEN_OPTION;
+
+            // Read all option characters until ')'
+            size_t start_pos = tokenizer->position - 1; // Include the first option character
+            size_t option_length = 1;                   // Start with 1 for the first character
+
+            while (!rift_regex_tokenizer_is_at_end(tokenizer)) {
+                char next = peek_char_offset(tokenizer, 0);
+                if (next == ')') {
+                    advance(tokenizer); // Consume the ')'
+                    break;
+                } else if (strchr("imsxUJ-", next)) {
+                    advance(tokenizer);
+                    option_length++;
+                } else {
+                    snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                             "Invalid option character '%c' at position %zu", next,
+                             tokenizer->position);
+                    token.type = RIFT_REGEX_TOKEN_ERROR;
+                    token.value = NULL;
+                    return token;
+                }
+            }
+
+            token.value = (char *)malloc(option_length + 1);
+            if (!token.value) {
+                snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                         "Memory allocation failed");
+                token.type = RIFT_REGEX_TOKEN_ERROR;
+                return token;
+            }
+
+            strncpy(token.value, tokenizer->input + start_pos, option_length);
+            token.value[option_length] = '\0';
+
+            return token;
+        } else {
+            snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                     "Invalid group specifier '%c' at position %zu", c, tokenizer->position - 1);
+            token.type = RIFT_REGEX_TOKEN_ERROR;
+            token.value = NULL;
+            return token;
+        }
+    }
+}
+
+/**
+ * @brief Scan the next token from the input
+ *
+ * @param tokenizer The tokenizer
+ * @return The next token
+ */
+static rift_regex_token_t
+scan_token(rift_regex_tokenizer_t *tokenizer)
+{
+    if (rift_regex_tokenizer_is_at_end(tokenizer)) {
+        rift_regex_token_t token;
+        token.type = RIFT_REGEX_TOKEN_END;
+        token.value = NULL;
+        token.position = tokenizer->position;
+        return token;
+    }
+
+    char c = advance(tokenizer);
+    rift_regex_token_t token;
+    token.position = tokenizer->position - 1;
+    token.value = NULL;
+
+    switch (c) {
+    case '.':
+        token.type = RIFT_REGEX_TOKEN_DOT;
+        break;
+    case '^':
+        token.type = RIFT_REGEX_TOKEN_CARET;
+        break;
+    case '$':
+        token.type = RIFT_REGEX_TOKEN_DOLLAR;
+        break;
+    case '*':
+        token.type = RIFT_REGEX_TOKEN_STAR;
+        break;
+    case '+':
+        token.type = RIFT_REGEX_TOKEN_PLUS;
+        break;
+    case '?':
+        token.type = RIFT_REGEX_TOKEN_QUESTION;
+        break;
+    case '(':
+        // Check for group specifier
+        if (!rift_regex_tokenizer_is_at_end(tokenizer) &&
+            rift_regex_tokenizer_get_current_char(tokenizer) == '?') {
+            advance(tokenizer); // Consume the '?'
+            return scan_group_specifier(tokenizer);
+        }
+        token.type = RIFT_REGEX_TOKEN_LPAREN;
+        break;
+    case ')':
+        token.type = RIFT_REGEX_TOKEN_RPAREN;
+        break;
+    case '[':
+        return scan_character_class(tokenizer);
+    case ']':
+        token.type = RIFT_REGEX_TOKEN_RBRACKET;
+        break;
+    case '{':
+        token.type = RIFT_REGEX_TOKEN_LBRACE;
+        break;
+    case '}':
+        token.type = RIFT_REGEX_TOKEN_RBRACE;
+        break;
+    case '|':
+        token.type = RIFT_REGEX_TOKEN_PIPE;
+        break;
+    case ',':
+        token.type = RIFT_REGEX_TOKEN_COMMA;
+        break;
+    case '\\':
+        return scan_escape_sequence(tokenizer);
+    default:
+        // Literal character
+        token.type = RIFT_REGEX_TOKEN_LITERAL;
+        token.value = (char *)malloc(2);
+        if (!token.value) {
+            snprintf(tokenizer->last_error, RIFT_REGEX_MAX_ERROR_LENGTH,
+                     "Memory allocation failed");
+            token.type = RIFT_REGEX_TOKEN_ERROR;
+            return token;
+        }
+        token.value[0] = c;
+        token.value[1] = '\0';
+    }
+
+    return token;
+}
+
+/**
+ * @brief Get the next token from the input
+ *
+ * @param tokenizer The tokenizer
+ * @return The next token
+ */
+rift_regex_token_t
+rift_regex_tokenizer_next_token(rift_regex_tokenizer_t *tokenizer)
+{
+    if (!tokenizer) {
+        rift_regex_token_t token;
+        token.type = RIFT_REGEX_TOKEN_ERROR;
+        token.value = NULL;
+        token.position = 0;
+        return token;
+    }
+
+    // Free the current token value if allocated
+    if (tokenizer->has_current_token && tokenizer->current_token.value) {
+        free(tokenizer->current_token.value);
+        tokenizer->current_token.value = NULL;
+    }
+
+    // Scan the next token
+    tokenizer->current_token = scan_token(tokenizer);
+    tokenizer->has_current_token = true;
+
+    return tokenizer->current_token;
+}
+
+/**
+ * @brief Peek at the next token without consuming it
+ *
+ * @param tokenizer The tokenizer
+ * @return The next token
+ */
+rift_regex_token_t
+rift_regex_tokenizer_peek_token(rift_regex_tokenizer_t *tokenizer)
+{
+    if (!tokenizer) {
+        rift_regex_token_t token;
+        token.type = RIFT_REGEX_TOKEN_ERROR;
+        token.value = NULL;
+        token.position = 0;
+        return token;
+    }
+
+    // If we already have a current token, return it
+    if (tokenizer->has_current_token) {
+        return tokenizer->current_token;
+    }
+
+    // Otherwise, scan the next token and save it
+    size_t saved_position = tokenizer->position;
+    rift_regex_token_t token = scan_token(tokenizer);
+
+    // Restore the position
+    tokenizer->position = saved_position;
+
+    // Since we're not storing this token, free any allocated value
+    if (token.value) {
+        free(token.value);
+        token.value = NULL;
+    }
+
+    return token;
+}
+
+/**
+ * @brief Get the current position in the input string
+ *
+ * @param tokenizer The tokenizer
+ * @return The current position
+ */
+size_t
+rift_regex_tokenizer_get_position(const rift_regex_tokenizer_t *tokenizer)
+{
+    if (!tokenizer) {
+        return 0;
+    }
+
+    return tokenizer->position;
+}
+
+/**
+ * @brief Get the last error message
+ *
+ * @param tokenizer The tokenizer
+ * @return The last error message or NULL if no error occurred
+ */
+const char *
+rift_regex_tokenizer_get_error(const rift_regex_tokenizer_t *tokenizer)
+{
+    if (!tokenizer || tokenizer->last_error[0] == '\0') {
+        return NULL;
+    }
+
+    return tokenizer->last_error;
+}
+
+/**
+ * @brief Reset the tokenizer to the beginning of the input
+ *
+ * @param tokenizer The tokenizer
+ */
+void
+rift_regex_tokenizer_reset(rift_regex_tokenizer_t *tokenizer)
+{
+    if (!tokenizer) {
+        return;
+    }
+
+    tokenizer->position = 0;
+    tokenizer->last_error[0] = '\0';
+
+    // Free the current token value if allocated
+    if (tokenizer->has_current_token && tokenizer->current_token.value) {
+        free(tokenizer->current_token.value);
+        tokenizer->current_token.value = NULL;
+    }
+
+    tokenizer->has_current_token = false;
+}
+
+/**
+ * @brief Free resources associated with a token
+ *
+ * @param token The token to free
+ */
+void
+rift_regex_token_free(rift_regex_token_t *token)
+{
+    if (!token) {
+        return;
+    }
+
+    if (token->value) {
+        free(token->value);
+        token->value = NULL;
+    }
+}
+
+/**
+ * @brief Get the name of a token type
+ *
+ * @param type The token type
+ * @return The name of the token type
+ */
+const char *
+rift_regex_token_type_name(rift_regex_token_type_t type)
+{
+    switch (type) {
+    case RIFT_REGEX_TOKEN_LITERAL:
+        return "LITERAL";
+    case RIFT_REGEX_TOKEN_DOT:
+        return "DOT";
+    case RIFT_REGEX_TOKEN_CARET:
+        return "CARET";
+    case RIFT_REGEX_TOKEN_DOLLAR:
+        return "DOLLAR";
+    case RIFT_REGEX_TOKEN_STAR:
+        return "STAR";
+    case RIFT_REGEX_TOKEN_PLUS:
+        return "PLUS";
+    case RIFT_REGEX_TOKEN_QUESTION:
+        return "QUESTION";
+    case RIFT_REGEX_TOKEN_LPAREN:
+        return "LPAREN";
+    case RIFT_REGEX_TOKEN_RPAREN:
+        return "RPAREN";
+    case RIFT_REGEX_TOKEN_LBRACKET:
+        return "LBRACKET";
+    case RIFT_REGEX_TOKEN_RBRACKET:
+        return "RBRACKET";
+    case RIFT_REGEX_TOKEN_PIPE:
+        return "PIPE";
+    case RIFT_REGEX_TOKEN_LBRACE:
+        return "LBRACE";
+    case RIFT_REGEX_TOKEN_RBRACE:
+        return "RBRACE";
+    case RIFT_REGEX_TOKEN_COMMA:
+        return "COMMA";
+    case RIFT_REGEX_TOKEN_BACKSLASH:
+        return "BACKSLASH";
+    case RIFT_REGEX_TOKEN_CHAR_CLASS:
+        return "CHAR_CLASS";
+    case RIFT_REGEX_TOKEN_GROUP_START:
+        return "GROUP_START";
+    case RIFT_REGEX_TOKEN_GROUP_END:
+        return "GROUP_END";
+    case RIFT_REGEX_TOKEN_NAMED_GROUP:
+        return "NAMED_GROUP";
+    case RIFT_REGEX_TOKEN_NON_CAPTURING:
+        return "NON_CAPTURING";
+    case RIFT_REGEX_TOKEN_LOOKAHEAD:
+        return "LOOKAHEAD";
+    case RIFT_REGEX_TOKEN_NEGATIVE_LOOKAHEAD:
+        return "NEGATIVE_LOOKAHEAD";
+    case RIFT_REGEX_TOKEN_LOOKBEHIND:
+        return "LOOKBEHIND";
+    case RIFT_REGEX_TOKEN_NEGATIVE_LOOKBEHIND:
+        return "NEGATIVE_LOOKBEHIND";
+    case RIFT_REGEX_TOKEN_ATOMIC_GROUP:
+        return "ATOMIC_GROUP";
+    case RIFT_REGEX_TOKEN_COMMENT:
+        return "COMMENT";
+    case RIFT_REGEX_TOKEN_OPTION:
+        return "OPTION";
+    case RIFT_REGEX_TOKEN_BACKREFERENCE:
+        return "BACKREFERENCE";
+    case RIFT_REGEX_TOKEN_NAMED_BACKREFERENCE:
+        return "NAMED_BACKREFERENCE";
+    case RIFT_REGEX_TOKEN_ESCAPE_SEQUENCE:
+        return "ESCAPE_SEQUENCE";
+    case RIFT_REGEX_TOKEN_WORD_BOUNDARY:
+        return "WORD_BOUNDARY";
+    case RIFT_REGEX_TOKEN_NOT_WORD_BOUNDARY:
+        return "NOT_WORD_BOUNDARY";
+    case RIFT_REGEX_TOKEN_START_OF_INPUT:
+        return "START_OF_INPUT";
+    case RIFT_REGEX_TOKEN_END_OF_INPUT:
+        return "END_OF_INPUT";
+    case RIFT_REGEX_TOKEN_BACKREF_RESET:
+        return "BACKREF_RESET";
+    case RIFT_REGEX_TOKEN_ERROR:
+        return "ERROR";
+    case RIFT_REGEX_TOKEN_END:
+        return "END";
+    default:
+        return "UNKNOWN";
+    }
+}

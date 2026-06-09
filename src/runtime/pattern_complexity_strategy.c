@@ -1,0 +1,123 @@
+
+#include "core/runtime/pattern_complexity_strategy.h
+#include "bailout_strategy.h"
+runtime/pattern_complexity_strategy.h
+tmp/librift_analysis/librift-4933472-W/src/runtime/pattern_complexity_strategy.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/runtime/pattern_complexity_strategy.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/runtime/pattern_complexity_strategy.h"
+core/runtime/pattern_complexity_strategy.h"
+static bool
+pattern_complexity_should_activate(const rift_bailout_strategy_t *strategy,
+                                   const rift_backtracking_state_t *state)
+{
+
+    if (!strategy || !state || !strategy->strategy_data) {
+        return false;
+    }
+
+    rift_pattern_complexity_data_t *data =
+        (rift_pattern_complexity_data_t *)strategy->strategy_data;
+
+    // Calculate complexity score
+    float complexity_score = (data->state_count * data->branching_factor) +
+                             (data->repetition_count * data->repetition_count);
+
+    // Adjust for R'' syntax if needed
+    if (state->is_r_syntax) {
+        complexity_score *= 1.5f; // R'' syntax can be more complex
+    }
+
+    // Factor in current depth - more likely to bail as we go deeper
+    float depth_factor = (float)state->current_depth / 100.0f;
+    complexity_score *= (1.0f + depth_factor);
+
+    // Compare against threshold
+    return complexity_score > data->complexity_threshold;
+}
+
+static int
+pattern_complexity_execute(rift_bailout_strategy_t *strategy,
+                           const rift_backtracking_state_t *state)
+{
+
+    // This strategy simply prevents further backtracking
+    // Return code 1 indicates bailout was executed
+    return 1;
+}
+
+static int
+pattern_complexity_get_priority(const rift_bailout_strategy_t *strategy)
+{
+
+    // This strategy has medium priority
+    return 50;
+}
+
+rift_bailout_strategy_t *
+rift_bailout_pattern_complexity_strategy_create(uint32_t state_count, float branching_factor,
+                                                uint32_t repetition_count,
+                                                float complexity_threshold)
+{
+
+    rift_pattern_complexity_data_t *data =
+        (rift_pattern_complexity_data_t *)malloc(sizeof(rift_pattern_complexity_data_t));
+
+    if (!data) {
+        return NULL;
+    }
+
+    data->state_count = state_count;
+    data->branching_factor = branching_factor;
+    data->repetition_count = repetition_count;
+    data->complexity_threshold = complexity_threshold;
+
+    rift_bailout_strategy_t *strategy = rift_bailout_strategy_create(
+        "Pattern Complexity Strategy", pattern_complexity_should_activate,
+        pattern_complexity_execute, pattern_complexity_get_priority, data);
+
+    if (!strategy) {
+        free(data);
+        return NULL;
+    }
+
+    return strategy;
+}
+
+float
+rift_bailout_calculate_pattern_complexity(const rift_regex_pattern_t *pattern, bool is_r_syntax)
+{
+
+    if (!pattern) {
+        return 0.0f;
+    }
+
+    // Extract automaton from pattern
+    rift_regex_automaton_t *automaton = rift_regex_pattern_get_automaton(pattern);
+    if (!automaton) {
+        return 0.0f;
+    }
+
+    // Get automaton statistics
+    uint32_t state_count = rift_automaton_get_state_count(automaton);
+    uint32_t transition_count = rift_automaton_get_transition_count(automaton);
+
+    // Calculate branching factor
+    float branching_factor = state_count > 0 ? (float)transition_count / (float)state_count : 0.0f;
+
+    // Count repetition nodes from AST
+    uint32_t repetition_count = 0;
+    const rift_regex_ast_t *ast = rift_regex_pattern_get_ast(pattern);
+    if (ast) {
+        repetition_count = rift_regex_ast_count_nodes_of_type(ast, RIFT_REGEX_AST_NODE_QUANTIFIER);
+    }
+
+    // Calculate base complexity
+    float complexity = (state_count * branching_factor) + (repetition_count * repetition_count);
+
+    // Apply R'' syntax factor if applicable
+    if (is_r_syntax) {
+        complexity *= 1.5f;
+    }
+
+    return complexity;
+}

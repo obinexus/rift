@@ -1,0 +1,359 @@
+/**
+ * @file bytecode.c
+ * @brief Core implementation of the LibRift bytecode module
+ *
+ * This file provides the core functionality for bytecode generation,
+ * manipulation, and cross-platform support.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/bytecode/bytecode.h
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "core/automaton/automaton.h"
+#include "core/bytecode/bytecode_system.h"
+#include "core/engine/pattern.h"
+#include "core/errors/error.h"
+#include "core/errors/regex_error.h"
+#include "core/memory/memory.h"
+
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/bytecode/bytecode.h
+tmp/librift_analysis/librift-4933472-W/backup/v4_missing/bytecode.h
+tmp/librift_analysis/librift-4933472-W/src/core/bytecode/bytecode.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/bytecode/bytecode.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v4_missing/bytecode.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/bytecode/bytecode.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/bytecode/bytecode.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v4_missing/bytecode.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/bytecode/bytecode.h"
+
+
+/* Define missing error code */
+#ifndef RIFT_REGEX_ERROR_INVALID_BYTECODE
+#define RIFT_REGEX_ERROR_INVALID_BYTECODE (RIFT_REGEX_ERROR_INVALID_PARAMETER + 1)
+#endif
+
+/* Global bytecode system state */
+static struct {
+    bool initialized;
+    rift_endian_marker_t system_endianness;
+} g_bytecode_system = {0};
+
+/**
+ * @brief Initialize the bytecode system
+ *
+ * @return bool True if successful, false otherwise
+ */
+bool
+rift_bytecode_system_initialize(void)
+{
+    if (g_bytecode_system.initialized) {
+        return true;
+    }
+
+    /* Detect system endianness */
+    g_bytecode_system.system_endianness = rift_detect_endianness();
+
+    /* Any additional initialization can be added here */
+    g_bytecode_system.initialized = true;
+
+    return true;
+}
+
+/**
+ * @brief Detect system endianness
+ *
+ * @return rift_endian_marker_t The detected endianness
+ */
+rift_endian_marker_t
+rift_detect_endianness(void)
+{
+    union {
+        uint32_t value;
+        uint8_t bytes[4];
+    } test = {0x01020304};
+
+    return (test.bytes[0] == 0x04) ? RIFT_ENDIAN_LITTLE : RIFT_ENDIAN_BIG;
+}
+
+/**
+ * @brief Swap endianness of a 32-bit value if needed
+ *
+ * @param value The value to swap
+ * @param source_endian The source endianness
+ * @param target_endian The target endianness
+ * @return uint32_t The endian-corrected value
+ */
+uint32_t
+rift_swap_endian32(uint32_t value, rift_endian_marker_t source_endian,
+                   rift_endian_marker_t target_endian)
+{
+    if (source_endian == target_endian) {
+        return value;
+    }
+
+    return ((value & 0xFF) << 24) | ((value & 0xFF00) << 8) | ((value & 0xFF0000) >> 8) |
+           ((value & 0xFF000000) >> 24);
+}
+
+/**
+ * @brief Create bytecode program with proper platform adjustments
+ *
+ * @param pattern The regex pattern
+ * @param flags Compilation flags
+ * @param error Error information (can be NULL)
+ * @return rift_bytecode_program_t* The bytecode program or NULL on failure
+ */
+rift_bytecode_program_t *
+rift_create_platform_bytecode(const char *pattern, uint32_t flags, rift_regex_error_t *error)
+{
+    /* Ensure bytecode system is initialized */
+    if (!g_bytecode_system.initialized) {
+        rift_bytecode_system_initialize();
+    }
+
+    /* Compile the pattern to bytecode */
+    rift_bytecode_program_t *program = rift_bytecode_compile(pattern, flags, error);
+
+    if (!program) {
+        return NULL;
+    }
+
+    /* Additional platform-specific optimizations or adjustments can be added here */
+
+    return program;
+}
+
+/**
+ * @brief Convert a compiled bytecode program to a regex pattern
+ *
+ * This function allows reconstructing a pattern from its bytecode representation
+ *
+ * @param program Bytecode program to convert
+ * @param error Error information (can be NULL)
+ * @return rift_regex_pattern_t* Reconstructed pattern or NULL on failure
+ */
+rift_regex_pattern_t *
+rift_regex_pattern_from_bytecode(rift_bytecode_program_t *program, rift_regex_error_t *error)
+{
+    if (!program || !program->original_pattern) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+            strncpy(error->message, "Invalid bytecode program or missing original pattern",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return NULL;
+    }
+
+    /* Recompile the original pattern */
+    return rift_regex_compile(program->original_pattern, program->flags, error);
+}
+
+/**
+ * @brief Detailed error handling for bytecode operations
+ *
+ * @param error Error structure to populate
+ * @param code Error code
+ * @param message Error message
+ */
+static void
+set_bytecode_error(rift_regex_error_t *error, rift_regex_error_code_t code, const char *message)
+{
+    if (error) {
+        error->code = code;
+        strncpy(error->message, message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+    }
+}
+
+/**
+ * @brief Validate a bytecode program
+ *
+ * @param program Bytecode program to validate
+ * @param error Error information (can be NULL)
+ * @return bool True if valid, false otherwise
+ */
+bool
+rift_bytecode_validate(rift_bytecode_program_t *program, rift_regex_error_t *error)
+{
+    if (!program) {
+        set_bytecode_error(error, RIFT_REGEX_ERROR_INVALID_PARAMETER, "Null bytecode program");
+        return false;
+    }
+
+    /* Validate program fields */
+    if (!program->instructions || program->instruction_count == 0) {
+        set_bytecode_error(error, RIFT_REGEX_ERROR_INVALID_BYTECODE, "Empty bytecode program");
+        return false;
+    }
+
+    /* Validate instruction range */
+    for (uint32_t i = 0; i < program->instruction_count; i++) {
+        rift_bytecode_instruction_t *instr = &program->instructions[i];
+
+        /* Validate jump and split targets */
+        if (instr->opcode == RIFT_OP_JUMP || instr->opcode == RIFT_OP_SPLIT) {
+            if (instr->operand.jump_target >= program->instruction_count) {
+                set_bytecode_error(error, RIFT_REGEX_ERROR_INVALID_BYTECODE, "Invalid jump target");
+                return false;
+            }
+        }
+
+        /* Validate capture group indices */
+        if ((instr->opcode == RIFT_OP_SAVE_START || instr->opcode == RIFT_OP_SAVE_END ||
+             instr->opcode == RIFT_OP_BACKREF) &&
+            instr->operand.group_index >= program->group_count) {
+            set_bytecode_error(error, RIFT_REGEX_ERROR_INVALID_BYTECODE,
+                               "Invalid capture group index");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Optimize a bytecode program
+ *
+ * @param program Bytecode program to optimize
+ * @param error Error information (can be NULL)
+ * @return bool True if optimization was successful, false otherwise
+ */
+bool
+rift_bytecode_optimize(rift_bytecode_program_t *program, rift_regex_error_t *error)
+{
+    if (!program) {
+        set_bytecode_error(error, RIFT_REGEX_ERROR_INVALID_PARAMETER, "Null bytecode program");
+        return false;
+    }
+
+    /* Validate the program before optimization */
+    if (!rift_bytecode_validate(program, error)) {
+        return false;
+    }
+
+    /*
+     * Optimization strategies:
+     * 1. Remove redundant NOP instructions
+     * 2. Eliminate unnecessary jumps
+     * 3. Merge consecutive character match instructions
+     * 4. Reorder instructions for better cache locality
+     */
+
+    /* Remove NOP instructions */
+    uint32_t write_idx = 0;
+    for (uint32_t read_idx = 0; read_idx < program->instruction_count; read_idx++) {
+        if (program->instructions[read_idx].opcode != RIFT_OP_NOP) {
+            if (write_idx != read_idx) {
+                program->instructions[write_idx] = program->instructions[read_idx];
+            }
+            write_idx++;
+        }
+    }
+    program->instruction_count = write_idx;
+
+    /*
+     * Additional optimizations would be more complex and context-dependent.
+     * These might include:
+     * - Constant folding
+     * - Dead code elimination
+     * - Instruction reordering
+     */
+
+    return true;
+}
+
+/**
+ * @brief Generate debug information for a bytecode program
+ *
+ * @param program Bytecode program
+ * @param output Output file or NULL to print to stdout
+ * @return bool True if debug info generated successfully
+ */
+bool
+rift_bytecode_debug_info(rift_bytecode_program_t *program, FILE *output)
+{
+    if (!program) {
+        return false;
+    }
+
+    FILE *dest = output ? output : stdout;
+
+    /* Print program metadata */
+    fprintf(dest, "Bytecode Program Debug Information\n");
+    fprintf(dest, "==================================\n");
+    fprintf(dest, "Original Pattern: %s\n",
+            program->original_pattern ? program->original_pattern : "N/A");
+    fprintf(dest, "Instruction Count: %u\n", program->instruction_count);
+    fprintf(dest, "Capacity: %u\n", program->capacity);
+    fprintf(dest, "Group Count: %u\n", program->group_count);
+    fprintf(dest, "Compilation Flags: 0x%X\n", program->flags);
+    fprintf(dest, "\nInstructions:\n");
+
+    /* Print detailed instruction information */
+    for (uint32_t i = 0; i < program->instruction_count; i++) {
+        rift_bytecode_instruction_t *instr = &program->instructions[i];
+        fprintf(dest, "[%u] ", i);
+
+        switch (instr->opcode) {
+        case RIFT_OP_NOP:
+            fprintf(dest, "NOP\n");
+            break;
+        case RIFT_OP_MATCH_CHAR:
+            fprintf(dest, "MATCH_CHAR '%c'\n", instr->operand.character);
+            break;
+        case RIFT_OP_MATCH_CLASS:
+            fprintf(dest, "MATCH_CLASS (len: %u)\n", instr->operand.char_class.pattern_length);
+            break;
+        case RIFT_OP_JUMP:
+            fprintf(dest, "JUMP to %u\n", instr->operand.jump_target);
+            break;
+        case RIFT_OP_SPLIT:
+            fprintf(dest, "SPLIT to %u\n", instr->operand.jump_target);
+            break;
+        case RIFT_OP_SAVE_START:
+            fprintf(dest, "SAVE_START group %u\n", instr->operand.group_index);
+            break;
+        case RIFT_OP_SAVE_END:
+            fprintf(dest, "SAVE_END group %u\n", instr->operand.group_index);
+            break;
+        case RIFT_OP_MATCH_ANY:
+            fprintf(dest, "MATCH_ANY\n");
+            break;
+        case RIFT_OP_ACCEPT:
+            fprintf(dest, "ACCEPT\n");
+            break;
+        case RIFT_OP_FAIL:
+            fprintf(dest, "FAIL\n");
+            break;
+        case RIFT_OP_REPEAT_START:
+            fprintf(dest, "REPEAT_START (min: %u, max: %u, greedy: %s)\n",
+                    instr->operand.repeat.min, instr->operand.repeat.max,
+                    instr->operand.repeat.greedy ? "true" : "false");
+            break;
+        case RIFT_OP_REPEAT_END:
+            fprintf(dest, "REPEAT_END\n");
+            break;
+        case RIFT_OP_BOUNDARY:
+            fprintf(dest, "BOUNDARY\n");
+            break;
+        case RIFT_OP_BACKREF:
+            fprintf(dest, "BACKREF group %u\n", instr->operand.group_index);
+            break;
+        case RIFT_OP_LOOKAHEAD:
+            fprintf(dest, "LOOKAHEAD\n");
+            break;
+        case RIFT_OP_NEG_LOOKAHEAD:
+            fprintf(dest, "NEG_LOOKAHEAD\n");
+            break;
+        default:
+            fprintf(dest, "UNKNOWN OPCODE %u\n", instr->opcode);
+            break;
+        }
+    }
+
+    return true;
+}

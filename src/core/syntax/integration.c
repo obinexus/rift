@@ -1,0 +1,578 @@
+/**
+ * @file integration.c
+ * @brief Integration layer for the LibRift regex syntax components
+ *
+ * This file implements the coordination between the lexer and parser components
+ * of the LibRift regex engine, providing a unified interface for pattern
+ * compilation and syntax recognition.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/syntax/integration.h
+#include "core/engine/pattern.h"
+#include "librift/syntax/integration.h"
+/**
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/syntax/integration.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/syntax/integration.h
+tmp/librift_analysis/librift-4933472-W/src/core/syntax/integration.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/syntax/integration.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/syntax/integration.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/syntax/integration.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/syntax/integration.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/syntax/integration.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/syntax/integration.h"
+ * @brief Create a new regex syntax processing context
+ *
+ * @param flags Compilation flags
+ * @return A new context or NULL on failure
+ */
+rift_regex_syntax_context_t *
+rift_regex_syntax_context_create(rift_regex_flags_t flags)
+{
+    rift_regex_syntax_context_t *context =
+        (rift_regex_syntax_context_t *)malloc(sizeof(rift_regex_syntax_context_t));
+    if (!context) {
+        return NULL;
+    }
+
+    // Initialize context
+    context->lexer = NULL;
+    context->parser = NULL;
+    context->flags = flags;
+    context->error.code = RIFT_REGEX_ERROR_NONE;
+    context->error.position = 0;
+    context->error_message[0] = '\0';
+    context->owns_lexer = false;
+    context->owns_parser = false;
+
+    // Check if LibRift syntax is enabled in the flags
+    bool rift_syntax_enabled = (flags & RIFT_REGEX_FLAG_RIFT_SYNTAX) != 0;
+
+    // Create parser
+    context->parser = rift_regex_parser_create(flags, rift_syntax_enabled);
+    if (!context->parser) {
+        free(context);
+        return NULL;
+    }
+    context->owns_parser = true;
+
+    return context;
+}
+/ fix
+    /**
+     * @brief Free resources associated with a syntax context
+     *
+     * @param context The context to free
+     */
+    void
+    rift_regex_syntax_context_free(rift_regex_syntax_context_t *context)
+{
+    if (!context) {
+        return;
+    }
+
+    // Free lexer if owned
+    if (context->lexer && context->owns_lexer) {
+        rift_regex_syntax_lexer_free(context->lexer);
+    }
+
+    // Free parser if owned
+    if (context->parser && context->owns_parser) {
+        rift_regex_parser_free(context->parser);
+    }
+
+    // Free context
+    free(context);
+}
+
+/**
+ * @brief Set an error in the syntax context
+ *
+ * @param context The syntax context
+ * @param error Error code
+ * @param format Format string for the error message
+ * @param ... Additional arguments for the format string
+ */
+static void
+set_error(rift_regex_syntax_context_t *context, int error_code, const char *format, ...)
+{
+    if (!context) {
+        return;
+    }
+
+    context->error.code = error_code;
+    context->error.position = 0;
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(context->error_message, RIFT_REGEX_MAX_ERROR_LENGTH, format, args);
+    va_end(args);
+}
+
+/**
+ * @brief Check if a pattern uses the LibRift r'' syntax
+ *
+ * @param pattern The pattern string
+ * @return true if the pattern uses LibRift syntax, false otherwise
+ */
+bool
+rift_regex_syntax_is_rift_syntax(const char *pattern)
+{
+    if (!pattern) {
+        return false;
+    }
+
+    return rift_regex_is_rift_syntax(pattern);
+}
+
+/**
+ * @brief Compile a regex pattern into an AST
+ *
+ * @param context The syntax context
+ * @param pattern The pattern string
+ * @return The AST for the pattern or NULL on failure
+ */
+rift_regex_ast_t *
+rift_regex_syntax_compile(rift_regex_syntax_context_t *context, const char *pattern)
+{
+    if (!context || !pattern) {
+        if (context) {
+            set_error(context, RIFT_REGEX_ERROR_INVALID_PARAMETER, "Invalid parameters");
+        }
+        return NULL;
+    }
+
+    // Reset error state
+    context->error.code = RIFT_REGEX_ERROR_NONE;
+    context->error.position = 0;
+    context->error_message[0] = '\0';
+
+    // Check if this is LibRift r'' syntax
+    bool is_rift_syntax = rift_regex_syntax_is_rift_syntax(pattern);
+
+    // If the pattern uses r'' syntax but the flag is not enabled, report an error
+    if (is_rift_syntax && !(context->flags & RIFT_REGEX_FLAG_RIFT_SYNTAX)) {
+        set_error(
+            context, RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE,
+            "LibRift r'' syntax detected but RIFT_REGEX_FLAG_RIFT_SYNTAX flag is not enabled");
+        return NULL;
+    }
+
+    // Create a new lexer for the pattern
+    rift_regex_syntax_lexer_t *lexer = rift_regex_syntax_lexer_create(pattern);
+    if (!lexer) {
+        set_error(context, RIFT_REGEX_ERROR_MEMORY_ALLOCATION, "Failed to create lexer");
+        return NULL;
+    }
+
+    // Store the lexer in the context
+    if (context->lexer && context->owns_lexer) {
+        rift_regex_syntax_lexer_free(context->lexer);
+    }
+    context->lexer = lexer;
+    context->owns_lexer = true;
+
+    // Parse the pattern
+    rift_regex_ast_t *ast = rift_regex_parser_parse(context->parser, pattern);
+
+    // Check for parser errors
+    if (!ast) {
+        // Copy error from parser to context
+        rift_regex_error_t parser_error = rift_regex_parser_get_error(context->parser);
+        const char *parser_error_message = rift_regex_parser_get_error_message(context->parser);
+
+        set_error(context, parser_error.code, "%s", parser_error_message);
+        return NULL;
+    }
+
+    return ast;
+}
+
+/**
+ * @brief Get the last error code from the syntax context
+ *
+ * @param context The syntax context
+ * @return The last error code
+ */
+rift_regex_error_t
+rift_regex_syntax_get_error(const rift_regex_syntax_context_t *context)
+{
+    if (!context) {
+        rift_regex_error_t error = {.code = RIFT_REGEX_ERROR_INVALID_PARAMETER, .position = 0};
+        return error;
+    }
+
+    return context->error;
+}
+
+/**
+ * @brief Get the last error message from the syntax context
+ *
+ * @param context The syntax context
+ * @return The last error message
+ */
+const char *
+rift_regex_syntax_get_error_message(const rift_regex_syntax_context_t *context)
+{
+    if (!context) {
+        return "Invalid context";
+    }
+
+    return context->error_message;
+}
+
+/**
+ * @brief Check if the syntax mode is LibRift r'' syntax
+ *
+ * @param context The syntax context
+ * @return true if in LibRift syntax mode, false otherwise
+ */
+bool
+rift_regex_syntax_is_rift_mode(const rift_regex_syntax_context_t *context)
+{
+    if (!context || !context->parser) {
+        return false;
+    }
+
+    return rift_regex_parser_is_rift_syntax(context->parser);
+}
+
+/**
+ * @brief Set compilation flags for the syntax context
+ *
+ * @param context The syntax context
+ * @param flags The new compilation flags
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_syntax_set_flags(rift_regex_syntax_context_t *context, rift_regex_flags_t flags)
+{
+    if (!context) {
+        return false;
+    }
+
+    context->flags = flags;
+
+    // Update LibRift syntax flag in parser
+    bool rift_syntax_enabled = (flags & RIFT_REGEX_FLAG_RIFT_SYNTAX) != 0;
+    if (context->parser) {
+        rift_regex_parser_set_rift_flag(context->parser, rift_syntax_enabled);
+    }
+
+    return true;
+}
+
+/**
+ * @brief Get the current compilation flags from the syntax context
+ *
+ * @param context The syntax context
+ * @return The current compilation flags
+ */
+rift_regex_flags_t
+rift_regex_syntax_get_flags(const rift_regex_syntax_context_t *context)
+{
+    if (!context) {
+        return RIFT_REGEX_FLAG_NONE;
+    }
+
+    return context->flags;
+}
+
+/**
+ * @brief Validate a regex pattern without fully compiling it
+ *
+ * This function checks if a pattern is syntactically valid without creating
+ * a full AST, which can be more efficient for simple validation.
+ *
+ * @param context The syntax context
+ * @param pattern The pattern string
+ * @return true if the pattern is valid, false otherwise
+ */
+bool
+rift_regex_syntax_validate(rift_regex_syntax_context_t *context, const char *pattern)
+{
+    if (!context || !pattern) {
+        if (context) {
+            set_error(context, RIFT_REGEX_ERROR_INVALID_PARAMETER, "Invalid parameters");
+        }
+        return false;
+    }
+
+    // Reset error state
+    context->error.code = RIFT_REGEX_ERROR_NONE;
+    context->error.position = 0;
+    context->error_message[0] = '\0';
+
+    // Check if this is LibRift r'' syntax
+    bool is_rift_syntax = rift_regex_syntax_is_rift_syntax(pattern);
+
+    // If the pattern uses r'' syntax but the flag is not enabled, report an error
+    if (is_rift_syntax && !(context->flags & RIFT_REGEX_FLAG_RIFT_SYNTAX)) {
+        set_error(
+            context, RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE,
+            "LibRift r'' syntax detected but RIFT_REGEX_FLAG_RIFT_SYNTAX flag is not enabled");
+        return false;
+    }
+
+    // Create a new lexer for the pattern
+    rift_regex_syntax_lexer_t *lexer = rift_regex_syntax_lexer_create(pattern);
+    if (!lexer) {
+        set_error(context, RIFT_REGEX_ERROR_MEMORY_ALLOCATION, "Failed to create lexer");
+        return false;
+    }
+
+    // Store the lexer in the context
+    if (context->lexer && context->owns_lexer) {
+        rift_regex_syntax_lexer_free(context->lexer);
+    }
+    context->lexer = lexer;
+    context->owns_lexer = true;
+
+    // Perform lightweight syntax validation by tokenizing the pattern
+    bool valid = true;
+    rift_regex_token_t token;
+
+    do {
+        token = rift_regex_syntax_lexer_next_token(lexer);
+
+        // Check for error tokens
+        if (token.type == RIFT_REGEX_TOKEN_ERROR) {
+            const char *lexer_error = rift_regex_syntax_lexer_get_error(lexer);
+            if (lexer_error) {
+                set_error(context, RIFT_REGEX_ERROR_SYNTAX, "Syntax error: %s", lexer_error);
+            } else {
+                set_error(context, RIFT_REGEX_ERROR_SYNTAX, "Syntax error in pattern");
+            }
+            valid = false;
+            break;
+        }
+
+    } while (token.type != RIFT_REGEX_TOKEN_END);
+
+    // Free token value if allocated
+    if (token.value) {
+        free(token.value);
+    }
+
+    return valid;
+}
+
+/**
+ * @brief Get diagnostic information about a pattern
+ *
+ * This function provides detailed information about the structure of a pattern,
+ * which can be useful for debugging and development.
+ *
+ * @param context The syntax context
+ * @param pattern The pattern string
+ * @param diagnostics Buffer to store diagnostic information
+ * @param buffer_size Size of the diagnostics buffer
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_syntax_get_diagnostics(rift_regex_syntax_context_t *context, const char *pattern,
+                                  char *diagnostics, size_t buffer_size)
+{
+    if (!context || !pattern || !diagnostics || buffer_size == 0) {
+        if (context) {
+            set_error(context, RIFT_REGEX_ERROR_INVALID_PARAMETER, "Invalid parameters");
+        }
+        return false;
+    }
+
+    // Reset error state
+    context->error.code = RIFT_REGEX_ERROR_NONE;
+    context->error.position = 0;
+
+    context->error_message[0] = '\0';
+
+    // Create a new lexer for the pattern
+    rift_regex_syntax_lexer_t *lexer = rift_regex_syntax_lexer_create(pattern);
+    if (!lexer) {
+        set_error(context, RIFT_REGEX_ERROR_MEMORY_ALLOCATION, "Failed to create lexer");
+        return false;
+    }
+
+    // Store the lexer in the context
+    if (context->lexer && context->owns_lexer) {
+        rift_regex_syntax_lexer_free(context->lexer);
+    }
+    context->lexer = lexer;
+    context->owns_lexer = true;
+
+    // Initialize the diagnostics buffer
+    size_t offset = 0;
+    int result =
+        snprintf(diagnostics + offset, buffer_size - offset, "Pattern: %s\nTokens:\n", pattern);
+    if (result < 0 || (size_t)result >= buffer_size - offset) {
+        set_error(context, RIFT_REGEX_ERROR_BUFFER_OVERFLOW, "Diagnostics buffer too small");
+        return false;
+    }
+    offset += result;
+
+    // Tokenize the pattern and build diagnostics
+    rift_regex_token_t token;
+    int token_count = 0;
+
+    do {
+        token = rift_regex_syntax_lexer_next_token(lexer);
+        token_count++;
+
+        // Add token information to diagnostics
+        const char *type_name = rift_regex_syntax_token_type_name(token.type);
+        const char *value = token.value ? token.value : "(null)";
+
+        result = snprintf(diagnostics + offset, buffer_size - offset,
+                          "%d. Type: %s, Position: %zu, Value: %s\n", token_count, type_name,
+                          token.position, value);
+
+        if (result < 0 || (size_t)result >= buffer_size - offset) {
+            // Buffer overflow - stop adding tokens but continue processing
+            offset = buffer_size - 1;
+            diagnostics[offset] = '\0';
+        } else {
+            offset += result;
+        }
+
+        // Free token value if allocated
+        if (token.value) {
+            free(token.value);
+            token.value = NULL;
+        }
+
+    } while (token.type != RIFT_REGEX_TOKEN_END && token.type != RIFT_REGEX_TOKEN_ERROR);
+
+    // Add summary information
+    if (buffer_size - offset > 0) {
+        snprintf(diagnostics + offset, buffer_size - offset,
+                 "\nTotal tokens: %d\nLibRift syntax: %s\n", token_count,
+                 rift_regex_syntax_is_rift_syntax(pattern) ? "Yes" : "No");
+    }
+
+    return true;
+}
+
+/**
+ * @brief Check if a pattern has balanced parentheses and brackets
+ *
+ * This utility function checks for basic structural validity by ensuring
+ * that parentheses, brackets, and braces are properly balanced.
+ *
+ * @param pattern The pattern string
+ * @return true if balanced, false otherwise
+ */
+bool
+rift_regex_syntax_check_balanced(const char *pattern)
+{
+    if (!pattern) {
+        return false;
+    }
+
+    int paren_count = 0;   // Count of (
+    int bracket_count = 0; // Count of [
+    int brace_count = 0;   // Count of {
+    bool in_char_class = false;
+    bool escaped = false;
+
+    for (const char *p = pattern; *p; p++) {
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+
+        if (*p == '\\') {
+            escaped = true;
+            continue;
+        }
+
+        if (in_char_class) {
+            if (*p == ']' && !escaped) {
+                in_char_class = false;
+                bracket_count--;
+            }
+            continue;
+        }
+
+        switch (*p) {
+        case '(':
+            paren_count++;
+            break;
+        case ')':
+            paren_count--;
+            if (paren_count < 0) {
+                return false; // Unbalanced closing parenthesis
+            }
+            break;
+        case '[':
+            bracket_count++;
+            in_char_class = true;
+            break;
+        case '{':
+            brace_count++;
+            break;
+        case '}':
+            brace_count--;
+            if (brace_count < 0) {
+                return false; // Unbalanced closing brace
+            }
+            break;
+        }
+    }
+
+    // All counters should be zero for a balanced pattern
+    return paren_count == 0 && bracket_count == 0 && brace_count == 0;
+}
+
+/**
+ * @brief Utility function to extract token information
+ *
+ * This function takes a pattern and extracts detailed token information
+ * without building a full AST.
+ *
+ * @param pattern The pattern string
+ * @param callback Function to call for each token
+ * @param user_data User data to pass to the callback
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_syntax_tokenize(const char *pattern, rift_regex_token_callback_t callback,
+                           void *user_data)
+{
+    if (!pattern || !callback) {
+        return false;
+    }
+
+    // Create a lexer
+    rift_regex_syntax_lexer_t *lexer = rift_regex_syntax_lexer_create(pattern);
+    if (!lexer) {
+        return false;
+    }
+
+    // Process all tokens
+    bool result = true;
+    rift_regex_token_t token;
+
+    do {
+        token = rift_regex_syntax_lexer_next_token(lexer);
+
+        // Call the callback for the token
+        if (!callback(token.type, token.value, token.position, user_data)) {
+            result = false;
+            break;
+        }
+
+        // Free token value if allocated
+        if (token.value) {
+            free(token.value);
+            token.value = NULL;
+        }
+
+    } while (token.type != RIFT_REGEX_TOKEN_END && token.type != RIFT_REGEX_TOKEN_ERROR);
+
+    // Free the lexer
+    rift_regex_syntax_lexer_free(lexer);
+
+    return result;
+}

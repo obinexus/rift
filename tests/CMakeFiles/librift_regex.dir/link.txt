@@ -1,0 +1,2 @@
+/home/nnamdi/miniconda3/bin/x86_64-conda-linux-gnu-ar qc librift_regex.a CMakeFiles/librift_regex.dir/src/core/syntax/integration.c.o CMakeFiles/librift_regex.dir/src/core/syntax/lexer.c.o CMakeFiles/librift_regex.dir/src/core/syntax/parser.c.o CMakeFiles/librift_regex.dir/src/core/syntax/syntax.c.o
+/home/nnamdi/miniconda3/bin/x86_64-conda-linux-gnu-ranlib librift_regex.a

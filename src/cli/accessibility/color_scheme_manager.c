@@ -1,0 +1,632 @@
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+cli/visualizer/color_scheme_manager.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/accessibility/color_scheme_manager.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/accessibility copy/color_scheme_manager.h
+tmp/librift_analysis/librift-4933472-W/src/cli/accessibility/color_scheme_manager.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/accessibility/color_scheme_manager.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/accessibility copy/color_scheme_manager.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/cli/accessibility/color_scheme_manager.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/accessibility/color_scheme_manager.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/accessibility copy/color_scheme_manager.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/cli/accessibility/color_scheme_manager.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+cli/visualizer/color_scheme_manager.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @file color_scheme_manager.c
+ * @brief Implementation of color scheme management for accessibility in LibRift
+ *
+ * This file implements the functions declared in color_scheme_manager.h,
+ * providing color scheme management for accessibility purposes.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "cli/accessibility/color_scheme_manager.h
+#include "librift/accessibility/color_scheme_manager.h"
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Initializes a color scheme with default colors
+ *
+ * @param entry The scheme entry to initialize
+ * @param scheme_id The scheme ID
+ */
+static void
+initialize_default_scheme(rift_color_scheme_entry_t *entry, rift_color_scheme_t scheme_id)
+{
+    if (!entry) {
+        return;
+    }
+
+    entry->id = scheme_id;
+
+    /* Set default palette */
+    entry->palette.background = DEFAULT_BACKGROUND_COLOR;
+    entry->palette.foreground = DEFAULT_FOREGROUND_COLOR;
+    entry->palette.primary = DEFAULT_PRIMARY_COLOR;
+    entry->palette.secondary = DEFAULT_SECONDARY_COLOR;
+    entry->palette.accent = DEFAULT_ACCENT_COLOR;
+    entry->palette.error = DEFAULT_ERROR_COLOR;
+    entry->palette.warning = DEFAULT_WARNING_COLOR;
+    entry->palette.success = DEFAULT_SUCCESS_COLOR;
+
+    /* Apply scheme-specific overrides */
+    switch (scheme_id) {
+    case RIFT_COLOR_SCHEME_HIGH_CONTRAST:
+        entry->palette.background = HC_BACKGROUND_COLOR;
+        entry->palette.foreground = HC_FOREGROUND_COLOR;
+        entry->palette.primary = HC_PRIMARY_COLOR;
+        entry->palette.secondary = HC_SECONDARY_COLOR;
+        entry->palette.accent = HC_ACCENT_COLOR;
+        entry->palette.error = HC_ERROR_COLOR;
+        entry->palette.warning = HC_WARNING_COLOR;
+        entry->palette.success = HC_SUCCESS_COLOR;
+        break;
+
+    case RIFT_COLOR_SCHEME_DEUTERANOPIA:
+        entry->palette.background = DEUT_BACKGROUND_COLOR;
+        entry->palette.foreground = DEUT_FOREGROUND_COLOR;
+        entry->palette.primary = DEUT_PRIMARY_COLOR;
+        entry->palette.secondary = DEUT_SECONDARY_COLOR;
+        entry->palette.accent = DEUT_ACCENT_COLOR;
+        entry->palette.error = DEUT_ERROR_COLOR;
+        entry->palette.warning = DEUT_WARNING_COLOR;
+        entry->palette.success = DEUT_SUCCESS_COLOR;
+        break;
+
+        /* Add other scheme initializations as needed */
+
+    default:
+        /* Default scheme already initialized */
+        break;
+    }
+}
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Ensures the schemes array has sufficient capacity
+ *
+ * @param manager The manager to modify
+ * @param capacity The minimum capacity required
+ * @return bool True if successful, false on allocation failure
+ */
+static bool
+ensure_scheme_capacity(rift_color_scheme_manager_t *manager, size_t capacity)
+{
+    if (!manager) {
+        return false;
+    }
+
+    if (manager->scheme_capacity >= capacity) {
+        /* Already have enough capacity */
+        return true;
+    }
+
+    /* Calculate new capacity (doubling strategy) */
+    size_t new_capacity = manager->scheme_capacity == 0 ? capacity : manager->scheme_capacity * 2;
+    if (new_capacity < capacity) {
+        new_capacity = capacity; /* Ensure we have at least the requested capacity */
+    }
+
+    /* Allocate or reallocate the array */
+    rift_color_scheme_entry_t *new_schemes;
+    if (!manager->schemes) {
+        new_schemes = rift_malloc(new_capacity * sizeof(rift_color_scheme_entry_t));
+    } else {
+        new_schemes =
+            rift_realloc(manager->schemes, new_capacity * sizeof(rift_color_scheme_entry_t));
+    }
+
+    if (!new_schemes) {
+        rift_set_error(RIFT_ERROR_MEMORY_ALLOCATION,
+                       "Failed to allocate/reallocate color schemes array");
+        return false;
+    }
+
+    manager->schemes = new_schemes;
+    manager->scheme_capacity = new_capacity;
+    return true;
+}
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Finds a scheme entry by ID
+ *
+ * @param manager The manager to search
+ * @param scheme The scheme ID to find
+ * @return rift_color_scheme_entry_t* The found entry or NULL if not found
+ */
+static rift_color_scheme_entry_t *
+find_scheme(const rift_color_scheme_manager_t *manager, rift_color_scheme_t scheme)
+{
+    if (!manager || !manager->schemes) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < manager->scheme_count; i++) {
+        if (manager->schemes[i].id == scheme) {
+            return &manager->schemes[i];
+        }
+    }
+
+    return NULL;
+}
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Creates a new color scheme manager
+ *
+ * @return rift_color_scheme_manager_t* A new color scheme manager or NULL on failure
+ */
+rift_color_scheme_manager_t *
+rift_color_scheme_manager_create(void)
+{
+    rift_color_scheme_manager_t *manager =
+        (rift_color_scheme_manager_t *)rift_malloc(sizeof(rift_color_scheme_manager_t));
+
+    if (!manager) {
+        rift_set_error(RIFT_ERROR_MEMORY_ALLOCATION,
+                       "Failed to allocate memory for color scheme manager");
+        return NULL;
+    }
+
+    /* Initialize structure */
+    manager->active_scheme = RIFT_COLOR_SCHEME_DEFAULT;
+    manager->schemes = NULL;
+    manager->scheme_count = 0;
+    manager->scheme_capacity = 0;
+    manager->initialized = false;
+
+    /* Ensure space for predefined schemes */
+    if (!ensure_scheme_capacity(manager, 5)) { /* Start with space for 5 schemes */
+        rift_free(manager);
+        return NULL;
+    }
+
+    /* Add predefined schemes */
+    initialize_default_scheme(&manager->schemes[manager->scheme_count], RIFT_COLOR_SCHEME_DEFAULT);
+    manager->scheme_count++;
+
+    initialize_default_scheme(&manager->schemes[manager->scheme_count],
+                              RIFT_COLOR_SCHEME_HIGH_CONTRAST);
+    manager->scheme_count++;
+
+    initialize_default_scheme(&manager->schemes[manager->scheme_count],
+                              RIFT_COLOR_SCHEME_DEUTERANOPIA);
+    manager->scheme_count++;
+
+    /* Mark as initialized */
+    manager->initialized = true;
+
+    return manager;
+}
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Destroys a color scheme manager and frees all associated resources
+ *
+ * @param manager The manager to destroy
+ */
+void
+rift_color_scheme_manager_destroy(rift_color_scheme_manager_t *manager)
+{
+    if (!manager) {
+        return;
+    }
+
+    /* Free schemes array */
+    if (manager->schemes) {
+        rift_free(manager->schemes);
+    }
+
+    /* Free the manager itself */
+    rift_free(manager);
+}
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Adds a color scheme to the manager
+ *
+ * @param manager The manager to modify
+ * @param scheme The scheme ID
+ * @param palette The color palette
+ * @return bool True if successful, false otherwise
+ */
+bool
+rift_color_scheme_manager_add_scheme(rift_color_scheme_manager_t *manager,
+                                     rift_color_scheme_t scheme,
+                                     const rift_color_scheme_entry_t *palette)
+{
+    if (!manager || !palette) {
+        rift_set_error(RIFT_ERROR_INVALID_PARAMETER, "Invalid parameters in add_scheme");
+        return false;
+    }
+
+    if (!manager->initialized) {
+        rift_set_error(RIFT_ERROR_NOT_INITIALIZED, "Color scheme manager not initialized");
+        return false;
+    }
+
+    /* Check if scheme already exists */
+    rift_color_scheme_entry_t *existing = find_scheme(manager, scheme);
+    if (existing) {
+        /* Update existing scheme */
+        existing->palette = palette->palette;
+        return true;
+    }
+
+    /* Ensure capacity for a new scheme */
+    if (!ensure_scheme_capacity(manager, manager->scheme_count + 1)) {
+        return false;
+    }
+
+    /* Add new scheme */
+    manager->schemes[manager->scheme_count].id = scheme;
+    manager->schemes[manager->scheme_count].palette = palette->palette;
+    manager->scheme_count++;
+
+    return true;
+}
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Sets the active color scheme
+ *
+ * @param manager The manager to modify
+ * @param scheme The scheme to set as active
+ * @return bool True if successful, false otherwise
+ */
+bool
+rift_color_scheme_manager_set_active_scheme(rift_color_scheme_manager_t *manager,
+                                            rift_color_scheme_t scheme)
+{
+    if (!manager) {
+        rift_set_error(RIFT_ERROR_INVALID_PARAMETER, "Invalid color scheme manager");
+        return false;
+    }
+
+    if (!manager->initialized) {
+        rift_set_error(RIFT_ERROR_NOT_INITIALIZED, "Color scheme manager not initialized");
+        return false;
+    }
+
+    /* Check if the scheme exists */
+    if (!find_scheme(manager, scheme)) {
+        rift_set_error(RIFT_ERROR_INVALID_PARAMETER, "Requested color scheme not found");
+        return false;
+    }
+
+    /* Set active scheme */
+    manager->active_scheme = scheme;
+    return true;
+}
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Gets the active color scheme
+ *
+ * @param manager The manager to query
+ * @return rift_color_scheme_t The active scheme
+ */
+rift_color_scheme_t
+rift_color_scheme_manager_get_active_scheme(const rift_color_scheme_manager_t *manager)
+{
+    if (!manager || !manager->initialized) {
+        return RIFT_COLOR_SCHEME_DEFAULT;
+    }
+
+    return manager->active_scheme;
+}
+
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+ccessibility/color_scheme_manager.h"/a #include "cli/accessibility/color_scheme_manager copy.h"
+ccessibility/color_scheme_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Gets a color for a specific role from a scheme
+ *
+ * @param manager The manager to query
+ * @param role The color role
+ * @return rift_color_t The color for the role (default if not found)
+ */
+rift_color_t
+rift_color_scheme_manager_get_color(const rift_color_scheme_manager_t *manager,
+                                    rift_color_role_t role)
+{
+    if (!manager || !manager->initialized) {
+        /* Return default color for the role if manager is invalid */
+        switch (role) {
+        case RIFT_COLOR_ROLE_BACKGROUND:
+            return DEFAULT_BACKGROUND_COLOR;
+        case RIFT_COLOR_ROLE_FOREGROUND:
+            return DEFAULT_FOREGROUND_COLOR;
+        case RIFT_COLOR_ROLE_PRIMARY:
+            return DEFAULT_PRIMARY_COLOR;
+        case RIFT_COLOR_ROLE_SECONDARY:
+            return DEFAULT_SECONDARY_COLOR;
+        case RIFT_COLOR_ROLE_ACCENT:
+            return DEFAULT_ACCENT_COLOR;
+        case RIFT_COLOR_ROLE_ERROR:
+            return DEFAULT_ERROR_COLOR;
+        case RIFT_COLOR_ROLE_WARNING:
+            return DEFAULT_WARNING_COLOR;
+        case RIFT_COLOR_ROLE_SUCCESS:
+            return DEFAULT_SUCCESS_COLOR;
+        default:
+            return DEFAULT_FOREGROUND_COLOR;
+        }
+    }
+
+    /* Find the active scheme */
+    rift_color_scheme_entry_t *scheme = find_scheme(manager, manager->active_scheme);
+    if (!scheme) {
+        /* Fallback to default scheme */
+        scheme = find_scheme(manager, RIFT_COLOR_SCHEME_DEFAULT);
+    }
+
+    /* If we still don't have a scheme, return default color */
+    if (!scheme) {
+        return DEFAULT_FOREGROUND_COLOR;
+    }
+
+    /* Return the appropriate color from the palette */
+    switch (role) {
+    case RIFT_COLOR_ROLE_BACKGROUND:
+        return scheme->palette.background;
+    case RIFT_COLOR_ROLE_FOREGROUND:
+        return scheme->palette.foreground;
+    case RIFT_COLOR_ROLE_PRIMARY:
+        return scheme->palette.primary;
+    case RIFT_COLOR_ROLE_SECONDARY:
+        return scheme->palette.secondary;
+    case RIFT_COLOR_ROLE_ACCENT:
+        return scheme->palette.accent;
+    case RIFT_COLOR_ROLE_ERROR:
+        return scheme->palette.error;
+    case RIFT_COLOR_ROLE_WARNING:
+        return scheme->palette.warning;
+    case RIFT_COLOR_ROLE_SUCCESS:
+        return scheme->palette.success;
+    default:
+        return scheme->palette.foreground;
+    }
+}

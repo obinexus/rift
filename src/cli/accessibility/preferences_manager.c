@@ -1,0 +1,772 @@
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/accessibility/preferences_manager.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/accessibility copy/preferences_manager.h
+tmp/librift_analysis/librift-4933472-W/src/cli/accessibility/preferences_manager.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/accessibility/preferences_manager.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/accessibility copy/preferences_manager.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/cli/accessibility/preferences_manager.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/accessibility/preferences_manager.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/accessibility copy/preferences_manager.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/cli/accessibility/preferences_manager.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @file preferences_manager.c
+ * @brief Implementation of the PreferencesManager for LibRift
+ *
+ * This file implements the storage and retrieval of user preferences
+ * for accessibility settings.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "cli/accessibility/preferences_manager.h
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "core/errors/error.h"
+#include "librift/accessibility/preferences_manager.h"
+#include "librift/utils/error_handling.h"
+#include "librift/utils/memory_utils.h"
+
+
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Structure for a preference entry
+ */
+typedef struct {
+    char *key;                   /**< Preference key */
+    void *value;                 /**< Preference value */
+    rift_preference_type_t type; /**< Value type */
+} rift_preference_entry_t;
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Internal structure for the preferences manager
+ */
+struct rift_preferences_manager {
+    rift_preference_entry_t *entries; /**< Array of preference entries */
+    size_t entry_count;               /**< Number of entries */
+    size_t entry_capacity;            /**< Capacity of entries array */
+};
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Helper function to ensure the entries array has sufficient capacity
+ *
+ * @param manager The manager to modify
+ * @param capacity The minimum capacity required
+ * @return bool True if successful, false on allocation failure
+ */
+static bool
+rift_preferences_manager_ensure_capacity(rift_preferences_manager_t *manager, size_t capacity)
+{
+    if (!manager) {
+        rift_set_error(RIFT_ERROR_INVALID_ARGUMENT, "Null manager in ensure_capacity");
+        return false;
+    }
+
+    if (manager->entry_capacity >= capacity) {
+        /* Already have enough capacity */
+        return true;
+    }
+
+    /* Calculate new capacity (doubling strategy) */
+    size_t new_capacity = manager->entry_capacity == 0 ? capacity : manager->entry_capacity * 2;
+    if (new_capacity < capacity) {
+        new_capacity = capacity; /* Ensure we have at least the requested capacity */
+    }
+
+    /* Allocate or reallocate the array */
+    rift_preference_entry_t *new_entries;
+    if (!manager->entries) {
+        new_entries = rift_malloc(new_capacity * sizeof(rift_preference_entry_t));
+    } else {
+        new_entries =
+            rift_realloc(manager->entries, new_capacity * sizeof(rift_preference_entry_t));
+    }
+
+    if (!new_entries) {
+        rift_set_error(RIFT_ERROR_MEMORY_ALLOCATION, "Failed to allocate/reallocate entries array");
+        return false;
+    }
+
+    manager->entries = new_entries;
+    manager->entry_capacity = new_capacity;
+    return true;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Helper function to find a preference entry by key
+ *
+ * @param manager The manager to search
+ * @param key The key to look for
+ * @return rift_preference_entry_t* Pointer to the entry, or NULL if not found
+ */
+static rift_preference_entry_t *
+rift_find_preference_entry(rift_preferences_manager_t *manager, const char *key)
+{
+    if (!manager || !key) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < manager->entry_count; i++) {
+        if (strcmp(manager->entries[i].key, key) == 0) {
+            return &manager->entries[i];
+        }
+    }
+
+    return NULL;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Creates a new preferences manager
+ *
+ * @return rift_preferences_manager_t* A new preferences manager or NULL on failure
+ */
+rift_preferences_manager_t *
+rift_preferences_manager_create(void)
+{
+    rift_preferences_manager_t *manager = rift_malloc(sizeof(rift_preferences_manager_t));
+    if (!manager) {
+        rift_set_error(RIFT_ERROR_MEMORY_ALLOCATION,
+                       "Failed to allocate memory for preferences manager");
+        return NULL;
+    }
+
+    /* Initialize with default values */
+    manager->entries = NULL;
+    manager->entry_count = 0;
+    manager->entry_capacity = 0;
+
+    /* Ensure initial capacity */
+    if (!rift_preferences_manager_ensure_capacity(manager, 10)) {
+        rift_free(manager);
+        return NULL;
+    }
+
+    return manager;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Destroys a preferences manager and frees all associated resources
+ *
+ * @param manager The manager to destroy
+ */
+void
+rift_preferences_manager_destroy(rift_preferences_manager_t *manager)
+{
+    if (!manager) {
+        return;
+    }
+
+    /* Free entries */
+    if (manager->entries) {
+        for (size_t i = 0; i < manager->entry_count; i++) {
+            rift_free(manager->entries[i].key);
+
+            /* Free string values */
+            if (manager->entries[i].type == RIFT_PREFERENCE_TYPE_STRING &&
+                manager->entries[i].value) {
+                rift_free(manager->entries[i].value);
+            }
+        }
+        rift_free(manager->entries);
+    }
+
+    /* Free the manager itself */
+    rift_free(manager);
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Gets a preference value
+ *
+ * @param manager The manager to query
+ * @param key The preference key
+ * @param type Pointer to store the value type
+ * @return void* The preference value, or NULL if not found
+ */
+void *
+rift_preferences_manager_get_preference(const rift_preferences_manager_t *manager, const char *key,
+                                        rift_preference_type_t *type)
+{
+    if (!manager || !key) {
+        rift_set_error(RIFT_ERROR_INVALID_ARGUMENT, "Invalid parameters in get_preference");
+        if (type) {
+            *type = RIFT_PREFERENCE_TYPE_BOOL; /* Default type */
+        }
+        return NULL;
+    }
+
+    rift_preference_entry_t *entry =
+        rift_find_preference_entry((rift_preferences_manager_t *)manager, key);
+    if (!entry) {
+        if (type) {
+            *type = RIFT_PREFERENCE_TYPE_BOOL; /* Default type */
+        }
+        return NULL;
+    }
+
+    if (type) {
+        *type = entry->type;
+    }
+
+    return entry->value;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Sets a preference value
+ *
+ * @param manager The manager to modify
+ * @param key The preference key
+ * @param value The preference value
+ * @param type The value type
+ * @return bool True if successful, false otherwise
+ */
+bool
+rift_preferences_manager_set_preference(rift_preferences_manager_t *manager, const char *key,
+                                        void *value, rift_preference_type_t type)
+{
+    if (!manager || !key) {
+        rift_set_error(RIFT_ERROR_INVALID_ARGUMENT, "Invalid parameters in set_preference");
+        return false;
+    }
+
+    /* Look for existing entry */
+    rift_preference_entry_t *entry = rift_find_preference_entry(manager, key);
+    if (entry) {
+        /* Free old string value if necessary */
+        if (entry->type == RIFT_PREFERENCE_TYPE_STRING && entry->value) {
+            rift_free(entry->value);
+            entry->value = NULL;
+        }
+
+        /* Copy string value if necessary */
+        if (type == RIFT_PREFERENCE_TYPE_STRING && value) {
+            entry->value = rift_strdup((const char *)value);
+            if (!entry->value) {
+                rift_set_error(RIFT_ERROR_MEMORY_ALLOCATION, "Failed to duplicate string value");
+                return false;
+            }
+        } else {
+            entry->value = value;
+        }
+
+        entry->type = type;
+        return true;
+    }
+
+    /* Ensure capacity for a new entry */
+    if (!rift_preferences_manager_ensure_capacity(manager, manager->entry_count + 1)) {
+        return false;
+    }
+
+    /* Add new entry */
+    manager->entries[manager->entry_count].key = rift_strdup(key);
+    if (!manager->entries[manager->entry_count].key) {
+        rift_set_error(RIFT_ERROR_MEMORY_ALLOCATION, "Failed to duplicate key");
+        return false;
+    }
+
+    /* Copy string value if necessary */
+    if (type == RIFT_PREFERENCE_TYPE_STRING && value) {
+        manager->entries[manager->entry_count].value = rift_strdup((const char *)value);
+        if (!manager->entries[manager->entry_count].value) {
+            rift_free(manager->entries[manager->entry_count].key);
+            rift_set_error(RIFT_ERROR_MEMORY_ALLOCATION, "Failed to duplicate string value");
+            return false;
+        }
+    } else {
+        manager->entries[manager->entry_count].value = value;
+    }
+
+    manager->entries[manager->entry_count].type = type;
+    manager->entry_count++;
+
+    return true;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Writes a preference value to a file
+ *
+ * @param file The file to write to
+ * @param key The preference key
+ * @param value The preference value
+ * @param type The value type
+ * @return bool True if successful, false otherwise
+ */
+static bool
+rift_write_preference_to_file(FILE *file, const char *key, void *value, rift_preference_type_t type)
+{
+    if (!file || !key) {
+        return false;
+    }
+
+    /* Write key and type */
+    if (fprintf(file, "%s=%d:", key, (int)type) < 0) {
+        return false;
+    }
+
+    /* Write value based on type */
+    switch (type) {
+    case RIFT_PREFERENCE_TYPE_BOOL:
+        if (fprintf(file, "%d\n", value ? 1 : 0) < 0) {
+            return false;
+        }
+        break;
+
+    case RIFT_PREFERENCE_TYPE_INT:
+        if (fprintf(file, "%ld\n", (long)(intptr_t)value) < 0) {
+            return false;
+        }
+        break;
+
+    case RIFT_PREFERENCE_TYPE_FLOAT: {
+        /* Convert pointer to float using standard trick */
+        union {
+            void *p;
+            float f;
+        } u;
+        u.p = value;
+
+        if (fprintf(file, "%f\n", u.f) < 0) {
+            return false;
+        }
+    } break;
+
+    case RIFT_PREFERENCE_TYPE_STRING:
+        if (fprintf(file, "%s\n", value ? (const char *)value : "") < 0) {
+            return false;
+        }
+        break;
+
+    case RIFT_PREFERENCE_TYPE_POINTER:
+        if (fprintf(file, "%p\n", value) < 0) {
+            return false;
+        }
+        break;
+
+    default:
+        /* Unknown type */
+        if (fprintf(file, "unknown\n") < 0) {
+            return false;
+        }
+        break;
+    }
+
+    return true;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Reads a preference value from a string
+ *
+ * @param line The string to read from
+ * @param key Output buffer for the key
+ * @param key_size Size of the key buffer
+ * @param value Output pointer for the value
+ * @param type Output pointer for the type
+ * @return bool True if successful, false otherwise
+ */
+static bool
+rift_read_preference_from_string(const char *line, char *key, size_t key_size, void **value,
+                                 rift_preference_type_t *type)
+{
+    if (!line || !key || !value || !type) {
+        return false;
+    }
+
+    /* Parse key and type */
+    int type_int;
+    char value_str[1024]; /* Buffer for value string */
+
+    if (sscanf(line, "%[^=]=%d:%[^\n]", key, &type_int, value_str) != 3) {
+        return false;
+    }
+
+    /* Set type */
+    *type = (rift_preference_type_t)type_int;
+
+    /* Parse value based on type */
+    switch (*type) {
+    case RIFT_PREFERENCE_TYPE_BOOL: {
+        int bool_value;
+        if (sscanf(value_str, "%d", &bool_value) != 1) {
+            return false;
+        }
+        *value = (void *)(intptr_t)(bool_value != 0);
+    } break;
+
+    case RIFT_PREFERENCE_TYPE_INT: {
+        long int_value;
+        if (sscanf(value_str, "%ld", &int_value) != 1) {
+            return false;
+        }
+        *value = (void *)(intptr_t)int_value;
+    } break;
+
+    case RIFT_PREFERENCE_TYPE_FLOAT: {
+        float float_value;
+        if (sscanf(value_str, "%f", &float_value) != 1) {
+            return false;
+        }
+
+        /* Convert float to pointer using standard trick */
+        union {
+            void *p;
+            float f;
+        } u;
+        u.f = float_value;
+        *value = u.p;
+    } break;
+
+    case RIFT_PREFERENCE_TYPE_STRING:
+        *value = rift_strdup(value_str);
+        if (!*value) {
+            return false;
+        }
+        break;
+
+    case RIFT_PREFERENCE_TYPE_POINTER: {
+        void *ptr_value;
+        if (sscanf(value_str, "%p", &ptr_value) != 1) {
+            return false;
+        }
+        *value = ptr_value;
+    } break;
+
+    default:
+        /* Unknown type */
+        return false;
+    }
+
+    return true;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Loads preferences from a file
+ *
+ * @param manager The manager to modify
+ * @param file_path Path to the preferences file
+ * @return bool True if successful, false otherwise
+ */
+bool
+rift_preferences_manager_load_from_file(rift_preferences_manager_t *manager, const char *file_path)
+{
+    if (!manager || !file_path) {
+        rift_set_error(RIFT_ERROR_INVALID_ARGUMENT, "Invalid parameters in load_from_file");
+        return false;
+    }
+
+    /* Open file */
+    FILE *file = fopen(file_path, "r");
+    if (!file) {
+        rift_set_error(RIFT_ERROR_FILE_IO, "Failed to open preferences file for reading");
+        return false;
+    }
+
+    /* Read preferences */
+    char line[1024];
+    char key[256];
+    void *value;
+    rift_preference_type_t type;
+
+    while (fgets(line, sizeof(line), file)) {
+        /* Skip empty lines and comments */
+        if (line[0] == '\n' || line[0] == '#') {
+            continue;
+        }
+
+        /* Parse preference */
+        if (rift_read_preference_from_string(line, key, sizeof(key), &value, &type)) {
+            /* Set preference */
+            rift_preferences_manager_set_preference(manager, key, value, type);
+
+            /* Free string value if necessary (it's been copied) */
+            if (type == RIFT_PREFERENCE_TYPE_STRING) {
+                rift_free(value);
+            }
+        }
+    }
+
+    /* Close file */
+    fclose(file);
+    return true;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Saves preferences to a file
+ *
+ * @param manager The manager to query
+ * @param file_path Path to the preferences file
+ * @return bool True if successful, false otherwise
+ */
+bool
+rift_preferences_manager_save_to_file(const rift_preferences_manager_t *manager,
+                                      const char *file_path)
+{
+    if (!manager || !file_path) {
+        rift_set_error(RIFT_ERROR_INVALID_ARGUMENT, "Invalid parameters in save_to_file");
+        return false;
+    }
+
+    /* Open file */
+    FILE *file = fopen(file_path, "w");
+    if (!file) {
+        rift_set_error(RIFT_ERROR_FILE_IO, "Failed to open preferences file for writing");
+        return false;
+    }
+
+    /* Write header */
+    fprintf(file, "# LibRift Accessibility Preferences\n");
+    fprintf(file, "# Format: key=type:value\n");
+    fprintf(file, "# Types: 0=bool, 1=int, 2=float, 3=string, 4=pointer\n\n");
+
+    /* Write preferences */
+    for (size_t i = 0; i < manager->entry_count; i++) {
+        if (!rift_write_preference_to_file(file, manager->entries[i].key, manager->entries[i].value,
+                                           manager->entries[i].type)) {
+            fclose(file);
+            rift_set_error(RIFT_ERROR_FILE_IO, "Failed to write preference to file");
+            return false;
+        }
+    }
+
+    /* Close file */
+    fclose(file);
+    return true;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Gets a boolean preference
+ *
+ * @param manager The manager to query
+ * @param key The preference key
+ * @param default_value The default value to return if the preference is not found
+ * @return bool The preference value
+ */
+bool
+rift_preferences_manager_get_bool(const rift_preferences_manager_t *manager, const char *key,
+                                  bool default_value)
+{
+    rift_preference_type_t type;
+    void *value = rift_preferences_manager_get_preference(manager, key, &type);
+
+    if (!value || type != RIFT_PREFERENCE_TYPE_BOOL) {
+        return default_value;
+    }
+
+    return (bool)(intptr_t)value;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Gets an integer preference
+ *
+ * @param manager The manager to query
+ * @param key The preference key
+ * @param default_value The default value to return if the preference is not found
+ * @return int The preference value
+ */
+int
+rift_preferences_manager_get_int(const rift_preferences_manager_t *manager, const char *key,
+                                 int default_value)
+{
+    rift_preference_type_t type;
+    void *value = rift_preferences_manager_get_preference(manager, key, &type);
+
+    if (!value || type != RIFT_PREFERENCE_TYPE_INT) {
+        return default_value;
+    }
+
+    return (int)(intptr_t)value;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Gets a float preference
+ *
+ * @param manager The manager to query
+ * @param key The preference key
+ * @param default_value The default value to return if the preference is not found
+ * @return float The preference value
+ */
+float
+rift_preferences_manager_get_float(const rift_preferences_manager_t *manager, const char *key,
+                                   float default_value)
+{
+    rift_preference_type_t type;
+    void *value = rift_preferences_manager_get_preference(manager, key, &type);
+
+    if (!value || type != RIFT_PREFERENCE_TYPE_FLOAT) {
+        return default_value;
+    }
+
+    /* Convert pointer to float */
+    union {
+        void *p;
+        float f;
+    } u;
+    u.p = value;
+
+    return u.f;
+}
+
+ccessibility/preferences_manager.h"/a #include "core/memory/memory.h"
+ccessibility/preferences_manager.h"/a #include "core/config/config.h"
+/**
+ * @brief Gets a string preference
+ *
+ * @param manager The manager to query
+ * @param key The preference key
+ * @param default_value The default value to return if the preference is not found
+ * @return const char* The preference value
+ */
+const char *
+rift_preferences_manager_get_string(const rift_preferences_manager_t *manager, const char *key,
+                                    const char *default_value)
+{
+    rift_preference_type_t type;
+    void *value = rift_preferences_manager_get_preference(manager, key, &type);
+
+    if (!value || type != RIFT_PREFERENCE_TYPE_STRING) {
+        return default_value;
+    }
+
+    return (const char *)value;
+}

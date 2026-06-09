@@ -1,0 +1,1304 @@
+/**
+core/syntax/parser.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/parser/parser.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/syntax/parser.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/parser/parser.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/syntax/parser.h
+tmp/librift_analysis/librift-4933472-W/src/core/parser/parser.h
+tmp/librift_analysis/librift-4933472-W/src/core/syntax/parser.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/parser/parser.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/syntax/parser.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/parser/parser.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/syntax/parser.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/parser/parser.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/syntax/parser.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/parser/parser.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/syntax/parser.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/parser/parser.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/syntax/parser.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/parser/parser.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/syntax/parser.h"
+core/parser/parser.h"
+ * @file parser.c
+ * @brief Implementation of parser functions for the LibRift regex engine
+ *
+ * This file implements the parsing of regular expression patterns into
+ * Abstract Syntax Trees (ASTs) in the LibRift regex engine.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ *
+ */
+
+#include "core/parser/parser.h
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include "librift/parser/parser.h"
+
+
+/**
+ * @brief State information for regex nodes
+ */
+typedef struct rift_state_info {
+    size_t entry_state_id;
+    size_t exit_state_id;
+    void *transition_condition;
+    rift_regex_flags_t constraints;
+    bool is_accepting;
+} rift_state_info_t;
+
+/**
+ * @brief Set an error message in the parser
+ *
+ * @param parser The parser
+ * @param message The error message
+ * @param position The position of the error
+ */
+/**
+ * @brief Create a new parser
+ *
+ * @return A new parser or NULL on failure
+ */
+rift_regex_parser_t *
+rift_regex_parser_create(rift_regex_flags_t flags, bool rift_flag)
+{
+    rift_regex_parser_t *parser = (rift_regex_parser_t *)malloc(sizeof(rift_regex_parser_t));
+    if (!parser) {
+        return NULL;
+    }
+
+    // Initialize the parser
+    parser->tokenizer = NULL;
+    parser->validator = NULL;
+    parser->flags = RIFT_REGEX_FLAG_NONE;
+    parser->ast = NULL;
+    parser->current_node = NULL;
+    parser->error_message[0] = '\0';
+    parser->error_position = (size_t)-1;
+    parser->owns_tokenizer = false;
+    parser->owns_validator = false;
+    parser->next_state_id = 1; // Initialize state ID counter
+
+    // Create the validator
+    parser->validator = rift_regex_validator_create();
+    if (!parser->validator) {
+        free(parser);
+        return NULL;
+    }
+    parser->owns_validator = true;
+
+    return parser;
+}
+
+/**
+ * @brief Free resources associated with a parser
+ *
+ * @param parser The parser to free
+ */
+void
+rift_regex_parser_free(rift_regex_parser_t *parser)
+{
+    if (!parser) {
+        return;
+    }
+
+    // Free the tokenizer if owned
+    if (parser->tokenizer && parser->owns_tokenizer) {
+        rift_regex_tokenizer_free(parser->tokenizer);
+    }
+
+    // Free the validator if owned
+    if (parser->validator && parser->owns_validator) {
+        rift_regex_validator_free(parser->validator);
+    }
+
+    // Free the AST if allocated
+    if (parser->ast) {
+        rift_regex_ast_free(parser->ast);
+    }
+
+    // Free the parser itself
+    free(parser);
+}
+
+/**
+ * @brief Set the tokenizer for the parser
+ *
+ * @param parser The parser
+ * @param tokenizer The tokenizer to use
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_parser_set_tokenizer(rift_regex_parser_t *parser, rift_regex_tokenizer_t *tokenizer)
+{
+    if (!parser) {
+        return false;
+    }
+
+    // Free the existing tokenizer if owned
+    if (parser->tokenizer && parser->owns_tokenizer) {
+        rift_regex_tokenizer_free(parser->tokenizer);
+    }
+
+    parser->tokenizer = tokenizer;
+    parser->owns_tokenizer = false;
+
+    return true;
+}
+
+/**
+ * @brief Set the validator for the parser
+ *
+ * @param parser The parser
+ * @param validator The validator to use
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_parser_set_validator(rift_regex_parser_t *parser, rift_regex_validator_t *validator)
+{
+    if (!parser) {
+        return false;
+    }
+
+    // Free the existing validator if owned
+    if (parser->validator && parser->owns_validator) {
+        rift_regex_validator_free(parser->validator);
+    }
+
+    parser->validator = validator;
+    parser->owns_validator = false;
+
+    return true;
+}
+
+/**
+ * @brief Get the last error
+ *
+ * @param parser The parser
+ * @return The last error or an error with code RIFT_REGEX_ERROR_NONE if no error occurred
+ */
+rift_regex_error_t
+rift_regex_parser_get_error(const rift_regex_parser_t *parser)
+{
+    if (!parser || parser->error_message[0] == '\0') {
+        rift_regex_error_t error = {.code = RIFT_REGEX_ERROR_NONE, .message = {0}};
+        return error;
+    }
+
+    return parser->error;
+}
+
+/**
+ * @brief Get the position of the last error
+ *
+ * @param parser The parser
+ * @return The position of the last error or (size_t)-1 if no error occurred
+ */
+size_t
+rift_regex_parser_get_error_position(const rift_regex_parser_t *parser)
+{
+    if (!parser) {
+        return (size_t)-1;
+    }
+
+    return parser->error_position;
+}
+
+/**
+ * @brief Reset the parser state to prepare for a new parse
+ *
+ * @param parser The parser
+ */
+static void
+reset_parser(rift_regex_parser_t *parser)
+{
+    if (!parser) {
+        return;
+    }
+
+    // Free the existing AST if any
+    if (parser->ast) {
+        rift_regex_ast_free(parser->ast);
+        parser->ast = NULL;
+    }
+
+    // Create a new AST
+    parser->ast = rift_regex_ast_create();
+
+    // Reset the current node
+    parser->current_node = NULL;
+
+    // Reset error state
+    parser->error_message[0] = '\0';
+    parser->error_position = (size_t)-1;
+}
+
+/**
+ * @brief Parse a regular expression pattern with options
+ *
+ * @param parser The parser
+ * @param pattern The pattern to parse
+ * @param flags Flags that affect parsing
+ * @return An AST representing the pattern or NULL on failure
+ */
+rift_regex_ast_t *
+rift_regex_parser_parse_with_options(rift_regex_parser_t *parser, const char *pattern,
+                                     rift_regex_flags_t flags)
+{
+    if (!parser || !pattern) {
+        return NULL;
+    }
+
+    // Reset the parser state
+    reset_parser(parser);
+
+    // Store the flags
+    parser->flags = flags;
+
+    // Create a tokenizer for the pattern
+    if (parser->tokenizer && parser->owns_tokenizer) {
+        rift_regex_tokenizer_free(parser->tokenizer);
+    }
+
+    parser->tokenizer = rift_regex_tokenizer_create(pattern);
+    if (!parser->tokenizer) {
+        set_error(parser, "Failed to create tokenizer", 0);
+        return NULL;
+    }
+    parser->owns_tokenizer = true;
+
+    // Create a root node for the AST
+    rift_regex_ast_node_t *root = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_ROOT);
+    if (!root) {
+        set_error(parser, "Failed to create root node", 0);
+        return NULL;
+    }
+
+    if (!rift_regex_ast_set_root(parser->ast, root)) {
+        rift_regex_ast_free_node(root);
+        set_error(parser, "Failed to set root node", 0);
+        return NULL;
+    }
+
+    // Set the current node to the root
+    parser->current_node = root;
+
+    // Parse the pattern
+    if (!rift_regex_parser_handle_alternation(parser)) {
+        // Error message is already set
+        return NULL;
+    }
+
+    // Validate the AST
+    if (parser->validator) {
+        if (!rift_regex_validator_validate_with_options(parser->validator, parser->ast, flags)) {
+            const char *validator_error = rift_regex_validator_get_last_error(parser->validator);
+            if (validator_error) {
+                set_error(parser, validator_error, 0);
+            } else {
+                set_error(parser, "AST validation failed", 0);
+            }
+            return NULL;
+        }
+    }
+
+    // Return the AST
+    rift_regex_ast_t *result = parser->ast;
+    parser->ast = NULL; // Don't free the AST when the parser is freed
+
+    return result;
+}
+
+/**
+ * @brief Parse a regular expression pattern
+ *
+ * @param parser The parser
+ * @param pattern The pattern to parse
+ * @return An AST representing the pattern or NULL on failure
+ */
+rift_regex_ast_t *
+rift_regex_parser_parse(rift_regex_parser_t *parser, const char *pattern)
+{
+    return rift_regex_parser_parse_with_options(parser, pattern, RIFT_REGEX_FLAG_NONE);
+}
+
+/**
+ * @brief Parse a character class
+ *
+ * @param parser The parser
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_parser_handle_character_class(rift_regex_parser_t *parser)
+{
+    if (!parser || !parser->tokenizer) {
+        return false;
+    }
+
+    // Get the character class content
+    rift_regex_token_t token = rift_regex_tokenizer_next_token(parser->tokenizer);
+    if (token.type != RIFT_REGEX_TOKEN_CHAR_CLASS) {
+        set_error(parser, "Expected character class", token.position);
+        return false;
+    }
+
+    // Create a character class node
+    rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_CHARACTER_CLASS);
+    if (!node) {
+        set_error(parser, "Failed to create character class node", token.position);
+        return false;
+    }
+
+    // Set the character class value
+    if (!rift_regex_ast_set_value(node, token.value)) {
+        rift_regex_ast_free_node(node);
+        set_error(parser, "Failed to set character class value", token.position);
+        return false;
+    }
+
+    // Add the node to the current node
+    if (!rift_regex_ast_add_child(parser->current_node, node)) {
+        rift_regex_ast_free_node(node);
+        set_error(parser, "Failed to add character class node", token.position);
+        return false;
+    }
+
+    return true;
+}
+
+bool
+rift_regex_parser_handle_group(rift_regex_parser_t *parser)
+{
+    if (!parser || !parser->tokenizer) {
+        return false;
+    }
+
+    // Get the opening parenthesis
+    rift_regex_token_t token = rift_regex_tokenizer_next_token(parser->tokenizer);
+    if (token.type != RIFT_REGEX_TOKEN_LPAREN) {
+        set_error(parser, "Expected opening parenthesis", token.position);
+        return false;
+    }
+
+    // Determine the group type
+    rift_regex_ast_node_type_t group_type = RIFT_REGEX_AST_NODE_GROUP;
+    char *group_name = NULL;
+    /**
+     * @brief Set state information for an AST node
+     *
+     * @param node The AST node
+     * @param info The state information
+     * @param aux_data Additional data (can be NULL)
+     * @return true if successful, false otherwise
+     */
+    static bool rift_regex_ast_node_set_state_info(rift_regex_ast_node_t * node,
+                                                   rift_state_info_t * info, void *aux_data)
+    {
+        if (!node || !info) {
+            return false;
+        }
+
+        // This would be implemented to store the state info in the node
+        // For now, we'll just return true as a stub implementation
+        return true;
+    }
+
+    bool rift_regex_parser_handle_group(rift_regex_parser_t * parser)
+        // Check for group specifier
+        token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+    if (token.type == RIFT_REGEX_TOKEN_NON_CAPTURING) {
+        rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+        group_type = RIFT_REGEX_AST_NODE_NON_CAPTURING_GROUP;
+    } else if (token.type == RIFT_REGEX_TOKEN_NAMED_GROUP) {
+        rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+        group_type = RIFT_REGEX_AST_NODE_NAMED_GROUP;
+        group_name = strdup(token.value);
+    } else if (token.type == RIFT_REGEX_TOKEN_LOOKAHEAD) {
+        rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+        group_type = RIFT_REGEX_AST_NODE_LOOKAHEAD;
+    } else if (token.type == RIFT_REGEX_TOKEN_NEGATIVE_LOOKAHEAD) {
+        rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+        group_type = RIFT_REGEX_AST_NODE_NEGATIVE_LOOKAHEAD;
+    } else if (token.type == RIFT_REGEX_TOKEN_LOOKBEHIND) {
+        rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+        group_type = RIFT_REGEX_AST_NODE_LOOKBEHIND;
+    } else if (token.type == RIFT_REGEX_TOKEN_NEGATIVE_LOOKBEHIND) {
+        rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+        group_type = RIFT_REGEX_AST_NODE_NEGATIVE_LOOKBEHIND;
+    } else if (token.type == RIFT_REGEX_TOKEN_ATOMIC_GROUP) {
+        rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+        group_type = RIFT_REGEX_AST_NODE_ATOMIC_GROUP;
+    } else if (token.type == RIFT_REGEX_TOKEN_COMMENT) {
+        rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+        group_type = RIFT_REGEX_AST_NODE_COMMENT;
+
+        // Create a comment node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(group_type);
+        if (!node) {
+            set_error(parser, "Failed to create comment node", token.position);
+            return false;
+        }
+
+        // Set the comment value
+        if (!rift_regex_ast_set_value(node, token.value)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set comment value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        // Add the group to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, group)) {
+            rift_regex_ast_free_node(group);
+            set_error(parser, "Failed to add group node", token.position);
+            return false;
+        }
+
+        // Set state information for the group node
+        rift_state_info_t temp_info = {.entry_state_id = parser->next_state_id++,
+                                       .exit_state_id = parser->next_state_id++,
+                                       .transition_condition = NULL,
+                                       .constraints = parser->flags,
+                                       .is_accepting = false};
+
+        if (!rift_regex_ast_node_set_state_info(group, &temp_info, NULL)) {
+            set_error(parser, "Failed to set state info for group", token.position);
+            return false;
+        }
+        // Get the closing parenthesis (should be already consumed for comments)
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+        if (token.type != RIFT_REGEX_TOKEN_RPAREN) {
+            set_error(parser, "Expected closing parenthesis", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    // Create a group node
+    rift_regex_ast_node_t *group = rift_regex_ast_create_node(group_type);
+    if (!group) {
+        free(group_name);
+        set_error(parser, "Failed to create group node", token.position);
+        return false;
+    }
+
+    // Set the group name for named groups
+    if (group_type == RIFT_REGEX_AST_NODE_NAMED_GROUP) {
+        if (!rift_regex_ast_set_value(group, group_name)) {
+            free(group_name);
+            rift_regex_ast_free_node(group);
+            set_error(parser, "Failed to set group name", token.position);
+            return false;
+        }
+    }
+    free(group_name);
+
+    // Add the group to the current node
+    if (!rift_regex_ast_add_child(parser->current_node, group)) {
+        rift_regex_ast_free_node(group);
+        set_error(parser, "Failed to add group node", token.position);
+        return false;
+    }
+
+    // Save the parent node
+    rift_regex_ast_node_t *parent = parser->current_node;
+
+    // Set the current node to the group
+    parser->current_node = group;
+
+    // Parse the contents of the group
+    if (!rift_regex_parser_handle_alternation(parser)) {
+        // Error message is already set
+        return false;
+    }
+
+    // Restore the current node
+    parser->current_node = parent;
+
+    // Get the closing parenthesis
+    token = rift_regex_tokenizer_next_token(parser->tokenizer);
+    if (token.type != RIFT_REGEX_TOKEN_RPAREN) {
+        set_error(parser, "Expected closing parenthesis", token.position);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Parse a quantifier
+ *
+ * @param parser The parser
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_parser_handle_quantifier(rift_regex_parser_t *parser)
+{
+    if (!parser || !parser->tokenizer || !parser->current_node) {
+        return false;
+    }
+
+    // Check if there is a child to quantify
+    size_t child_count = rift_regex_ast_get_child_count(parser->current_node);
+    if (child_count == 0) {
+        set_error(parser, "Nothing to quantify",
+                  rift_regex_tokenizer_get_position(parser->tokenizer));
+        return false;
+    }
+
+    // Get the last child
+    rift_regex_ast_node_t *last_child =
+        rift_regex_ast_get_child(parser->current_node, child_count - 1);
+    if (!last_child) {
+        set_error(parser, "Failed to get last child",
+                  rift_regex_tokenizer_get_position(parser->tokenizer));
+        return false;
+    }
+
+    // Get the quantifier token
+    rift_regex_token_t token = rift_regex_tokenizer_next_token(parser->tokenizer);
+    if (token.type != RIFT_REGEX_TOKEN_STAR && token.type != RIFT_REGEX_TOKEN_PLUS &&
+        token.type != RIFT_REGEX_TOKEN_QUESTION && token.type != RIFT_REGEX_TOKEN_LBRACE) {
+        set_error(parser, "Expected quantifier", token.position);
+        return false;
+    }
+
+    // Create a quantifier node
+    rift_regex_ast_node_t *quantifier = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_QUANTIFIER);
+    if (!quantifier) {
+        set_error(parser, "Failed to create quantifier node", token.position);
+        return false;
+    }
+
+    // Set the quantifier type based on the token
+    char *quantifier_value = NULL;
+    if (token.type == RIFT_REGEX_TOKEN_STAR) {
+        quantifier_value = strdup("*");
+    } else if (token.type == RIFT_REGEX_TOKEN_PLUS) {
+        quantifier_value = strdup("+");
+    } else if (token.type == RIFT_REGEX_TOKEN_QUESTION) {
+        quantifier_value = strdup("?");
+    } else if (token.type == RIFT_REGEX_TOKEN_LBRACE) {
+        // Parse {m,n} quantifier
+        size_t start_pos = token.position;
+        char buffer[32];
+        size_t buffer_index = 0;
+
+        // Add the opening brace
+        buffer[buffer_index++] = '{';
+
+        // Read the minimum value
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+        if (token.type != RIFT_REGEX_TOKEN_LITERAL && token.type != RIFT_REGEX_TOKEN_COMMA) {
+            rift_regex_ast_free_node(quantifier);
+            set_error(parser, "Expected number or comma in quantifier", token.position);
+            return false;
+        }
+
+        if (token.type == RIFT_REGEX_TOKEN_LITERAL) {
+            // Add the minimum value
+            buffer[buffer_index++] = token.value[0];
+
+            // Read more digits
+            while (buffer_index < sizeof(buffer) - 3) { // Leave room for ,n}
+                token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+                if (token.type != RIFT_REGEX_TOKEN_LITERAL || !isdigit(token.value[0])) {
+                    break;
+                }
+
+                rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+                buffer[buffer_index++] = token.value[0];
+            }
+
+            // Read the comma or closing brace
+            token = rift_regex_tokenizer_next_token(parser->tokenizer);
+        }
+
+        // Handle the comma and maximum value
+        if (token.type == RIFT_REGEX_TOKEN_COMMA) {
+            // Add the comma
+            buffer[buffer_index++] = ',';
+
+            // Read the maximum value (optional)
+            token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+            if (token.type == RIFT_REGEX_TOKEN_LITERAL && isdigit(token.value[0])) {
+                rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+                buffer[buffer_index++] = token.value[0];
+
+                // Read more digits
+                while (buffer_index < sizeof(buffer) - 1) { // Leave room for }
+                    token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+                    if (token.type != RIFT_REGEX_TOKEN_LITERAL || !isdigit(token.value[0])) {
+                        break;
+                    }
+
+                    rift_regex_tokenizer_next_token(parser->tokenizer); // Consume the token
+                    buffer[buffer_index++] = token.value[0];
+                }
+            }
+
+            // Read the closing brace
+            token = rift_regex_tokenizer_next_token(parser->tokenizer);
+        }
+
+        // Check for closing brace
+        if (token.type != RIFT_REGEX_TOKEN_RBRACE) {
+            rift_regex_ast_free_node(quantifier);
+            set_error(parser, "Expected closing brace in quantifier", token.position);
+            return false;
+        }
+
+        // Add the closing brace
+        buffer[buffer_index++] = '}';
+        buffer[buffer_index] = '\0';
+
+        quantifier_value = strdup(buffer);
+    }
+
+    // Set the quantifier value
+    if (!quantifier_value || !rift_regex_ast_set_value(quantifier, quantifier_value)) {
+        free(quantifier_value);
+        rift_regex_ast_free_node(quantifier);
+        set_error(parser, "Failed to set quantifier value", token.position);
+        return false;
+    }
+    free(quantifier_value);
+
+    // Check for greediness modifier
+    token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+    if (token.type == RIFT_REGEX_TOKEN_QUESTION) {
+        // Consume the token
+        rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Get the current quantifier value
+        const char *current_value = rift_regex_ast_get_node_value(quantifier);
+
+        // Append the ? to the quantifier value
+        char new_value[32];
+        snprintf(new_value, sizeof(new_value), "%s?", current_value);
+
+        if (!rift_regex_ast_set_value(quantifier, new_value)) {
+            rift_regex_ast_free_node(quantifier);
+            set_error(parser, "Failed to set quantifier value", token.position);
+            return false;
+        }
+    }
+
+    // Remove the last child from the current node
+    rift_regex_ast_node_t *parent = parser->current_node;
+
+    // Add the last child to the quantifier
+    if (!rift_regex_ast_add_child(quantifier, last_child)) {
+        rift_regex_ast_free_node(quantifier);
+        set_error(parser, "Failed to add child to quantifier", token.position);
+        return false;
+    }
+
+    // Replace the last child with the quantifier
+    if (rift_regex_ast_get_child_count(parent) > 0) {
+        if (!rift_regex_ast_set_child(parent, child_count - 1, quantifier)) {
+            rift_regex_ast_free_node(quantifier);
+            set_error(parser, "Failed to update quantifier node",
+                      rift_regex_tokenizer_get_position(parser->tokenizer));
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Parse a concatenation of terms
+ *
+ * @param parser The parser
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_parser_handle_concatenation(rift_regex_parser_t *parser)
+{
+    if (!parser || !parser->tokenizer) {
+        return false;
+    }
+
+    // Check if we need to create a concatenation node
+    rift_regex_ast_node_t *concat = NULL;
+
+    // Parse the first term
+    if (!parse_term(parser)) {
+        return false;
+    }
+
+    // Check for more terms
+    rift_regex_token_t token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+
+    // Check if we have more terms to parse
+    while (token.type != RIFT_REGEX_TOKEN_END && token.type != RIFT_REGEX_TOKEN_PIPE &&
+           token.type != RIFT_REGEX_TOKEN_RPAREN) {
+
+        // If this is the second term, create a concatenation node
+        if (!concat) {
+            // Create a concatenation node
+            concat = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_CONCATENATION);
+            if (!concat) {
+                set_error(parser, "Failed to create concatenation node", token.position);
+                return false;
+            }
+
+            // Add the concatenation node to the current node
+            rift_regex_ast_node_t *parent = parser->current_node;
+
+            // Get the first term (last child of the current node)
+            size_t child_count = rift_regex_ast_get_child_count(parent);
+            if (child_count == 0) {
+                rift_regex_ast_free_node(concat);
+                set_error(parser, "No first term for concatenation", token.position);
+                return false;
+            }
+
+            rift_regex_ast_node_t *first_term = rift_regex_ast_get_child(parent, child_count - 1);
+            if (!first_term) {
+                rift_regex_ast_free_node(concat);
+                set_error(parser, "Failed to get first term", token.position);
+                return false;
+            }
+
+            // Replace the last child with the concatenation
+            if (rift_regex_ast_get_child_count(parent) > 0) {
+                if (!rift_regex_ast_set_child(parent, child_count - 1, concat) ||
+                    !rift_regex_ast_set_parent(first_term, concat)) {
+                    rift_regex_ast_free_node(concat);
+                    set_error(parser, "Failed to update node relationships", token.position);
+                    return false;
+                }
+            }
+
+            // Add the first term to the concatenation
+            if (!rift_regex_ast_add_child(concat, first_term)) {
+                rift_regex_ast_free_node(concat);
+                set_error(parser, "Failed to add first term to concatenation", token.position);
+                return false;
+            }
+
+            // Set the current node to the concatenation for parsing the second term
+            parser->current_node = concat;
+        }
+
+        // Parse the next term
+        if (!parse_term(parser)) {
+            return false;
+        }
+
+        // Check for more terms
+        token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+    }
+
+    return true;
+}
+
+/**
+ * @brief Parse an alternation of concatenations
+ *
+ * @param parser The parser
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_parser_handle_alternation(rift_regex_parser_t *parser)
+{
+    if (!parser || !parser->tokenizer) {
+        return false;
+    }
+
+    // Check if we need to create an alternation node
+    rift_regex_ast_node_t *alt = NULL;
+
+    // Parse the first concatenation
+    if (!rift_regex_parser_handle_concatenation(parser)) {
+        return false;
+    }
+
+    // Check for alternation
+    rift_regex_token_t token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+
+    // Check if we have more concatenations to parse
+    while (token.type == RIFT_REGEX_TOKEN_PIPE) {
+        // Consume the pipe
+        rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // If this is the second concatenation, create an alternation node
+        if (!alt) {
+            // Create an alternation node
+            alt = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_ALTERNATION);
+            if (!alt) {
+                set_error(parser, "Failed to create alternation node", token.position);
+                return false;
+            }
+
+            // Add the alternation node to the current node
+            rift_regex_ast_node_t *parent = parser->current_node;
+
+            // Get the first concatenation (last child of the current node)
+            size_t child_count = rift_regex_ast_get_child_count(parent);
+            if (child_count == 0) {
+                rift_regex_ast_free_node(alt);
+                set_error(parser, "No first concatenation for alternation", token.position);
+                return false;
+            }
+
+            rift_regex_ast_node_t *first_concat = rift_regex_ast_get_child(parent, child_count - 1);
+            if (!first_concat) {
+                rift_regex_ast_free_node(alt);
+                set_error(parser, "Failed to get first concatenation", token.position);
+                return false;
+            }
+
+            // Replace the last child with the alternation
+            if (!rift_regex_ast_set_child(parent, child_count - 1, alt) ||
+                !rift_regex_ast_set_parent(first_concat, alt)) {
+                rift_regex_ast_free_node(alt);
+                set_error(parser, "Failed to update node relationships", token.position);
+                return false;
+            }
+            // Add the first concatenation to the alternation
+            if (!rift_regex_ast_add_child(alt, first_concat)) {
+                rift_regex_ast_free_node(alt);
+                set_error(parser, "Failed to add first concatenation to alternation",
+                          token.position);
+                return false;
+            }
+
+            // Set the current node to the alternation for parsing the second
+            // concatenation
+            parser->current_node = alt;
+        }
+
+        // Parse the next concatenation
+        if (!rift_regex_parser_handle_concatenation(parser)) {
+            return false;
+        }
+
+        // Check for more concatenations
+        token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+    }
+
+    return true;
+}
+
+/**
+ * @brief Parse an atom (literal, dot, group, etc.)
+ *
+ * @param parser The parser
+ * @return true if successful, false otherwise
+ */
+static bool
+parse_atom(rift_regex_parser_t *parser)
+{
+    if (!parser || !parser->tokenizer) {
+        return false;
+    }
+
+    // Peek at the next token
+    rift_regex_token_t token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+
+    // Handle different atom types
+    switch (token.type) {
+    case RIFT_REGEX_TOKEN_LITERAL: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create a literal node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_LITERAL);
+        if (!node) {
+            set_error(parser, "Failed to create literal node", token.position);
+            return false;
+        }
+
+        // Set the literal value
+        if (!rift_regex_ast_set_value(node, token.value)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set literal value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add literal node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_DOT: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create a dot node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_DOT);
+        if (!node) {
+            set_error(parser, "Failed to create dot node", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add dot node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_LPAREN:
+        return rift_regex_parser_handle_group(parser);
+
+    case RIFT_REGEX_TOKEN_LBRACKET:
+        return rift_regex_parser_handle_character_class(parser);
+
+    case RIFT_REGEX_TOKEN_CARET: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create an anchor node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_ANCHOR);
+        if (!node) {
+            set_error(parser, "Failed to create anchor node", token.position);
+            return false;
+        }
+
+        // Set the anchor value
+        if (!rift_regex_ast_set_value(node, "^")) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set anchor value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add anchor node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_DOLLAR: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create an anchor node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_ANCHOR);
+        if (!node) {
+            set_error(parser, "Failed to create anchor node", token.position);
+            return false;
+        }
+
+        // Set the anchor value
+        if (!rift_regex_ast_set_value(node, "$")) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set anchor value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add anchor node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_ESCAPE_SEQUENCE: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create a node based on the escape sequence
+        rift_regex_ast_node_t *node;
+        if (token.value[0] == 'd' || token.value[0] == 'D' || token.value[0] == 'w' ||
+            token.value[0] == 'W' || token.value[0] == 's' || token.value[0] == 'S') {
+            // Character class escape sequence
+            node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_CHARACTER_CLASS);
+        } else {
+            // Literal escape sequence
+            node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_LITERAL);
+        }
+
+        if (!node) {
+            set_error(parser, "Failed to create escape sequence node", token.position);
+            return false;
+        }
+
+        // Set the escape sequence value
+        char value[3] = {'\\', token.value[0], '\0'};
+        if (!rift_regex_ast_set_value(node, value)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set escape sequence value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add escape sequence node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_WORD_BOUNDARY: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create a word boundary node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_WORD_BOUNDARY);
+        if (!node) {
+            set_error(parser, "Failed to create word boundary node", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add word boundary node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_NOT_WORD_BOUNDARY: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create a not word boundary node
+        rift_regex_ast_node_t *node =
+            rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_NOT_WORD_BOUNDARY);
+        if (!node) {
+            set_error(parser, "Failed to create not word boundary node", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add not word boundary node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_BACKREFERENCE: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create a backreference node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_BACKREFERENCE);
+        if (!node) {
+            set_error(parser, "Failed to create backreference node", token.position);
+            return false;
+        }
+
+        // Set the backreference value
+        if (!rift_regex_ast_set_value(node, token.value)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set backreference value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add backreference node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_NAMED_BACKREFERENCE: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create a named backreference node
+        rift_regex_ast_node_t *node =
+            rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_NAMED_BACKREFERENCE);
+        if (!node) {
+            set_error(parser, "Failed to create named backreference node", token.position);
+            return false;
+        }
+
+        // Set the named backreference value
+        if (!rift_regex_ast_set_value(node, token.value)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set named backreference value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add named backreference node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_BACKREF_RESET: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create a backref reset node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_BACKREF_RESET);
+        if (!node) {
+            set_error(parser, "Failed to create backref reset node", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add backref reset node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_START_OF_INPUT: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create an anchor node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_ANCHOR);
+        if (!node) {
+            set_error(parser, "Failed to create anchor node", token.position);
+            return false;
+        }
+
+        // Set the anchor value
+        if (!rift_regex_ast_set_value(node, "\\A")) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set anchor value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add anchor node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_END_OF_INPUT: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create an anchor node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_ANCHOR);
+        if (!node) {
+            set_error(parser, "Failed to create anchor node", token.position);
+            return false;
+        }
+
+        // Set the anchor value
+        if (!rift_regex_ast_set_value(node, token.value[0] == 'Z' ? "\\Z" : "\\z")) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set anchor value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add anchor node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_OPTION: {
+        // Consume the token
+        token = rift_regex_tokenizer_next_token(parser->tokenizer);
+
+        // Create an option node
+        rift_regex_ast_node_t *node = rift_regex_ast_create_node(RIFT_REGEX_AST_NODE_OPTION);
+        if (!node) {
+            set_error(parser, "Failed to create option node", token.position);
+            return false;
+        }
+
+        // Set the option value
+        if (!rift_regex_ast_set_value(node, token.value)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to set option value", token.position);
+            return false;
+        }
+
+        // Add the node to the current node
+        if (!rift_regex_ast_add_child(parser->current_node, node)) {
+            rift_regex_ast_free_node(node);
+            set_error(parser, "Failed to add option node", token.position);
+            return false;
+        }
+
+        return true;
+    }
+
+    case RIFT_REGEX_TOKEN_END:
+    case RIFT_REGEX_TOKEN_RPAREN:
+    case RIFT_REGEX_TOKEN_PIPE:
+        // These tokens indicate the end of a sequence, not an atom
+        // We'll return true with no node created, which means an empty sequence
+        return true;
+
+    default:
+        set_error(parser, "Unexpected token in pattern", token.position);
+        return false;
+    }
+}
+
+/**
+ * @brief Parse a term (atom followed by optional quantifier)
+ *
+ * @param parser The parser
+ * @return true if successful, false otherwise
+ */
+static bool
+parse_term(rift_regex_parser_t *parser)
+{
+    if (!parser || !parser->tokenizer) {
+        return false;
+    }
+
+    // Parse an atom
+    if (!parse_atom(parser)) {
+        return false;
+    }
+
+    // Check for a quantifier
+    rift_regex_token_t token = rift_regex_tokenizer_peek_token(parser->tokenizer);
+
+    if (token.type == RIFT_REGEX_TOKEN_STAR || token.type == RIFT_REGEX_TOKEN_PLUS ||
+        token.type == RIFT_REGEX_TOKEN_QUESTION || token.type == RIFT_REGEX_TOKEN_LBRACE) {
+
+        // Parse the quantifier
+        if (!rift_regex_parser_handle_quantifier(parser)) {
+            return false;
+        }
+    }
+
+    return true;
+}

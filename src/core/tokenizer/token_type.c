@@ -1,0 +1,131 @@
+/**
+ * @file token_type.c
+ * @brief Implementation of token type functions for the LibRift regex engine
+ *
+ * This file implements the functions for working with token types in the
+ * LibRift regex engine.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/tokenizer/token_type.h
+#include <stdbool.h>
+#include <stddef.h>
+#include "librift/parser/token_type.h"
+
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/tokenizer/token_type.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/tokenizer/token_type.h
+tmp/librift_analysis/librift-4933472-W/src/core/tokenizer/token_type.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/tokenizer/token_type.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/tokenizer/token_type.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/tokenizer/token_type.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/tokenizer/token_type.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/tokenizer/token_type.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/tokenizer/token_type.h"
+
+/**
+ * @brief String representations of token types for debug output
+ */
+static const char *token_type_strings[] = {
+    [RIFT_REGEX_TOKEN_LITERAL] = "LITERAL",
+    [RIFT_REGEX_TOKEN_DOT] = "DOT",
+    [RIFT_REGEX_TOKEN_CARET] = "CARET",
+    [RIFT_REGEX_TOKEN_DOLLAR] = "DOLLAR",
+    [RIFT_REGEX_TOKEN_STAR] = "STAR",
+    [RIFT_REGEX_TOKEN_PLUS] = "PLUS",
+    [RIFT_REGEX_TOKEN_QUESTION] = "QUESTION",
+    [RIFT_REGEX_TOKEN_LPAREN] = "LPAREN",
+    [RIFT_REGEX_TOKEN_RPAREN] = "RPAREN",
+    [RIFT_REGEX_TOKEN_LBRACKET] = "LBRACKET",
+    [RIFT_REGEX_TOKEN_RBRACKET] = "RBRACKET",
+    [RIFT_REGEX_TOKEN_PIPE] = "PIPE",
+    [RIFT_REGEX_TOKEN_LBRACE] = "LBRACE",
+    [RIFT_REGEX_TOKEN_RBRACE] = "RBRACE",
+    [RIFT_REGEX_TOKEN_COMMA] = "COMMA",
+    [RIFT_REGEX_TOKEN_BACKSLASH] = "BACKSLASH",
+    [RIFT_REGEX_TOKEN_CHAR_CLASS] = "CHAR_CLASS",
+    [RIFT_REGEX_TOKEN_GROUP_START] = "GROUP_START",
+    [RIFT_REGEX_TOKEN_GROUP_END] = "GROUP_END",
+    [RIFT_REGEX_TOKEN_NAMED_GROUP] = "NAMED_GROUP",
+    [RIFT_REGEX_TOKEN_NON_CAPTURING] = "NON_CAPTURING",
+    [RIFT_REGEX_TOKEN_LOOKAHEAD] = "LOOKAHEAD",
+    [RIFT_REGEX_TOKEN_NEGATIVE_LOOKAHEAD] = "NEGATIVE_LOOKAHEAD",
+    [RIFT_REGEX_TOKEN_LOOKBEHIND] = "LOOKBEHIND",
+    [RIFT_REGEX_TOKEN_NEGATIVE_LOOKBEHIND] = "NEGATIVE_LOOKBEHIND",
+    [RIFT_REGEX_TOKEN_ATOMIC_GROUP] = "ATOMIC_GROUP",
+    [RIFT_REGEX_TOKEN_COMMENT] = "COMMENT",
+    [RIFT_REGEX_TOKEN_OPTION] = "OPTION",
+    [RIFT_REGEX_TOKEN_BACKREFERENCE] = "BACKREFERENCE",
+    [RIFT_REGEX_TOKEN_NAMED_BACKREFERENCE] = "NAMED_BACKREFERENCE",
+    [RIFT_REGEX_TOKEN_ESCAPE_SEQUENCE] = "ESCAPE_SEQUENCE",
+    [RIFT_REGEX_TOKEN_WORD_BOUNDARY] = "WORD_BOUNDARY",
+    [RIFT_REGEX_TOKEN_NOT_WORD_BOUNDARY] = "NOT_WORD_BOUNDARY",
+    [RIFT_REGEX_TOKEN_START_OF_INPUT] = "START_OF_INPUT",
+    [RIFT_REGEX_TOKEN_END_OF_INPUT] = "END_OF_INPUT",
+    [RIFT_REGEX_TOKEN_BACKREF_RESET] = "BACKREF_RESET",
+    [RIFT_REGEX_TOKEN_ERROR] = "ERROR",
+    [RIFT_REGEX_TOKEN_END] = "END"};
+
+/**
+ * @brief Get a string representation of a token type
+ *
+ * @param type The token type
+ * @return A string representing the token type
+ */
+const char *
+rift_regex_token_type_to_string(rift_regex_token_type_t type)
+{
+    if (type < 0 || type >= (int)(sizeof(token_type_strings) / sizeof(token_type_strings[0])) ||
+        token_type_strings[type] == NULL) {
+        return "UNKNOWN";
+    }
+
+    return token_type_strings[type];
+}
+
+/**
+ * @brief Check if a token type is a quantifier
+ *
+ * @param type The token type to check
+ * @return true if the token type is a quantifier, false otherwise
+ */
+bool
+rift_regex_token_type_is_quantifier(rift_regex_token_type_t type)
+{
+    return type == RIFT_REGEX_TOKEN_STAR || type == RIFT_REGEX_TOKEN_PLUS ||
+           type == RIFT_REGEX_TOKEN_QUESTION ||
+           type == RIFT_REGEX_TOKEN_LBRACE; /* Opening brace for {m,n} */
+}
+
+/**
+ * @brief Check if a token type is a group start
+ *
+ * @param type The token type to check
+ * @return true if the token type is a group start, false otherwise
+ */
+bool
+rift_regex_token_type_is_group_start(rift_regex_token_type_t type)
+{
+    return type == RIFT_REGEX_TOKEN_LPAREN || type == RIFT_REGEX_TOKEN_GROUP_START ||
+           type == RIFT_REGEX_TOKEN_NAMED_GROUP || type == RIFT_REGEX_TOKEN_NON_CAPTURING ||
+           type == RIFT_REGEX_TOKEN_LOOKAHEAD || type == RIFT_REGEX_TOKEN_NEGATIVE_LOOKAHEAD ||
+           type == RIFT_REGEX_TOKEN_LOOKBEHIND || type == RIFT_REGEX_TOKEN_NEGATIVE_LOOKBEHIND ||
+           type == RIFT_REGEX_TOKEN_ATOMIC_GROUP;
+}
+
+/**
+ * @brief Check if a token type is an assertion
+ *
+ * @param type The token type to check
+ * @return true if the token type is an assertion, false otherwise
+ */
+bool
+rift_regex_token_type_is_assertion(rift_regex_token_type_t type)
+{
+    return type == RIFT_REGEX_TOKEN_CARET || type == RIFT_REGEX_TOKEN_DOLLAR ||
+           type == RIFT_REGEX_TOKEN_WORD_BOUNDARY || type == RIFT_REGEX_TOKEN_NOT_WORD_BOUNDARY ||
+           type == RIFT_REGEX_TOKEN_START_OF_INPUT || type == RIFT_REGEX_TOKEN_END_OF_INPUT ||
+           type == RIFT_REGEX_TOKEN_LOOKAHEAD || type == RIFT_REGEX_TOKEN_NEGATIVE_LOOKAHEAD ||
+           type == RIFT_REGEX_TOKEN_LOOKBEHIND || type == RIFT_REGEX_TOKEN_NEGATIVE_LOOKBEHIND;
+}

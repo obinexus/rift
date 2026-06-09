@@ -1,0 +1,11 @@
+# rift.toml (the "master switch")
+[membrane]
+coherence_threshold = 0.954
+default_orientation = "nil"  # No context assumed
+detach_mode = false           # Require explicit ε state
+
+[dimensions]
+lexical = { salience = 0.8, capability = 0.3 }
+syntactic = { salience = 0.9, capability = 0.5 }
+semantic = { salience = 1.0, capability = 0.7 }
+cultural = { salience = 0.6, capability = 0.9 }

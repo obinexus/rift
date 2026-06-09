@@ -1,0 +1,3609 @@
+.
+├── API_OVERVIEW.md
+├── bin
+│   ├── libriftlang.a
+│   ├── libriftlang.so
+│   └── riftlang
+├── bindings
+│   ├── criftlang
+│   │   ├── rift_binding.c
+│   │   └── rift_binding.h
+│   ├── go-riftlang
+│   │   ├── pattern_engine.go
+│   │   └── rift_binding.go
+│   ├── lua-riftlang
+│   │   ├── pattern_engine.lua
+│   │   └── rift_binding.lua
+│   ├── node-riftlang
+│   │   ├── pattern_engine.cjs
+│   │   └── rift_binding.cjs
+│   ├── pyriftlang
+│   │   ├── pattern_engine.py
+│   │   ├── __pycache__
+│   │   │   ├── rift_binding.cpython-312.pyc
+│   │   │   └── rift_binding.cpython-313.pyc
+│   │   └── rift_binding.py
+│   └── wat2wasm
+│       ├── rift_binding.wasm
+│       └── rift_binding.wat
+├── build
+│   ├── CMakeCache.txt
+│   └── CMakeFiles
+│       ├── 4.3.2
+│       │   ├── CMakeCCompiler.cmake
+│       │   ├── CMakeDetermineCompilerABI_C.bin
+│       │   ├── CMakeRCCompiler.cmake
+│       │   ├── CMakeSystem.cmake
+│       │   ├── CompilerIdC
+│       │   │   ├── CMakeCCompilerId.c
+│       │   │   ├── CompilerIdC.exe
+│       │   │   ├── CompilerIdC.vcxproj
+│       │   │   ├── Debug
+│       │   │   │   ├── CMakeCCompilerId.obj
+│       │   │   │   ├── CompilerIdC.exe.recipe
+│       │   │   │   └── CompilerIdC.tlog
+│       │   │   │       ├── CL.command.1.tlog
+│       │   │   │       ├── Cl.items.tlog
+│       │   │   │       ├── CL.read.1.tlog
+│       │   │   │       ├── CL.write.1.tlog
+│       │   │   │       ├── CompilerIdC.lastbuildstate
+│       │   │   │       ├── link.command.1.tlog
+│       │   │   │       ├── link.read.1.tlog
+│       │   │   │       ├── link.secondary.1.tlog
+│       │   │   │       └── link.write.1.tlog
+│       │   │   └── tmp
+│       │   ├── VCTargetsPath
+│       │   │   └── x64
+│       │   │       └── Debug
+│       │   │           ├── VCTargetsPath.recipe
+│       │   │           └── VCTargetsPath.tlog
+│       │   │               └── VCTargetsPath.lastbuildstate
+│       │   ├── VCTargetsPath.txt
+│       │   ├── VCTargetsPath.vcxproj
+│       │   └── x64
+│       │       └── Debug
+│       ├── cmake.check_cache
+│       ├── CMakeConfigureLog.yaml
+│       ├── generate.stamp.list
+│       └── pkgRedirects
+├── CHANGELOG.md
+├── cmake
+│   ├── LibRiftConfig.cmake.in
+│   └── modules
+│       ├── CodeCoverage.cmake
+│       └── FindCheck.cmake
+├── CMakeCache.txt
+├── CMakeFiles
+│   ├── 3.31.6
+│   │   ├── CMakeCCompiler.cmake
+│   │   ├── CMakeCXXCompiler.cmake
+│   │   ├── CMakeDetermineCompilerABI_C.bin
+│   │   ├── CMakeDetermineCompilerABI_CXX.bin
+│   │   ├── CMakeSystem.cmake
+│   │   ├── CompilerIdC
+│   │   │   ├── a.out
+│   │   │   └── CMakeCCompilerId.c
+│   │   └── CompilerIdCXX
+│   │       ├── a.out
+│   │       └── CMakeCXXCompilerId.cpp
+│   ├── cmake.check_cache
+│   ├── CMakeConfigureLog.yaml
+│   ├── CMakeDirectoryInformation.cmake
+│   ├── Export
+│   │   └── 58fe4d38843cbb54f0bb9966936dae7e
+│   │       ├── LibRiftTargets.cmake
+│   │       └── LibRiftTargets-debug.cmake
+│   ├── librift_core.dir
+│   │   ├── build.make
+│   │   ├── cmake_clean.cmake
+│   │   ├── cmake_clean_target.cmake
+│   │   ├── compiler_depend.internal
+│   │   ├── compiler_depend.make
+│   │   ├── compiler_depend.ts
+│   │   ├── DependInfo.cmake
+│   │   ├── depend.make
+│   │   ├── flags.make
+│   │   ├── link.txt
+│   │   ├── progress.make
+│   │   └── src
+│   │       └── core
+│   │           ├── automaton
+│   │           │   ├── automaton.c.o.d
+│   │           │   ├── flags.c.o
+│   │           │   ├── flags.c.o.d
+│   │           │   ├── minimizer.c.o.d
+│   │           │   ├── regex.c.o
+│   │           │   ├── regex.c.o.d
+│   │           │   ├── state.c.o
+│   │           │   ├── state.c.o.d
+│   │           │   ├── transition.c.o
+│   │           │   └── transition.c.o.d
+│   │           ├── bytecode
+│   │           │   ├── bytecode.c.o
+│   │           │   ├── bytecode.c.o.d
+│   │           │   ├── bytecode_compiler.c.o
+│   │           │   ├── bytecode_compiler.c.o.d
+│   │           │   ├── bytecode_program.c.o
+│   │           │   ├── bytecode_program.c.o.d
+│   │           │   ├── bytecode_system.c.o
+│   │           │   ├── bytecode_system.c.o.d
+│   │           │   ├── bytecode_vm.c.o
+│   │           │   └── bytecode_vm.c.o.d
+│   │           ├── compiler
+│   │           │   ├── compiler.c.o
+│   │           │   └── compiler.c.o.d
+│   │           ├── config
+│   │           │   ├── config.c.o
+│   │           │   └── config.c.o.d
+│   │           └── engine
+│   │               └── engine.c.o.d
+│   ├── librift_regex.dir
+│   │   ├── build.make
+│   │   ├── cmake_clean.cmake
+│   │   ├── cmake_clean_target.cmake
+│   │   ├── compiler_depend.make
+│   │   ├── compiler_depend.ts
+│   │   ├── DependInfo.cmake
+│   │   ├── depend.make
+│   │   ├── flags.make
+│   │   ├── link.txt
+│   │   └── progress.make
+│   ├── Makefile2
+│   ├── Makefile.cmake
+│   ├── Progress
+│   │   └── count.txt
+│   ├── progress.marks
+│   ├── rift-cli.dir
+│   │   ├── build.make
+│   │   ├── cmake_clean.cmake
+│   │   ├── compiler_depend.make
+│   │   ├── compiler_depend.ts
+│   │   ├── DependInfo.cmake
+│   │   ├── depend.make
+│   │   ├── flags.make
+│   │   ├── link.txt
+│   │   └── progress.make
+│   ├── rift.dir
+│   │   ├── build.make
+│   │   ├── cmake_clean.cmake
+│   │   ├── cmake_clean_target.cmake
+│   │   ├── compiler_depend.make
+│   │   ├── compiler_depend.ts
+│   │   ├── DependInfo.cmake
+│   │   ├── depend.make
+│   │   ├── flags.make
+│   │   ├── link.txt
+│   │   └── progress.make
+│   └── TargetDirectories.txt
+├── cmake_install.cmake
+├── CMakeLists.txt
+├── config.h.in
+├── dist
+│   ├── CMakeCache.txt
+│   └── CMakeFiles
+│       ├── 4.3.2
+│       │   ├── CMakeCCompiler.cmake
+│       │   ├── CMakeDetermineCompilerABI_C.bin
+│       │   ├── CMakeRCCompiler.cmake
+│       │   ├── CMakeSystem.cmake
+│       │   ├── CompilerIdC
+│       │   │   ├── CMakeCCompilerId.c
+│       │   │   ├── CompilerIdC.exe
+│       │   │   ├── CompilerIdC.vcxproj
+│       │   │   ├── Debug
+│       │   │   │   ├── CMakeCCompilerId.obj
+│       │   │   │   ├── CompilerIdC.exe.recipe
+│       │   │   │   └── CompilerIdC.tlog
+│       │   │   │       ├── CL.command.1.tlog
+│       │   │   │       ├── Cl.items.tlog
+│       │   │   │       ├── CL.read.1.tlog
+│       │   │   │       ├── CL.write.1.tlog
+│       │   │   │       ├── CompilerIdC.lastbuildstate
+│       │   │   │       ├── link.command.1.tlog
+│       │   │   │       ├── link.read.1.tlog
+│       │   │   │       ├── link.secondary.1.tlog
+│       │   │   │       └── link.write.1.tlog
+│       │   │   └── tmp
+│       │   ├── VCTargetsPath
+│       │   │   └── x64
+│       │   │       └── Debug
+│       │   │           ├── VCTargetsPath.recipe
+│       │   │           └── VCTargetsPath.tlog
+│       │   │               └── VCTargetsPath.lastbuildstate
+│       │   ├── VCTargetsPath.txt
+│       │   ├── VCTargetsPath.vcxproj
+│       │   └── x64
+│       │       └── Debug
+│       ├── cmake.check_cache
+│       ├── CMakeConfigureLog.yaml
+│       ├── CMakeScratch
+│       ├── generate.stamp.list
+│       └── pkgRedirects
+├── docs
+│   ├── api
+│   │   ├── core.md
+│   │   ├── parser
+│   │   │   └── parser.svg
+│   │   ├── regex.md
+│   │   └── runtime
+│   │       └── runtime.md
+│   ├── ARCH.md
+│   ├── bridge
+│   │   └── webbridge.txt
+│   ├── build
+│   │   ├── main.o
+│   │   ├── rift_codec.o
+│   │   └── riftlang.o
+│   ├── bytecode
+│   │   └── bytecode.md
+│   ├── cleint
+│   │   └── rift_cli.md
+│   ├── cli
+│   │   ├── archetcure.svg
+│   │   └── MULTIPASS.md
+│   ├── DEV_HELP.md
+│   ├── docs
+│   │   ├── marked-down
+│   │   │   ├── $r8rf64o.md
+│   │   │   ├── $rcu90ow.md
+│   │   │   ├── $rng7ua6.md
+│   │   │   ├── building_belief_into_code.md
+│   │   │   ├── contextual swiichting.md
+│   │   │   ├── gossip-language-governance.md
+│   │   │   ├── import-enforcement-guide.md
+│   │   │   ├── memory_self_role_mask.md
+│   │   │   ├── Quatum_Superposition.md
+│   │   │   ├── readme2.md
+│   │   │   ├── readme.md
+│   │   │   ├── rift-7-hardware-deployment.md
+│   │   │   ├── rift-bridge-governance-relay.md
+│   │   │   ├── rift-documentation-build.md
+│   │   │   ├── rift_goverance_file.md
+│   │   │   ├── riftlang_lexer_specification.md
+│   │   │   ├── riftlang_with_quantum_governnce.md
+│   │   │   ├── rifttoken_model.md
+│   │   │   ├── rift-token-spec.md
+│   │   │   ├── specification_classic.md
+│   │   │   └── the rifters way - language intergirty for human-centric safety-critcial system.md
+│   │   └── specification
+│   │       ├── $r2lqwin.pdf
+│   │       ├── $rxd9ode.pdf
+│   │       ├── building_belief_into_code.pdf
+│   │       ├── contextual swiichting.pdf
+│   │       ├── FORMAL AUTOMATON MODEL FOR REGEX IN PROGRAMMING LANGUAGE DESIGN.pdf
+│   │       ├── governing meaning_ the rift architecture of certainty - copy.pdf
+│   │       ├── memory_self_role_mask.pdf
+│   │       ├── readme2.pdf
+│   │       ├── readme.pdf
+│   │       ├── rifter_ecosystem_whitepaper (8) - copy.pdf
+│   │       ├── rifter_ecosystem_whitepaper (8).pdf
+│   │       ├── rifter_ecosystem_whitepaper.pdf
+│   │       ├── riftlang_implementation_specification.pdf
+│   │       ├── riftlang self-governing driver & binding specification.md
+│   │       ├── riftlang self-governing driver & binding specification.pdf
+│   │       ├── rift token architecture_ memory-type associations.pdf
+│   │       ├── technical documentation - memory goveranace in the rift ecosystem.pdf
+│   │       └── Thread Safety Implementation in Gosilang - A Formal Analysis (1).pdf
+│   ├── dsl
+│   │   ├── dsl.png
+│   │   └── dsl.svg
+│   ├── ENDINESS.md
+│   ├── examples
+│   │   ├── advanced.md
+│   │   └── basic.md
+│   ├── guides
+│   │   ├── getting_started.md
+│   │   ├── performance_tips.md
+│   │   ├── regex_syntax.md
+│   │   └── spec.md
+│   ├── images
+│   │   ├── accsibltiy_granted.svg
+│   │   ├── intergraion.png
+│   │   └── thread_safety.png
+│   ├── internals
+│   │   ├── automaton.md
+│   │   ├── backtracking.md
+│   │   └── optimization.md
+│   ├── patterns.md
+│   ├── plan
+│   │   ├── Backtracker.md
+│   │   └── intergration.md
+│   ├── poc
+│   │   ├── rift.md
+│   │   ├── safety.md
+│   │   └── thread_safety_2.md
+│   ├── poem
+│   │   └── POEM.md
+│   ├── rift_dsl
+│   │   └── RIFT_DSL.md
+│   ├── rifters_way
+│   │   ├── README.md
+│   │   └── RIFT
+│   │       ├── Axis Shift Change of Basis.png
+│   │       ├── Axis Shift Change of Basis.svg
+│   │       ├── Change of Basis.svg
+│   │       ├── Complete RIFT Procesing Pipeline.png
+│   │       ├── Complete RIFT Procesing Pipeline.svg
+│   │       ├── Complete RIFT Processing Pipeline.mermaid
+│   │       ├── Dimensional POP OUT.svg
+│   │       ├── Dual Encoding and Rift Space.mermaid
+│   │       ├── Dual Encoding & Rift Space.mermaid
+│   │       ├── Dual Encoding & Rift Space.svg
+│   │       ├── Eplision Handling.svg
+│   │       ├── Epsilon Handling.png
+│   │       ├── Epsilon Resolution.mermaid
+│   │       ├── Epsilon Resolution.png
+│   │       ├── Epsilon Resolution.svg
+│   │       ├── Hexadecimal Reconciliation.mermaid
+│   │       ├── Hexadecimal Reconciliation.png
+│   │       ├── Hexadecimal Reconciliation.svg
+│   │       ├── Identiity Reconcillation.svg
+│   │       ├── Identity Reconciliation Function.png
+│   │       ├── Identity Reconcillation Function.mermaid
+│   │       ├── Identity Reconnaiation.png
+│   │       ├── Lifecycle Research MVP Foundation Aspiration.mermaid
+│   │       ├── mmuko_noise_union_nonosie_29dec2025.mermaid
+│   │       ├── mmuko_noise_union_nonosie_29dec2025.png
+│   │       ├── mmuko_noise_union_nonosie_29dec2025.svg
+│   │       ├── Overall Rift Process.mermaid
+│   │       ├── Overall Rift Process.svg
+│   │       ├── Rift Automaton.mermaid
+│   │       ├── Rift Automaton.mmd
+│   │       ├── Rift Automaton with Dual Transitions.mermaid
+│   │       ├── Rift Automaton with Dual Transitions.svg
+│   │       ├── RIFTCISCO_RWX_13DEC2025_2245
+│   │       │   ├── deepseek_mermaid_20251213_412b08.mermaid
+│   │       │   ├── deepseek_mermaid_20251213_adbf97.png
+│   │       │   ├── deepseek_mermaid_20251213_dc925d.svg
+│   │       │   └── RIFT_RDATAPACKETVIACISOBOUNDHOMOGRUTYDATASAPENANDODTS12DEC2025.txt
+│   │       ├── RIFT Consensual Bound raERA riftest.png
+│   │       ├── RIFT Theory Components.png
+│   │       ├── RIFT Theory Components.svg
+│   │       ├── Sparse Encoding.mermaid
+│   │       ├── Sparse Encoding Structure.mermaid
+│   │       ├── Sparse Encoding Structure.png
+│   │       ├── Sparse Encoding Structure.svg
+│   │       ├── Sparse Enconding.png
+│   │       ├── Transformation.png
+│   │       ├── Transformation Set F.png
+│   │       └── Transformation Set F.svg
+│   └── TRANSCRIPT
+│       ├── auraseal
+│       │   └── Auraseal1nov0205 youtbe vido palyet trancitp.txt
+│       ├── BCI
+│       │   ├── Dimensional Game Theory By Nnamdin.zip
+│       │   ├── Dimensional Game Theory_ From Chess to Unicode.zip
+│       │   ├── Neurospark BCI  via 7x7.txt
+│       │   ├── Pre-conscious BCI Plasma Cohernce adn aNTI OHERION.TXT
+│       │   └── quantum classic firld reosluton for plasmio with lgithin ball.txt
+│       ├── Be free NOW  Butterflies on the Battlefield – A Phenomenological Realignment  of the Heart and SOUL
+│       │   └── Be free NOW.docx
+│       ├── Bidirecional Learning
+│       │   ├── OBINexus Constutional Updates Pandora Box Healing Begin NOW
+│       │   │   ├── OBINexus Constutional Updates Pandora Box Healing Begin NOW.docx
+│       │   │   ├── OBINexus Constutional Updates Pandora Box Healing Begin NOW.pdf
+│       │   │   ├── OBINexus Constutional Updates Pandora Box Healing Begin NOW.srt
+│       │   │   └── OBINexus Constutional Updates Pandora Box Healing Begin NOW.txt
+│       │   └── OBINexus Constutional Updates Pandora Box Healing Begin NOW.zip
+│       ├── decentriezed networkign
+│       │   ├── 1.webp
+│       │   ├── 2.webp
+│       │   ├── 3.webp
+│       │   ├── 4.webp
+│       │   ├── 5.webp
+│       │   └── 6.webp
+│       ├── dimensional-game-theory
+│       │   ├── BiDirection Interperator for NeroDivegenct AntiHallicution Safety Critical - Copy (1).srt
+│       │   ├── Dimensional Game Theory By Nnamdin
+│       │   │   ├── Dimensional Game Theory By Nnamdin.srt
+│       │   │   └── Dimensional Game Theory By Nnamdin.txt
+│       │   ├── Dimensional Game Theory By Nnamdin.csv
+│       │   ├── Dimensional Game Theory By Nnamdin.docx
+│       │   ├── Dimensional Game Theory By Nnamdin.pdf
+│       │   ├── Dimensional Game Theory By Nnamdin.srt
+│       │   ├── Dimensional Game Theory By Nnamdin.txt
+│       │   ├── Dimensional Game Theory By Nnamdin.vtt
+│       │   ├── Dimensional Game Theory By Nnamdin.zip
+│       │   └── Introduuion to DGT incompelte todya 13 nov 2025.txt
+│       ├── GEOCALL 18 NOV
+│       │   ├── Geo Call_otter_ai.txt
+│       │   └── gocall 2_otter_ai.txt
+│       ├── GossipLang
+│       │   ├── gosilang_with_rift_16nov2025.txt
+│       │   ├── Gossip Programing16 NOV 2025 AD by Nnamdi Michael Okpala
+│       │   │   ├── Gossip Programing16 NOV 2025 AD by Nnamdi Michael Okpala.pdf
+│       │   │   ├── Gossip Programing16 NOV 2025 AD by Nnamdi Michael Okpala.srt
+│       │   │   ├── Gossip Programing16 NOV 2025 AD by Nnamdi Michael Okpala.txt
+│       │   │   └── Gossip Programing16 NOV 2025 AD by Nnamdi Michael Okpala.vtt
+│       │   ├── Gossip Programing16 NOV 2025 AD by Nnamdi Michael Okpala.zip
+│       │   ├── Ontological Baysian Quatum Superpositve State Isotolpic
+│       │   │   ├── Ontological Baysian Quatum Superpositve State Isotolpic.pdf
+│       │   │   ├── Ontological Baysian Quatum Superpositve State Isotolpic.txt
+│       │   │   └── Ontological Baysian Quatum Superpositve State Isotolpic.vtt
+│       │   ├── Ontological Baysian Quatum Superpositve State Isotolpic.zip
+│       │   └── PHILOSOPHY_FOR_ANTIBURACTS.txt
+│       ├── human-rights-social
+│       │   └── Human Rights Claim 2014 - Nnamdi Michael Okpala 2014 VIOLATION 360 M.txt
+│       ├── jagganut
+│       │   └── Biological Informatics Presentation_otter_ai.txt
+│       ├── MAIN
+│       │   ├── 09DEC2025SPEECHNOTE_TOMOGRAPHCITWSGINFORSPACE.txt
+│       │   ├── 10hourly.txt
+│       │   ├── 1.webp
+│       │   ├── 2.webp
+│       │   ├── 3.webp
+│       │   ├── 4.webp
+│       │   ├── 5.webp
+│       │   ├── 6.webp
+│       │   ├── Annoncing Bidirectional Learning Thank you Mr Salim 14 NOV 2025.txt
+│       │   ├── bci.txt
+│       │   ├── BEINGTOBECOMING_27OV2025.txt
+│       │   ├── Bidirectioanl Learning Framwork with QA bounds_otter_ai.txt
+│       │   ├── BiDirection Interperator for NeroDivegenct AntiHallicution Safety Critical - Copy.txt
+│       │   ├── BiDirection Interperator for NeroDivegenct AntiHallicution Safety Critical.srt
+│       │   ├── BiDirection Interperator for NeroDivegenct AntiHallicution Safety Critic l srt 10 nov 2025 .txt
+│       │   ├── Biological Informatics Presentation_otter_ai.txt
+│       │   ├── captions.srt
+│       │   ├── captions.txt
+│       │   ├── Civil Uprising - When X Fails, Buil.txt
+│       │   ├── CORN.txt
+│       │   ├── Data Request and Case Closure_otter_ai.txt
+│       │   ├── Dimensional Game Theory By Nnamdin.txt
+│       │   ├── dse.txt
+│       │   ├── EURODI~1.TXT
+│       │   ├── Export subtitles - NSIGII Here and Now and OBINexus 27 Degree of Dimensionality Consensus Relaity.wav (28_01_2026).srt
+│       │   ├── Export text - Fan Fiction Ferb Universe and Marvel Tony Universe.wav (04_11_2025).txt
+│       │   ├── Export text - Mmuko Suite NOV 11 2025.wav (11_11_2025).txt
+│       │   ├── Export text - NSIGII Here and Now and OBINexus 27 Degree of Dimensionality Consensus Relaity.wav (28_01_2026).txt
+│       │   ├── Frnakwis mosnter_otter_ai.txt
+│       │   ├── Geo Call_otter_ai.txt
+│       │   ├── gocall 2_otter_ai.txt
+│       │   ├── gosilang_with_rift_16nov2025.txt
+│       │   ├── Gossip Programing16 NOV 2025 AD by Nnamdi Michael Okpala.txt
+│       │   ├── Governce with Biologiy Sustianbelity _otter_ai (1).txt
+│       │   ├── Governce with Biologiy Sustianbelity _otter_ai.txt
+│       │   ├── Govvernce Modle via OBINexus_otter_ai (1).txt
+│       │   ├── Govvernce Modle via OBINexus_otter_ai.txt
+│       │   ├── Human Rights Claim 2014 - Nnamdi Michael Okpala 2014 VIOLATION 360 M.txt
+│       │   ├── hum_otter_ai.txt
+│       │   ├── Introduuion to DGT incompelte todya 13 nov 2025.txt
+│       │   ├── LIVE FIRST WORK NEXT.txt
+│       │   ├── MMUKOOS_D_13T__DEC12_LEAPY2__
+│       │   │   ├── Export text - Mmuko Suite NOV 11 2025.wav (11_11_2025) (1).txt
+│       │   │   ├── Mmuko_otter_ai (1).txt
+│       │   │   ├── mmuko_otter_ai.txt
+│       │   │   ├── Mmuko PhantomID_otter _15_NOV_2025.txt
+│       │   │   └── MMUKO.txt
+│       │   ├── Mmuko PhantomID_otter _15_NOV_2025.txt
+│       │   ├── Neurospark BCI  via 7x7.txt
+│       │   ├── Neurospark brain computing interface via 7x7 Matrix for Kimentic and Inverse Kime ntic Verb Noun DAG 30 OCT 2025.txt
+│       │   ├── Newham LUCC Buffer Overflow for Automous Script via Mail Discolure post of money.txt
+│       │   ├── nigerian imposed wiht  biafra.txt
+│       │   ├── OBINexus Constutional Updates Pandora Box Healing Begin NOW.docx
+│       │   ├── OBINexus Constutional Updates Pandora Box Healing Begin NOW.pdf
+│       │   ├── OBINexus Constutional Updates Pandora Box Healing Begin NOW.srt
+│       │   ├── OBINexus Constutional Updates Pandora Box Healing Begin NOW.txt
+│       │   ├── OBINexus_MY_RETURNTOOBI_27NOV2025TRANSCENDING_OPERATION_ALINEOFCODEATATIME.txt
+│       │   ├── obinxus_biz.txt
+│       │   ├── OCT102025_1733_2025_OPENSENORYSTILL.txt
+│       │   ├── ODTS.txt
+│       │   ├── ONION_otter_ai.txt
+│       │   ├── ONION ROTUER 2 corn.txt
+│       │   ├── Ontological Baysian Quatum Superpositve State Isotolpic.txt
+│       │   ├── Pandoras Box FanFiction by Nnamdi Michael Okpala.txt
+│       │   ├── persona devloepmntn 04 nov 2025_otter_ai.txt
+│       │   ├── persona devloepmntn 04 nov 2025.txt
+│       │   ├── PHILOSOPHY_FOR_ANTIBURACTS.txt
+│       │   ├── quantum classic firld reosluton for plasmio with lgithin ball.txt
+│       │   ├── Quatum-Classical fo r PHEBIT lIGTHIN BALL.txt
+│       │   ├── README.txt
+│       │   ├── rift222.txt
+│       │   ├── SPARSETOMOGRPHICFORRIFTEST09DEC2025.txt
+│       │   ├── spasdetime.txt
+│       │   ├── SPECHNOTESOPENSENSESTILL10DEC2025.txt
+│       │   ├── Spiritual Anchor Initiative_otter_ai.txt
+│       │   ├── The Rebirth fo OBInexus.txt
+│       │   ├── The World First Constutional Use of the AURASEAL on obinexus github 7 NOV 2025.txt
+│       │   ├── TRANSCRIPT-STREAM-OF-CONSIONESS.txt
+│       │   ├── zero knoeldge proof system .txt
+│       │   └── zz.txt
+│       ├── Mmuko Suites
+│       │   ├── Export text - Mmuko Suite NOV 11 2025.wav (11_11_2025) (1).txt
+│       │   ├── Mmuko_otter_ai (1).txt
+│       │   ├── mmuko_otter_ai.txt
+│       │   └── Mmuko PhantomID_otter _15_NOV_2025.txt
+│       ├── nov-17-2025-obinexus-reform
+│       │   ├── Bidirectioanl Learning Framwork with QA bounds_otter_ai.txt
+│       │   ├── Governce with Biologiy Sustianbelity _otter_ai (1).txt
+│       │   ├── Governce with Biologiy Sustianbelity _otter_ai.txt
+│       │   ├── Govvernce Modle via OBINexus_otter_ai (1).txt
+│       │   └── Govvernce Modle via OBINexus_otter_ai.txt
+│       ├── ONION Governaance
+│       │   ├── CORN.txt
+│       │   ├── ONION_otter_ai.txt
+│       │   └── ONION ROTUER 2 corn.txt
+│       ├── postgrade
+│       │   ├── Frnakwis mosnter_otter_ai.txt
+│       │   └── TRANSCRIPT-STREAM-OF-CONSIONESS.txt
+│       ├── SEALED 17 NOV
+│       │   ├── Authetnic Expression.png
+│       │   ├── BiDirection Interperator for NeroDivegenct AntiHallicution Safety Critical - Copy.srt
+│       │   ├── BiDirection Interperator for NeroDivegenct AntiHallicution Safety Critical - Copy.txt
+│       │   ├── captions.srt
+│       │   ├── Data Request and Case Closure_otter_ai.txt
+│       │   ├── Export text - Mmuko Suite NOV 11 2025.wav (11_11_2025).txt
+│       │   └── Mmuko PhantomID_otter _15_NOV_2025.txt
+│       └── spirit-anchor-and-masquarade-16NOV2025
+│           └── Spiritual Anchor Initiative_otter_ai.txt
+├── examples
+│   ├── counter
+│   │   └── counter.rift
+│   ├── crift
+│   │   ├── out
+│   │   │   ├── hello.c
+│   │   │   ├── hello.lua
+│   │   │   └── hello.rift
+│   │   └── src
+│   │       ├── governance.rift
+│   │       ├── hello.rift
+│   │       └── quantum_bridge.rift
+│   ├── floyd
+│   │   └── string_pattern_detector.c
+│   ├── go
+│   │   ├── out
+│   │   └── src
+│   │       ├── governance.rift
+│   │       ├── quantum_bridge
+│   │       ├── quantum_bridge.c
+│   │       └── quantum_bridge.rift
+│   ├── luarift
+│   │   ├── out
+│   │   └── src
+│   │       ├── governance.rift
+│   │       └── quantum_bridge.rift
+│   ├── node-rift
+│   │   ├── out
+│   │   └── src
+│   │       ├── governance.rift
+│   │       └── quantum_bridge.rift
+│   ├── pyrift
+│   │   ├── out
+│   │   └── src
+│   │       ├── governance.rift
+│   │       └── quantum_bridge.rift
+│   ├── README.md
+│   └── wasm
+│       ├── out
+│       └── src
+│           ├── governance.rift
+│           └── quantum_bridge.rift
+├── include
+│   ├── automaton
+│   │   ├── automaton.h
+│   │   └── minimizer.h
+│   ├── cli
+│   │   ├── accessibility
+│   │   │   ├── accessiblity_manager.h
+│   │   │   ├── accessiblity_manager.h.bak
+│   │   │   ├── color_scheme_manager copy.h
+│   │   │   ├── color_scheme_manager copy.h.bak
+│   │   │   ├── color_scheme_manager.h
+│   │   │   ├── color_scheme_manager.h.bak
+│   │   │   ├── config_utils.h
+│   │   │   ├── config_utils.h.bak
+│   │   │   ├── features.h
+│   │   │   ├── features.h.bak
+│   │   │   ├── features_utils.h
+│   │   │   ├── features_utils.h.bak
+│   │   │   ├── keyboard_navigation_manager.h
+│   │   │   ├── keyboard_navigation_manager.h.bak
+│   │   │   ├── keyboard_navigator_manager.h
+│   │   │   ├── keyboard_navigator_manager.h.bak
+│   │   │   ├── preferences_manager.h
+│   │   │   ├── preferences_manager.h.bak
+│   │   │   ├── regex_accesibility_bridge.h
+│   │   │   ├── regex_accesibility_bridge.h.bak
+│   │   │   ├── regex_accessiblity_bridge.h
+│   │   │   ├── regex_accessiblity_bridge.h.bak
+│   │   │   ├── screen_reader_adapter.h
+│   │   │   ├── screen_reader_adapter.h.bak
+│   │   │   ├── ui_adapation_manager.h
+│   │   │   ├── ui_adapation_manager.h.bak
+│   │   │   ├── ui_adaptation_manager.h
+│   │   │   └── ui_adaptation_manager.h.bak
+│   │   ├── command
+│   │   │   ├── ast_command.h
+│   │   │   ├── ast_command.h.bak
+│   │   │   ├── bytecode_command.h
+│   │   │   ├── bytecode_command.h.bak
+│   │   │   ├── command_factory.h
+│   │   │   ├── command_factory.h.bak
+│   │   │   ├── command.h
+│   │   │   ├── command.h.bak
+│   │   │   ├── compile_command.h
+│   │   │   ├── compile_command.h.bak
+│   │   │   ├── parse_command.h
+│   │   │   ├── parse_command.h.bak
+│   │   │   ├── rift_tokenize_command.h
+│   │   │   └── rift_tokenize_command.h.bak
+│   │   ├── main.h
+│   │   ├── main.h.bak
+│   │   └── visualizer
+│   │       ├── automaton_observer.h
+│   │       ├── automaton_observer.h.bak
+│   │       ├── color_scheme_manager.h
+│   │       ├── color_scheme_manager.h.bak
+│   │       ├── real_time_update_manager.h
+│   │       ├── real_time_update_manager.h.bak
+│   │       ├── svg_automaton_mapper.h
+│   │       ├── svg_automaton_mapper.h.bak
+│   │       ├── svg_element.h
+│   │       ├── svg_element.h.bak
+│   │       ├── svg_renderer.h
+│   │       ├── svg_renderer.h.bak
+│   │       ├── text_size_manager.h
+│   │       └── text_size_manager.h.bak
+│   ├── core
+│   │   ├── automaton
+│   │   │   ├── automaton.h
+│   │   │   ├── automaton.h.bak
+│   │   │   ├── flags.h
+│   │   │   ├── flags.h.bak
+│   │   │   ├── minimizer.h
+│   │   │   ├── minimizer.h.bak
+│   │   │   ├── README.md
+│   │   │   ├── regex.h
+│   │   │   ├── regex.h.bak
+│   │   │   ├── state.h
+│   │   │   ├── state.h.bak
+│   │   │   ├── transition.h
+│   │   │   └── transition.h.bak
+│   │   ├── bytecode
+│   │   │   ├── bridge_api.h
+│   │   │   ├── bridge_api.h.bak
+│   │   │   ├── bytecode_compiler.h
+│   │   │   ├── bytecode_compiler.h.bak
+│   │   │   ├── bytecode.h
+│   │   │   ├── bytecode.h.bak
+│   │   │   ├── bytecode_program.h
+│   │   │   ├── bytecode_program.h.bak
+│   │   │   ├── bytecode_system.h
+│   │   │   ├── bytecode_system.h.bak
+│   │   │   ├── bytecode_vm.h
+│   │   │   ├── bytecode_vm.h.bak
+│   │   │   └── README.md
+│   │   ├── compiler
+│   │   │   ├── compiler.h
+│   │   │   ├── compiler.h.bak
+│   │   │   ├── optimizer.h
+│   │   │   ├── optimizer.h.bak
+│   │   │   └── README.md
+│   │   ├── config
+│   │   │   ├── backtracker_limit_config.h
+│   │   │   ├── backtracker_limit_config.h.bak
+│   │   │   ├── backtracker_limit_registry.h
+│   │   │   ├── backtracker_limit_registry.h.bak
+│   │   │   ├── bailout_strategy_manager.h
+│   │   │   ├── bailout_strategy_manager.h.bak
+│   │   │   ├── config.h
+│   │   │   ├── config.h.bak
+│   │   │   └── README.md
+│   │   ├── dsl
+│   │   │   ├── rift_dsl_compiler.h
+│   │   │   ├── rift_dsl_compiler.h.bak
+│   │   │   ├── rift_dsl.h
+│   │   │   ├── rift_dsl.h.bak
+│   │   │   ├── rift_dsl_io.h
+│   │   │   ├── rift_dsl_io.h.bak
+│   │   │   ├── rift_dsl_parser.h
+│   │   │   ├── rift_dsl_parser.h.bak
+│   │   │   ├── rift_dsl_test_runner.h
+│   │   │   ├── rift_dsl_test_runner.h.bak
+│   │   │   ├── rift_test_runner.h
+│   │   │   └── rift_test_runner.h.bak
+│   │   ├── engine
+│   │   │   ├── engine.h
+│   │   │   ├── engine.h.bak
+│   │   │   ├── matcher.h
+│   │   │   ├── matcher.h.bak
+│   │   │   ├── pattern.h
+│   │   │   ├── pattern.h.bak
+│   │   │   ├── README.md
+│   │   │   ├── result.h
+│   │   │   └── result.h.bak
+│   │   ├── errors
+│   │   │   ├── error.h
+│   │   │   ├── error.h.bak
+│   │   │   ├── README.md
+│   │   │   ├── regex_error_compat.h
+│   │   │   ├── regex_error_compat.h.bak
+│   │   │   ├── regex_error.h
+│   │   │   └── regex_error.h.bak
+│   │   ├── memory
+│   │   │   ├── memory.h
+│   │   │   └── memory.h.bak
+│   │   ├── parser
+│   │   │   ├── ast.h
+│   │   │   ├── ast.h.bak
+│   │   │   ├── ast_node.h
+│   │   │   ├── ast_node.h.bak
+│   │   │   ├── parser.h
+│   │   │   ├── parser.h.bak
+│   │   │   ├── README.md
+│   │   │   ├── validator.h
+│   │   │   └── validator.h.bak
+│   │   ├── patterns
+│   │   │   ├── baseline_patterns.h
+│   │   │   ├── baseline_patterns.h.bak
+│   │   │   ├── pattern_extensions.h
+│   │   │   ├── pattern_extensions.h.bak
+│   │   │   ├── pattern_types.h
+│   │   │   ├── pattern_types.h.bak
+│   │   │   └── README.md
+│   │   ├── regex
+│   │   │   ├── flags.h
+│   │   │   ├── flags.h.bak
+│   │   │   ├── regex.h
+│   │   │   └── regex.h.bak
+│   │   ├── runtime
+│   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h
+│   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h.bak
+│   │   │   ├── backtracker_backtracker_extension.h
+│   │   │   ├── backtracker_backtracker_extension.h.bak
+│   │   │   ├── backtracker_backtracker_limit_registry.h
+│   │   │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │   │   ├── backtracker_backtracker_safe_backtracker.h
+│   │   │   ├── backtracker_backtracker_safe_backtracker.h.bak
+│   │   │   ├── backtracker_bailout_strategy_manager.h
+│   │   │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │   │   ├── backtracker_extension.h
+│   │   │   ├── backtracker_extension.h.bak
+│   │   │   ├── backtracker.h
+│   │   │   ├── backtracker.h.bak
+│   │   │   ├── backtracker_limit_registry.h
+│   │   │   ├── backtracker_limit_registry.h.bak
+│   │   │   ├── backtracker_safe_backtracker.h
+│   │   │   ├── backtracker_safe_backtracker.h.bak
+│   │   │   ├── context_context_thread_safe_context.h
+│   │   │   ├── context_context_thread_safe_context.h.bak
+│   │   │   ├── context.h
+│   │   │   ├── context.h.bak
+│   │   │   ├── contexthread_safe_context.h
+│   │   │   ├── contexthread_safe_context.h.bak
+│   │   │   ├── context_thread_safe_context.h
+│   │   │   ├── context_thread_safe_context.h.bak
+│   │   │   ├── execution_execution_execution_tracker.h
+│   │   │   ├── execution_execution_execution_tracker.h.bak
+│   │   │   ├── execution_execution_tracker.h
+│   │   │   ├── execution_execution_tracker.h.bak
+│   │   │   ├── execution_tracker.h
+│   │   │   ├── execution_tracker.h.bak
+│   │   │   ├── groups_groups_groups.h
+│   │   │   ├── groups_groups_groups.h.bak
+│   │   │   ├── groups_groups.h
+│   │   │   ├── groups_groups.h.bak
+│   │   │   ├── groups.h
+│   │   │   ├── groups.h.bak
+│   │   │   ├── matcher.h
+│   │   │   ├── matcher.h.bak
+│   │   │   ├── match_types.h
+│   │   │   ├── match_types.h.bak
+│   │   │   ├── pattern_complexity_strategy.h
+│   │   │   ├── pattern_complexity_strategy.h.bak
+│   │   │   ├── pattern_pattern_complexity_strategy.h
+│   │   │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │   │   ├── pattern_pattern_pattern_complexity_strategy.h
+│   │   │   ├── pattern_pattern_pattern_complexity_strategy.h.bak
+│   │   │   ├── pattern_pattern_pattern_tracking_strategy.h
+│   │   │   ├── pattern_pattern_pattern_tracking_strategy.h.bak
+│   │   │   ├── pattern_pattern_tracking_strategy.h
+│   │   │   ├── pattern_pattern_tracking_strategy.h.bak
+│   │   │   ├── pattern_tracking_strategy.h
+│   │   │   ├── pattern_tracking_strategy.h.bak
+│   │   │   ├── runtime.h
+│   │   │   ├── runtime.h.bak
+│   │   │   ├── safe_backtracker.h
+│   │   │   ├── safe_backtracker.h.bak
+│   │   │   ├── thread_safe_context.h
+│   │   │   └── thread_safe_context.h.bak
+│   │   ├── syntax
+│   │   │   ├── integration.h
+│   │   │   ├── integration.h.bak
+│   │   │   ├── lexer.h
+│   │   │   ├── lexer.h.bak
+│   │   │   ├── parser.h
+│   │   │   ├── parser.h.bak
+│   │   │   ├── README.md
+│   │   │   ├── syntax.h
+│   │   │   └── syntax.h.bak
+│   │   ├── tokenizer
+│   │   │   ├── README.md
+│   │   │   ├── token.h
+│   │   │   ├── token.h.bak
+│   │   │   ├── tokenizer.h
+│   │   │   ├── tokenizer.h.bak
+│   │   │   ├── token_type.h
+│   │   │   └── token_type.h.bak
+│   │   └── webbridge
+│   │       ├── bridge_api.h
+│   │       ├── bridge_api.h.bak
+│   │       ├── webbridge.h
+│   │       ├── webbridge.h.bak
+│   │       ├── webbrige.h
+│   │       └── webbrige.h.bak
+│   ├── engine
+│   │   ├── engine.h
+│   │   ├── engine.h.bak
+│   │   ├── matcher.h
+│   │   ├── matcher.h.bak
+│   │   ├── pattern.h
+│   │   └── pattern.h.bak
+│   ├── librift
+│   │   ├── config.h
+│   │   ├── config.h.bak
+│   │   └── core
+│   │       ├── placeholder.h
+│   │       └── placeholder.h.bak
+│   ├── README.md
+│   ├── rift
+│   │   ├── bridge.h
+│   │   ├── cli.h
+│   │   ├── codec.h
+│   │   ├── codegen.h
+│   │   ├── emitter.h
+│   │   ├── lexer.h
+│   │   ├── memory.h
+│   │   ├── parser.h
+│   │   ├── pattern.h
+│   │   ├── platform.h
+│   │   ├── rift.h
+│   │   ├── semantic.h
+│   │   ├── token.h
+│   │   └── version.h
+│   ├── rift.h
+│   ├── rift.h.bak
+│   ├── riftlang.h
+│   ├── rifttest.h
+│   ├── runtime
+│   │   ├── backtracker_bailout_strategy_manager.h
+│   │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │   ├── backtracker_extension.h
+│   │   ├── backtracker_extension.h.bak
+│   │   ├── backtracker.h
+│   │   ├── backtracker.h.bak
+│   │   ├── backtracker_limit_registry.h
+│   │   ├── backtracker_limit_registry.h.bak
+│   │   ├── backtracker_safe_backtracker.h
+│   │   ├── backtracker_safe_backtracker.h.bak
+│   │   ├── context.h
+│   │   ├── context.h.bak
+│   │   ├── contexthread_safe_context.h
+│   │   ├── contexthread_safe_context.h.bak
+│   │   ├── context_thread_safe_context.h
+│   │   ├── context_thread_safe_context.h.bak
+│   │   ├── execution_tracker.h
+│   │   ├── execution_tracker.h.bak
+│   │   ├── groups.h
+│   │   ├── groups.h.bak
+│   │   ├── pattern_complexity_strategy.h
+│   │   ├── pattern_complexity_strategy.h.bak
+│   │   ├── pattern_pattern_tracking_strategy.h
+│   │   ├── pattern_pattern_tracking_strategy.h.bak
+│   │   ├── pattern_tracking_strategy.h
+│   │   └── pattern_tracking_strategy.h.bak
+│   ├── src
+│   │   ├── rift.h
+│   │   └── rift.h.bak
+│   ├── tmp
+│   │   └── librift_analysis
+│   │       ├── librift-4933472-W
+│   │       │   ├── backup
+│   │       │   │   ├── v1
+│   │       │   │   │   └── src
+│   │       │   │   │       ├── accessibility
+│   │       │   │   │       │   ├── accessiblity_manager.h
+│   │       │   │   │       │   ├── accessiblity_manager.h.bak
+│   │       │   │   │       │   ├── color_scheme_manager.h
+│   │       │   │   │       │   ├── color_scheme_manager.h.bak
+│   │       │   │   │       │   ├── keyboard_navigation_manager.h
+│   │       │   │   │       │   ├── keyboard_navigation_manager.h.bak
+│   │       │   │   │       │   ├── preferences_manager.h
+│   │       │   │   │       │   ├── preferences_manager.h.bak
+│   │       │   │   │       │   ├── regex_accesibility_bridge.h
+│   │       │   │   │       │   ├── regex_accesibility_bridge.h.bak
+│   │       │   │   │       │   ├── screen_reader_adapter.h
+│   │       │   │   │       │   ├── screen_reader_adapter.h.bak
+│   │       │   │   │       │   ├── ui_adapation_manager.h
+│   │       │   │   │       │   └── ui_adapation_manager.h.bak
+│   │       │   │   │       ├── accessibility copy
+│   │       │   │   │       │   ├── accessiblity_manager.h
+│   │       │   │   │       │   ├── accessiblity_manager.h.bak
+│   │       │   │   │       │   ├── color_scheme_manager.h
+│   │       │   │   │       │   ├── color_scheme_manager.h.bak
+│   │       │   │   │       │   ├── keyboard_navigation_manager.h
+│   │       │   │   │       │   ├── keyboard_navigation_manager.h.bak
+│   │       │   │   │       │   ├── preferences_manager.h
+│   │       │   │   │       │   ├── preferences_manager.h.bak
+│   │       │   │   │       │   ├── regex_accesibility_bridge.h
+│   │       │   │   │       │   ├── regex_accesibility_bridge.h.bak
+│   │       │   │   │       │   ├── screen_reader_adapter.h
+│   │       │   │   │       │   ├── screen_reader_adapter.h.bak
+│   │       │   │   │       │   ├── ui_adapation_manager.h
+│   │       │   │   │       │   └── ui_adapation_manager.h.bak
+│   │       │   │   │       ├── automaton
+│   │       │   │   │       │   ├── automaton.h
+│   │       │   │   │       │   ├── automaton.h.bak
+│   │       │   │   │       │   ├── flags.h
+│   │       │   │   │       │   ├── flags.h.bak
+│   │       │   │   │       │   ├── minimizer.h
+│   │       │   │   │       │   ├── minimizer.h.bak
+│   │       │   │   │       │   ├── regex.h
+│   │       │   │   │       │   ├── regex.h.bak
+│   │       │   │   │       │   ├── state.h
+│   │       │   │   │       │   ├── state.h.bak
+│   │       │   │   │       │   ├── transition.h
+│   │       │   │   │       │   └── transition.h.bak
+│   │       │   │   │       ├── bytecode
+│   │       │   │   │       │   ├── bytecode.h
+│   │       │   │   │       │   └── bytecode.h.bak
+│   │       │   │   │       ├── cli
+│   │       │   │   │       │   ├── command_factory.h
+│   │       │   │   │       │   ├── command_factory.h.bak
+│   │       │   │   │       │   ├── command.h
+│   │       │   │   │       │   ├── command.h.bak
+│   │       │   │   │       │   ├── compile_command.h
+│   │       │   │   │       │   ├── compile_command.h.bak
+│   │       │   │   │       │   ├── main.h
+│   │       │   │   │       │   └── main.h.bak
+│   │       │   │   │       ├── cli copy
+│   │       │   │   │       │   ├── command_factory.h
+│   │       │   │   │       │   ├── command_factory.h.bak
+│   │       │   │   │       │   ├── command.h
+│   │       │   │   │       │   ├── command.h.bak
+│   │       │   │   │       │   ├── compile_command.h
+│   │       │   │   │       │   ├── compile_command.h.bak
+│   │       │   │   │       │   ├── main.h
+│   │       │   │   │       │   └── main.h.bak
+│   │       │   │   │       ├── compiler
+│   │       │   │   │       │   ├── compiler.h
+│   │       │   │   │       │   ├── compiler.h.bak
+│   │       │   │   │       │   ├── optimizer.h
+│   │       │   │   │       │   └── optimizer.h.bak
+│   │       │   │   │       ├── core
+│   │       │   │   │       │   ├── config.h
+│   │       │   │   │       │   └── config.h.bak
+│   │       │   │   │       ├── core copy
+│   │       │   │   │       │   ├── config.h
+│   │       │   │   │       │   └── config.h.bak
+│   │       │   │   │       ├── engine
+│   │       │   │   │       │   ├── engine.h
+│   │       │   │   │       │   ├── engine.h.bak
+│   │       │   │   │       │   ├── matcher.h
+│   │       │   │   │       │   ├── matcher.h.bak
+│   │       │   │   │       │   ├── pattern.h
+│   │       │   │   │       │   └── pattern.h.bak
+│   │       │   │   │       ├── errors
+│   │       │   │   │       │   ├── error.h
+│   │       │   │   │       │   ├── error.h.bak
+│   │       │   │   │       │   ├── regex_error_compat.h
+│   │       │   │   │       │   ├── regex_error_compat.h.bak
+│   │       │   │   │       │   ├── regex_error.h
+│   │       │   │   │       │   └── regex_error.h.bak
+│   │       │   │   │       ├── memory
+│   │       │   │   │       │   ├── memory.h
+│   │       │   │   │       │   └── memory.h.bak
+│   │       │   │   │       ├── parser
+│   │       │   │   │       │   ├── ast.h
+│   │       │   │   │       │   ├── ast.h.bak
+│   │       │   │   │       │   ├── ast_node.h
+│   │       │   │   │       │   ├── ast_node.h.bak
+│   │       │   │   │       │   ├── parser.h
+│   │       │   │   │       │   ├── parser.h.bak
+│   │       │   │   │       │   ├── validator.h
+│   │       │   │   │       │   └── validator.h.bak
+│   │       │   │   │       ├── patterns
+│   │       │   │   │       │   ├── baseline_patterns.h
+│   │       │   │   │       │   ├── baseline_patterns.h.bak
+│   │       │   │   │       │   ├── pattern_extensions.h
+│   │       │   │   │       │   └── pattern_extensions.h.bak
+│   │       │   │   │       ├── runtime
+│   │       │   │   │       │   ├── backtracker_backtracker_extension.h
+│   │       │   │   │       │   ├── backtracker_backtracker_extension.h.bak
+│   │       │   │   │       │   ├── backtracker_backtracker.h
+│   │       │   │   │       │   ├── backtracker_backtracker.h.bak
+│   │       │   │   │       │   ├── backtracker_backtracker_limit_registry.h
+│   │       │   │   │       │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │       │   │   │       │   ├── backtracker_bailout_strategy_manager.h
+│   │       │   │   │       │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │       │   ├── backtracker_safe_backtracker.h
+│   │       │   │   │       │   ├── backtracker_safe_backtracker.h.bak
+│   │       │   │   │       │   ├── context_context.h
+│   │       │   │   │       │   ├── context_context.h.bak
+│   │       │   │   │       │   ├── context_thread_safe_context.h
+│   │       │   │   │       │   ├── context_thread_safe_context.h.bak
+│   │       │   │   │       │   ├── execution_execution_tracker.h
+│   │       │   │   │       │   ├── execution_execution_tracker.h.bak
+│   │       │   │   │       │   ├── groups_groups.h
+│   │       │   │   │       │   ├── groups_groups.h.bak
+│   │       │   │   │       │   ├── pattern_pattern_complexity_strategy.h
+│   │       │   │   │       │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │       │   ├── pattern_pattern_tracking_strategy.h
+│   │       │   │   │       │   └── pattern_pattern_tracking_strategy.h.bak
+│   │       │   │   │       ├── syntax
+│   │       │   │   │       │   ├── integration.h
+│   │       │   │   │       │   ├── integration.h.bak
+│   │       │   │   │       │   ├── lexer.h
+│   │       │   │   │       │   ├── lexer.h.bak
+│   │       │   │   │       │   ├── parser.h
+│   │       │   │   │       │   ├── parser.h.bak
+│   │       │   │   │       │   ├── syntax.h
+│   │       │   │   │       │   └── syntax.h.bak
+│   │       │   │   │       ├── tests
+│   │       │   │   │       │   └── unit
+│   │       │   │   │       │       ├── automaton
+│   │       │   │   │       │       │   └── automaton
+│   │       │   │   │       │       │       ├── automaton_tests.h
+│   │       │   │   │       │       │       ├── automaton_tests.h.bak
+│   │       │   │   │       │       │       ├── minimizer_tests.h
+│   │       │   │   │       │       │       ├── minimizer_tests.h.bak
+│   │       │   │   │       │       │       ├── regex_tests.h
+│   │       │   │   │       │       │       ├── regex_tests.h.bak
+│   │       │   │   │       │       │       ├── state_tests.h
+│   │       │   │   │       │       │       ├── state_tests.h.bak
+│   │       │   │   │       │       │       ├── transition_tests.h
+│   │       │   │   │       │       │       └── transition_tests.h.bak
+│   │       │   │   │       │       ├── compiler
+│   │       │   │   │       │       │   └── compiler
+│   │       │   │   │       │       │       ├── compiler_test.h
+│   │       │   │   │       │       │       └── compiler_test.h.bak
+│   │       │   │   │       │       ├── core
+│   │       │   │   │       │       │   ├── config_test.h
+│   │       │   │   │       │       │   └── config_test.h.bak
+│   │       │   │   │       │       ├── engine
+│   │       │   │   │       │       │   └── engine
+│   │       │   │   │       │       │       ├── engine_test.h
+│   │       │   │   │       │       │       ├── engine_test.h.bak
+│   │       │   │   │       │       │       ├── matcher_test.h
+│   │       │   │   │       │       │       ├── matcher_test.h.bak
+│   │       │   │   │       │       │       ├── pattern_test.h
+│   │       │   │   │       │       │       └── pattern_test.h.bak
+│   │       │   │   │       │       ├── errors
+│   │       │   │   │       │       │   └── errors
+│   │       │   │   │       │       │       ├── error_test.h
+│   │       │   │   │       │       │       ├── error_test.h.bak
+│   │       │   │   │       │       │       ├── regex_error_compact_test.h
+│   │       │   │   │       │       │       ├── regex_error_compact_test.h.bak
+│   │       │   │   │       │       │       ├── regex_error_test.h
+│   │       │   │   │       │       │       └── regex_error_test.h.bak
+│   │       │   │   │       │       ├── memory
+│   │       │   │   │       │       │   └── memory
+│   │       │   │   │       │       │       ├── memory_test.h
+│   │       │   │   │       │       │       └── memory_test.h.bak
+│   │       │   │   │       │       ├── parser
+│   │       │   │   │       │       │   └── parser
+│   │       │   │   │       │       │       ├── ast_node_test.h
+│   │       │   │   │       │       │       ├── ast_node_test.h.bak
+│   │       │   │   │       │       │       ├── ast_test.h
+│   │       │   │   │       │       │       ├── ast_test.h.bak
+│   │       │   │   │       │       │       ├── parser_test.h
+│   │       │   │   │       │       │       ├── parser_test.h.bak
+│   │       │   │   │       │       │       ├── tokenizer_test.h
+│   │       │   │   │       │       │       ├── tokenizer_test.h.bak
+│   │       │   │   │       │       │       ├── token_test.h
+│   │       │   │   │       │       │       ├── token_test.h.bak
+│   │       │   │   │       │       │       ├── token_type_test.h
+│   │       │   │   │       │       │       ├── token_type_test.h.bak
+│   │       │   │   │       │       │       ├── validator_test.h
+│   │       │   │   │       │       │       └── validator_test.h.bak
+│   │       │   │   │       │       ├── patterns
+│   │       │   │   │       │       │   └── patterns
+│   │       │   │   │       │       │       ├── baseline_pattern_test.h
+│   │       │   │   │       │       │       ├── baseline_pattern_test.h.bak
+│   │       │   │   │       │       │       ├── pattern_extensions_test.h
+│   │       │   │   │       │       │       └── pattern_extensions_test.h.bak
+│   │       │   │   │       │       ├── runtime
+│   │       │   │   │       │       │   └── runtime
+│   │       │   │   │       │       │       ├── backtracker
+│   │       │   │   │       │       │       │   ├── backtracker_extension_test.h
+│   │       │   │   │       │       │       │   ├── backtracker_extension_test.h.bak
+│   │       │   │   │       │       │       │   ├── backtracker_limit_registry_test.h
+│   │       │   │   │       │       │       │   ├── backtracker_limit_registry_test.h.bak
+│   │       │   │   │       │       │       │   ├── backtracker_test.h
+│   │       │   │   │       │       │       │   ├── backtracker_test.h.bak
+│   │       │   │   │       │       │       │   ├── bailout_strategy_manager_test.h
+│   │       │   │   │       │       │       │   ├── bailout_strategy_manager_test.h.bak
+│   │       │   │   │       │       │       │   ├── safe_backtracker_test.h
+│   │       │   │   │       │       │       │   └── safe_backtracker_test.h.bak
+│   │       │   │   │       │       │       ├── context
+│   │       │   │   │       │       │       │   ├── context_test.h
+│   │       │   │   │       │       │       │   ├── context_test.h.bak
+│   │       │   │   │       │       │       │   ├── thread_safe_context_test.h
+│   │       │   │   │       │       │       │   └── thread_safe_context_test.h.bak
+│   │       │   │   │       │       │       ├── execution
+│   │       │   │   │       │       │       │   ├── execution_tracker_test.h
+│   │       │   │   │       │       │       │   └── execution_tracker_test.h.bak
+│   │       │   │   │       │       │       ├── groups
+│   │       │   │   │       │       │       │   ├── groups_test.h
+│   │       │   │   │       │       │       │   └── groups_test.h.bak
+│   │       │   │   │       │       │       └── pattern
+│   │       │   │   │       │       │           ├── pattern_complexity_strategy_test.h
+│   │       │   │   │       │       │           ├── pattern_complexity_strategy_test.h.bak
+│   │       │   │   │       │       │           ├── pattern_tracking_strategy_test.h
+│   │       │   │   │       │       │           └── pattern_tracking_strategy_test.h.bak
+│   │       │   │   │       │       └── syntax
+│   │       │   │   │       │           └── syntax
+│   │       │   │   │       │               ├── integration_test.h
+│   │       │   │   │       │               ├── integration_test.h.bak
+│   │       │   │   │       │               ├── lexer_test.h
+│   │       │   │   │       │               ├── lexer_test.h.bak
+│   │       │   │   │       │               ├── parser_test.h
+│   │       │   │   │       │               ├── parser_test.h.bak
+│   │       │   │   │       │               ├── syntax_test.h
+│   │       │   │   │       │               └── syntax_test.h.bak
+│   │       │   │   │       ├── tokenizer
+│   │       │   │   │       │   ├── token.h
+│   │       │   │   │       │   ├── token.h.bak
+│   │       │   │   │       │   ├── tokenizer.h
+│   │       │   │   │       │   ├── tokenizer.h.bak
+│   │       │   │   │       │   ├── token_type.h
+│   │       │   │   │       │   └── token_type.h.bak
+│   │       │   │   │       ├── visualizer
+│   │       │   │   │       │   ├── svg_element.h
+│   │       │   │   │       │   └── svg_element.h.bak
+│   │       │   │   │       ├── visualizer copy
+│   │       │   │   │       │   ├── svg_element.h
+│   │       │   │   │       │   └── svg_element.h.bak
+│   │       │   │   │       ├── webbridge
+│   │       │   │   │       │   ├── webbrige.h
+│   │       │   │   │       │   └── webbrige.h.bak
+│   │       │   │   │       └── webbridge copy
+│   │       │   │   │           ├── webbrige.h
+│   │       │   │   │           └── webbrige.h.bak
+│   │       │   │   ├── v2
+│   │       │   │   │   ├── engine
+│   │       │   │   │   │   ├── engine.h
+│   │       │   │   │   │   ├── engine.h.bak
+│   │       │   │   │   │   ├── matcher.h
+│   │       │   │   │   │   ├── matcher.h.bak
+│   │       │   │   │   │   ├── pattern.h
+│   │       │   │   │   │   └── pattern.h.bak
+│   │       │   │   │   ├── errors
+│   │       │   │   │   │   ├── error.h
+│   │       │   │   │   │   ├── error.h.bak
+│   │       │   │   │   │   ├── regex_error_compat.h
+│   │       │   │   │   │   ├── regex_error_compat.h.bak
+│   │       │   │   │   │   ├── regex_error.h
+│   │       │   │   │   │   └── regex_error.h.bak
+│   │       │   │   │   ├── parser
+│   │       │   │   │   │   ├── ast.h
+│   │       │   │   │   │   ├── ast.h.bak
+│   │       │   │   │   │   ├── ast_node.h
+│   │       │   │   │   │   ├── ast_node.h.bak
+│   │       │   │   │   │   ├── parser.h
+│   │       │   │   │   │   ├── parser.h.bak
+│   │       │   │   │   │   ├── validator.h
+│   │       │   │   │   │   └── validator.h.bak
+│   │       │   │   │   ├── patterns
+│   │       │   │   │   │   ├── baseline_patterns.h
+│   │       │   │   │   │   ├── baseline_patterns.h.bak
+│   │       │   │   │   │   ├── pattern_extensions.h
+│   │       │   │   │   │   └── pattern_extensions.h.bak
+│   │       │   │   │   ├── runtime
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker_extension.h
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker_extension.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker.h
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker_limit_registry.h
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker_limit_registry.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h
+│   │       │   │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_extension.h
+│   │       │   │   │   │   ├── backtracker_backtracker_extension.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker.h
+│   │       │   │   │   │   ├── backtracker_backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_limit_registry.h
+│   │       │   │   │   │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_safe_backtracker.h
+│   │       │   │   │   │   ├── backtracker_backtracker_safe_backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_bailout_strategy_manager.h
+│   │       │   │   │   │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │   │   ├── backtracker_safe_backtracker.h
+│   │       │   │   │   │   ├── backtracker_safe_backtracker.h.bak
+│   │       │   │   │   │   ├── context_context_context.h
+│   │       │   │   │   │   ├── context_context_context.h.bak
+│   │       │   │   │   │   ├── context_context.h
+│   │       │   │   │   │   ├── context_context.h.bak
+│   │       │   │   │   │   ├── context_context_thread_safe_context.h
+│   │       │   │   │   │   ├── context_context_thread_safe_context.h.bak
+│   │       │   │   │   │   ├── context_thread_safe_context.h
+│   │       │   │   │   │   ├── context_thread_safe_context.h.bak
+│   │       │   │   │   │   ├── execution_execution_execution_tracker.h
+│   │       │   │   │   │   ├── execution_execution_execution_tracker.h.bak
+│   │       │   │   │   │   ├── execution_execution_tracker.h
+│   │       │   │   │   │   ├── execution_execution_tracker.h.bak
+│   │       │   │   │   │   ├── groups_groups_groups.h
+│   │       │   │   │   │   ├── groups_groups_groups.h.bak
+│   │       │   │   │   │   ├── groups_groups.h
+│   │       │   │   │   │   ├── groups_groups.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_complexity_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_tracking_strategy.h
+│   │       │   │   │   │   └── pattern_pattern_tracking_strategy.h.bak
+│   │       │   │   │   ├── syntax
+│   │       │   │   │   │   ├── integration.h
+│   │       │   │   │   │   ├── integration.h.bak
+│   │       │   │   │   │   ├── lexer.h
+│   │       │   │   │   │   ├── lexer.h.bak
+│   │       │   │   │   │   ├── parser.h
+│   │       │   │   │   │   ├── parser.h.bak
+│   │       │   │   │   │   ├── syntax.h
+│   │       │   │   │   │   └── syntax.h.bak
+│   │       │   │   │   ├── tokenizer
+│   │       │   │   │   │   ├── token.h
+│   │       │   │   │   │   ├── token.h.bak
+│   │       │   │   │   │   ├── tokenizer.h
+│   │       │   │   │   │   ├── tokenizer.h.bak
+│   │       │   │   │   │   ├── token_type.h
+│   │       │   │   │   │   └── token_type.h.bak
+│   │       │   │   │   └── visualizer
+│   │       │   │   │       ├── svg_element.h
+│   │       │   │   │       └── svg_element.h.bak
+│   │       │   │   └── v4_missing
+│   │       │   │       ├── bytecode.h
+│   │       │   │       ├── bytecode.h.bak
+│   │       │   │       ├── bytecode_vm.h
+│   │       │   │       └── bytecode_vm.h.bak
+│   │       │   ├── CMakeFiles
+│   │       │   │   └── 3.31.6
+│   │       │   │       └── CompilerIdC
+│   │       │   │           ├── CMakeCCompilerId.h
+│   │       │   │           └── CMakeCCompilerId.h.bak
+│   │       │   ├── examples
+│   │       │   │   ├── benchmarks
+│   │       │   │   │   └── csv
+│   │       │   │   │       ├── format_tokenizer_benchmark.h
+│   │       │   │   │       └── format_tokenizer_benchmark.h.bak
+│   │       │   │   ├── bytecode
+│   │       │   │   │   └── src
+│   │       │   │   │       ├── main.h
+│   │       │   │   │       └── main.h.bak
+│   │       │   │   ├── co_feature
+│   │       │   │   │   ├── co_feature.h
+│   │       │   │   │   ├── co_feature.h.bak
+│   │       │   │   │   ├── new_feature_demo.h
+│   │       │   │   │   └── new_feature_demo.h.bak
+│   │       │   │   ├── floyd
+│   │       │   │   │   ├── string_pattern_detector.h
+│   │       │   │   │   └── string_pattern_detector.h.bak
+│   │       │   │   ├── log_analyzer
+│   │       │   │   │   ├── log_analyzer.h
+│   │       │   │   │   └── log_analyzer.h.bak
+│   │       │   │   ├── matcher
+│   │       │   │   │   ├── pattern_matcher.h
+│   │       │   │   │   └── pattern_matcher.h.bak
+│   │       │   │   ├── poc
+│   │       │   │   │   ├── rift_poc.h
+│   │       │   │   │   └── rift_poc.h.bak
+│   │       │   │   ├── simple_match
+│   │       │   │   │   ├── demo.h
+│   │       │   │   │   ├── demo.h.bak
+│   │       │   │   │   ├── example.h
+│   │       │   │   │   └── example.h.bak
+│   │       │   │   └── thread_safety
+│   │       │   │       ├── thread_safe_demo.h
+│   │       │   │       └── thread_safe_demo.h.bak
+│   │       │   ├── poc
+│   │       │   │   ├── backup.h
+│   │       │   │   ├── backup.h.bak
+│   │       │   │   ├── rift_poc.h
+│   │       │   │   ├── rift_poc.h.bak
+│   │       │   │   ├── tokenziation.h
+│   │       │   │   └── tokenziation.h.bak
+│   │       │   ├── src
+│   │       │   │   ├── cli
+│   │       │   │   │   ├── accessibility
+│   │       │   │   │   │   ├── accessiblity_manager.h
+│   │       │   │   │   │   ├── accessiblity_manager.h.bak
+│   │       │   │   │   │   ├── color_scheme_manager.h
+│   │       │   │   │   │   ├── color_scheme_manager.h.bak
+│   │       │   │   │   │   ├── keyboard_navigation_manager.h
+│   │       │   │   │   │   ├── keyboard_navigation_manager.h.bak
+│   │       │   │   │   │   ├── preferences_manager.h
+│   │       │   │   │   │   ├── preferences_manager.h.bak
+│   │       │   │   │   │   ├── regex_accesibility_bridge.h
+│   │       │   │   │   │   ├── regex_accesibility_bridge.h.bak
+│   │       │   │   │   │   ├── screen_reader_adapter.h
+│   │       │   │   │   │   ├── screen_reader_adapter.h.bak
+│   │       │   │   │   │   ├── ui_adapation_manager.h
+│   │       │   │   │   │   └── ui_adapation_manager.h.bak
+│   │       │   │   │   ├── command
+│   │       │   │   │   │   ├── ast_command.h
+│   │       │   │   │   │   ├── ast_command.h.bak
+│   │       │   │   │   │   ├── bytecode_command.h
+│   │       │   │   │   │   ├── bytecode_command.h.bak
+│   │       │   │   │   │   ├── command_factory.h
+│   │       │   │   │   │   ├── command_factory.h.bak
+│   │       │   │   │   │   ├── compile_command.h
+│   │       │   │   │   │   ├── compile_command.h.bak
+│   │       │   │   │   │   ├── rift_tokenize_command.h
+│   │       │   │   │   │   └── rift_tokenize_command.h.bak
+│   │       │   │   │   ├── main.h
+│   │       │   │   │   └── main.h.bak
+│   │       │   │   ├── core
+│   │       │   │   │   ├── automaton
+│   │       │   │   │   │   ├── automaton.h
+│   │       │   │   │   │   ├── automaton.h.bak
+│   │       │   │   │   │   ├── flags.h
+│   │       │   │   │   │   ├── flags.h.bak
+│   │       │   │   │   │   ├── minimizer.h
+│   │       │   │   │   │   ├── minimizer.h.bak
+│   │       │   │   │   │   ├── regex.h
+│   │       │   │   │   │   ├── regex.h.bak
+│   │       │   │   │   │   ├── state.h
+│   │       │   │   │   │   ├── state.h.bak
+│   │       │   │   │   │   ├── transition.h
+│   │       │   │   │   │   └── transition.h.bak
+│   │       │   │   │   ├── bytecode
+│   │       │   │   │   │   ├── bytecode_compiler.h
+│   │       │   │   │   │   ├── bytecode_compiler.h.bak
+│   │       │   │   │   │   ├── bytecode.h
+│   │       │   │   │   │   ├── bytecode.h.bak
+│   │       │   │   │   │   ├── bytecode_program.h
+│   │       │   │   │   │   ├── bytecode_program.h.bak
+│   │       │   │   │   │   ├── bytecode_system.h
+│   │       │   │   │   │   ├── bytecode_system.h.bak
+│   │       │   │   │   │   ├── bytecode_vm.h
+│   │       │   │   │   │   └── bytecode_vm.h.bak
+│   │       │   │   │   ├── compiler
+│   │       │   │   │   │   ├── compiler.h
+│   │       │   │   │   │   └── compiler.h.bak
+│   │       │   │   │   ├── config
+│   │       │   │   │   │   ├── config.h
+│   │       │   │   │   │   └── config.h.bak
+│   │       │   │   │   ├── dsl
+│   │       │   │   │   │   ├── rift_dsl_compiler.h
+│   │       │   │   │   │   ├── rift_dsl_compiler.h.bak
+│   │       │   │   │   │   ├── rift_dsl.h
+│   │       │   │   │   │   ├── rift_dsl.h.bak
+│   │       │   │   │   │   ├── rift_dsl_io.h
+│   │       │   │   │   │   ├── rift_dsl_io.h.bak
+│   │       │   │   │   │   ├── rift_dsl_parser.h
+│   │       │   │   │   │   ├── rift_dsl_parser.h.bak
+│   │       │   │   │   │   ├── rift_dsl_test_runner.h
+│   │       │   │   │   │   └── rift_dsl_test_runner.h.bak
+│   │       │   │   │   ├── engine
+│   │       │   │   │   │   ├── engine.h
+│   │       │   │   │   │   ├── engine.h.bak
+│   │       │   │   │   │   ├── matcher.h
+│   │       │   │   │   │   ├── matcher.h.bak
+│   │       │   │   │   │   ├── pattern.h
+│   │       │   │   │   │   └── pattern.h.bak
+│   │       │   │   │   ├── errors
+│   │       │   │   │   │   ├── error.h
+│   │       │   │   │   │   ├── error.h.bak
+│   │       │   │   │   │   ├── regex_error_compat.h
+│   │       │   │   │   │   ├── regex_error_compat.h.bak
+│   │       │   │   │   │   ├── regex_error.h
+│   │       │   │   │   │   └── regex_error.h.bak
+│   │       │   │   │   ├── memory
+│   │       │   │   │   │   ├── memory.h
+│   │       │   │   │   │   └── memory.h.bak
+│   │       │   │   │   ├── parser
+│   │       │   │   │   │   ├── ast.h
+│   │       │   │   │   │   ├── ast.h.bak
+│   │       │   │   │   │   ├── ast_node.h
+│   │       │   │   │   │   ├── ast_node.h.bak
+│   │       │   │   │   │   ├── parser.h
+│   │       │   │   │   │   ├── parser.h.bak
+│   │       │   │   │   │   ├── validator.h
+│   │       │   │   │   │   └── validator.h.bak
+│   │       │   │   │   ├── patterns
+│   │       │   │   │   │   ├── baseline_patterns.h
+│   │       │   │   │   │   ├── baseline_patterns.h.bak
+│   │       │   │   │   │   ├── pattern_extensions.h
+│   │       │   │   │   │   └── pattern_extensions.h.bak
+│   │       │   │   │   ├── regex
+│   │       │   │   │   │   ├── flags.h
+│   │       │   │   │   │   ├── flags.h.bak
+│   │       │   │   │   │   ├── regex.h
+│   │       │   │   │   │   └── regex.h.bak
+│   │       │   │   │   ├── runtime
+│   │       │   │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h
+│   │       │   │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_extension.h
+│   │       │   │   │   │   ├── backtracker_backtracker_extension.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_limit_registry.h
+│   │       │   │   │   │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_safe_backtracker.h
+│   │       │   │   │   │   ├── backtracker_backtracker_safe_backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_bailout_strategy_manager.h
+│   │       │   │   │   │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │   │   ├── backtracker_extension.h
+│   │       │   │   │   │   ├── backtracker_extension.h.bak
+│   │       │   │   │   │   ├── backtracker.h
+│   │       │   │   │   │   ├── backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_limit_registry.h
+│   │       │   │   │   │   ├── backtracker_limit_registry.h.bak
+│   │       │   │   │   │   ├── context_context_thread_safe_context.h
+│   │       │   │   │   │   ├── context_context_thread_safe_context.h.bak
+│   │       │   │   │   │   ├── context.h
+│   │       │   │   │   │   ├── context.h.bak
+│   │       │   │   │   │   ├── execution_execution_execution_tracker.h
+│   │       │   │   │   │   ├── execution_execution_execution_tracker.h.bak
+│   │       │   │   │   │   ├── execution_execution_tracker.h
+│   │       │   │   │   │   ├── execution_execution_tracker.h.bak
+│   │       │   │   │   │   ├── groups_groups_groups.h
+│   │       │   │   │   │   ├── groups_groups_groups.h.bak
+│   │       │   │   │   │   ├── groups_groups.h
+│   │       │   │   │   │   ├── groups_groups.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_complexity_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_tracking_strategy.h
+│   │       │   │   │   │   ├── pattern_tracking_strategy.h.bak
+│   │       │   │   │   │   ├── safe_backtracker.h
+│   │       │   │   │   │   ├── safe_backtracker.h.bak
+│   │       │   │   │   │   ├── thread_safe_context.h
+│   │       │   │   │   │   └── thread_safe_context.h.bak
+│   │       │   │   │   ├── syntax
+│   │       │   │   │   │   ├── integration.h
+│   │       │   │   │   │   ├── integration.h.bak
+│   │       │   │   │   │   ├── lexer.h
+│   │       │   │   │   │   ├── lexer.h.bak
+│   │       │   │   │   │   ├── parser.h
+│   │       │   │   │   │   ├── parser.h.bak
+│   │       │   │   │   │   ├── syntax.h
+│   │       │   │   │   │   └── syntax.h.bak
+│   │       │   │   │   ├── tokenizer
+│   │       │   │   │   │   ├── token.h
+│   │       │   │   │   │   ├── token.h.bak
+│   │       │   │   │   │   ├── tokenizer.h
+│   │       │   │   │   │   ├── tokenizer.h.bak
+│   │       │   │   │   │   ├── token_type.h
+│   │       │   │   │   │   └── token_type.h.bak
+│   │       │   │   │   └── webbridge
+│   │       │   │   │       ├── bridge_api.h
+│   │       │   │   │       ├── bridge_api.h.bak
+│   │       │   │   │       ├── webbrige.h
+│   │       │   │   │       └── webbrige.h.bak
+│   │       │   │   └── runtime
+│   │       │   │       ├── backtracker_bailout_strategy_manager.h
+│   │       │   │       ├── backtracker_bailout_strategy_manager.h.bak
+│   │       │   │       ├── backtracker_extension.h
+│   │       │   │       ├── backtracker_extension.h.bak
+│   │       │   │       ├── backtracker.h
+│   │       │   │       ├── backtracker.h.bak
+│   │       │   │       ├── backtracker_limit_registry.h
+│   │       │   │       ├── backtracker_limit_registry.h.bak
+│   │       │   │       ├── backtracker_safe_backtracker.h
+│   │       │   │       ├── backtracker_safe_backtracker.h.bak
+│   │       │   │       ├── context.h
+│   │       │   │       ├── context.h.bak
+│   │       │   │       ├── contexthread_safe_context.h
+│   │       │   │       ├── contexthread_safe_context.h.bak
+│   │       │   │       ├── context_thread_safe_context.h
+│   │       │   │       ├── context_thread_safe_context.h.bak
+│   │       │   │       ├── execution_tracker.h
+│   │       │   │       ├── execution_tracker.h.bak
+│   │       │   │       ├── groups.h
+│   │       │   │       ├── groups.h.bak
+│   │       │   │       ├── pattern_complexity_strategy.h
+│   │       │   │       ├── pattern_complexity_strategy.h.bak
+│   │       │   │       ├── pattern_pattern_tracking_strategy.h
+│   │       │   │       ├── pattern_pattern_tracking_strategy.h.bak
+│   │       │   │       ├── pattern_tracking_strategy.h
+│   │       │   │       └── pattern_tracking_strategy.h.bak
+│   │       │   └── tests
+│   │       │       ├── CMakeFiles
+│   │       │       │   └── 3.31.6
+│   │       │       │       └── CompilerIdC
+│   │       │       │           ├── CMakeCCompilerId.h
+│   │       │       │           └── CMakeCCompilerId.h.bak
+│   │       │       └── unit
+│   │       │           └── core
+│   │       │               ├── automaton
+│   │       │               │   ├── automaton_tests.h
+│   │       │               │   ├── automaton_tests.h.bak
+│   │       │               │   ├── test_automaton.h
+│   │       │               │   └── test_automaton.h.bak
+│   │       │               ├── bailout_strategy_manager_test.h
+│   │       │               ├── bailout_strategy_manager_test.h.bak
+│   │       │               ├── bytecode
+│   │       │               │   ├── bytecode_compiler_test.h
+│   │       │               │   └── bytecode_compiler_test.h.bak
+│   │       │               ├── compiler
+│   │       │               │   ├── compiler_test.h
+│   │       │               │   └── compiler_test.h.bak
+│   │       │               ├── config_test.h
+│   │       │               ├── config_test.h.bak
+│   │       │               ├── engine
+│   │       │               │   ├── baseline_pattern_test.h
+│   │       │               │   ├── baseline_pattern_test.h.bak
+│   │       │               │   ├── engine_test.h
+│   │       │               │   ├── engine_test.h.bak
+│   │       │               │   ├── matcher_test.h
+│   │       │               │   ├── matcher_test.h.bak
+│   │       │               │   ├── pattern_complexity_strategy_test.h
+│   │       │               │   ├── pattern_complexity_strategy_test.h.bak
+│   │       │               │   ├── pattern_extensions_test.h
+│   │       │               │   ├── pattern_extensions_test.h.bak
+│   │       │               │   ├── pattern_test.h
+│   │       │               │   ├── pattern_test.h.bak
+│   │       │               │   ├── pattern_tracking_strategy_test.h
+│   │       │               │   └── pattern_tracking_strategy_test.h.bak
+│   │       │               ├── errors
+│   │       │               │   ├── error_test.h
+│   │       │               │   ├── error_test.h.bak
+│   │       │               │   ├── regex_error_compact_test.h
+│   │       │               │   ├── regex_error_compact_test.h.bak
+│   │       │               │   ├── regex_error_test.h
+│   │       │               │   └── regex_error_test.h.bak
+│   │       │               ├── execution_tracker_test.h
+│   │       │               ├── execution_tracker_test.h.bak
+│   │       │               ├── groups_test.h
+│   │       │               ├── groups_test.h.bak
+│   │       │               ├── integration_test.h
+│   │       │               ├── integration_test.h.bak
+│   │       │               ├── lexer_test.h
+│   │       │               ├── lexer_test.h.bak
+│   │       │               ├── memory
+│   │       │               │   ├── memory_test.h
+│   │       │               │   └── memory_test.h.bak
+│   │       │               ├── minimizer_tests.h
+│   │       │               ├── minimizer_tests.h.bak
+│   │       │               ├── parser
+│   │       │               │   ├── ast_node_test.h
+│   │       │               │   ├── ast_node_test.h.bak
+│   │       │               │   ├── ast_test.h
+│   │       │               │   ├── ast_test.h.bak
+│   │       │               │   ├── parser_test.h
+│   │       │               │   └── parser_test.h.bak
+│   │       │               ├── regex_tests.h
+│   │       │               ├── regex_tests.h.bak
+│   │       │               ├── runtime
+│   │       │               │   ├── backtracker_extension_test.h
+│   │       │               │   ├── backtracker_extension_test.h.bak
+│   │       │               │   ├── backtracker_limit_registry_test.h
+│   │       │               │   ├── backtracker_limit_registry_test.h.bak
+│   │       │               │   ├── backtracker_test.h
+│   │       │               │   ├── backtracker_test.h.bak
+│   │       │               │   ├── context_test.h
+│   │       │               │   ├── context_test.h.bak
+│   │       │               │   ├── safe_backtracker_test.h
+│   │       │               │   ├── safe_backtracker_test.h.bak
+│   │       │               │   ├── thread_safe_context_test.h
+│   │       │               │   └── thread_safe_context_test.h.bak
+│   │       │               ├── state_tests.h
+│   │       │               ├── state_tests.h.bak
+│   │       │               ├── syntax
+│   │       │               │   ├── syntax_test.h
+│   │       │               │   └── syntax_test.h.bak
+│   │       │               ├── tokenizer
+│   │       │               │   ├── tokenizer_test.h
+│   │       │               │   ├── tokenizer_test.h.bak
+│   │       │               │   ├── token_test.h
+│   │       │               │   ├── token_test.h.bak
+│   │       │               │   ├── token_type_test.h
+│   │       │               │   └── token_type_test.h.bak
+│   │       │               ├── transition_tests.h
+│   │       │               ├── transition_tests.h.bak
+│   │       │               ├── validator_test.h
+│   │       │               └── validator_test.h.bak
+│   │       ├── librift-4e7961d-Milestone_Refatored
+│   │       │   ├── backup
+│   │       │   │   ├── v1
+│   │       │   │   │   └── src
+│   │       │   │   │       ├── accessibility
+│   │       │   │   │       │   ├── accessiblity_manager.h
+│   │       │   │   │       │   ├── accessiblity_manager.h.bak
+│   │       │   │   │       │   ├── color_scheme_manager.h
+│   │       │   │   │       │   ├── color_scheme_manager.h.bak
+│   │       │   │   │       │   ├── keyboard_navigation_manager.h
+│   │       │   │   │       │   ├── keyboard_navigation_manager.h.bak
+│   │       │   │   │       │   ├── preferences_manager.h
+│   │       │   │   │       │   ├── preferences_manager.h.bak
+│   │       │   │   │       │   ├── regex_accesibility_bridge.h
+│   │       │   │   │       │   ├── regex_accesibility_bridge.h.bak
+│   │       │   │   │       │   ├── screen_reader_adapter.h
+│   │       │   │   │       │   ├── screen_reader_adapter.h.bak
+│   │       │   │   │       │   ├── ui_adapation_manager.h
+│   │       │   │   │       │   └── ui_adapation_manager.h.bak
+│   │       │   │   │       ├── accessibility copy
+│   │       │   │   │       │   ├── accessiblity_manager.h
+│   │       │   │   │       │   ├── accessiblity_manager.h.bak
+│   │       │   │   │       │   ├── color_scheme_manager.h
+│   │       │   │   │       │   ├── color_scheme_manager.h.bak
+│   │       │   │   │       │   ├── keyboard_navigation_manager.h
+│   │       │   │   │       │   ├── keyboard_navigation_manager.h.bak
+│   │       │   │   │       │   ├── preferences_manager.h
+│   │       │   │   │       │   ├── preferences_manager.h.bak
+│   │       │   │   │       │   ├── regex_accesibility_bridge.h
+│   │       │   │   │       │   ├── regex_accesibility_bridge.h.bak
+│   │       │   │   │       │   ├── screen_reader_adapter.h
+│   │       │   │   │       │   ├── screen_reader_adapter.h.bak
+│   │       │   │   │       │   ├── ui_adapation_manager.h
+│   │       │   │   │       │   └── ui_adapation_manager.h.bak
+│   │       │   │   │       ├── automaton
+│   │       │   │   │       │   ├── automaton.h
+│   │       │   │   │       │   ├── automaton.h.bak
+│   │       │   │   │       │   ├── flags.h
+│   │       │   │   │       │   ├── flags.h.bak
+│   │       │   │   │       │   ├── minimizer.h
+│   │       │   │   │       │   ├── minimizer.h.bak
+│   │       │   │   │       │   ├── regex.h
+│   │       │   │   │       │   ├── regex.h.bak
+│   │       │   │   │       │   ├── state.h
+│   │       │   │   │       │   ├── state.h.bak
+│   │       │   │   │       │   ├── transition.h
+│   │       │   │   │       │   └── transition.h.bak
+│   │       │   │   │       ├── bytecode
+│   │       │   │   │       │   ├── bytecode.h
+│   │       │   │   │       │   └── bytecode.h.bak
+│   │       │   │   │       ├── cli
+│   │       │   │   │       │   ├── command_factory.h
+│   │       │   │   │       │   ├── command_factory.h.bak
+│   │       │   │   │       │   ├── command.h
+│   │       │   │   │       │   ├── command.h.bak
+│   │       │   │   │       │   ├── compile_command.h
+│   │       │   │   │       │   ├── compile_command.h.bak
+│   │       │   │   │       │   ├── main.h
+│   │       │   │   │       │   └── main.h.bak
+│   │       │   │   │       ├── cli copy
+│   │       │   │   │       │   ├── command_factory.h
+│   │       │   │   │       │   ├── command_factory.h.bak
+│   │       │   │   │       │   ├── command.h
+│   │       │   │   │       │   ├── command.h.bak
+│   │       │   │   │       │   ├── compile_command.h
+│   │       │   │   │       │   ├── compile_command.h.bak
+│   │       │   │   │       │   ├── main.h
+│   │       │   │   │       │   └── main.h.bak
+│   │       │   │   │       ├── compiler
+│   │       │   │   │       │   ├── compiler.h
+│   │       │   │   │       │   ├── compiler.h.bak
+│   │       │   │   │       │   ├── optimizer.h
+│   │       │   │   │       │   └── optimizer.h.bak
+│   │       │   │   │       ├── core
+│   │       │   │   │       │   ├── config.h
+│   │       │   │   │       │   └── config.h.bak
+│   │       │   │   │       ├── core copy
+│   │       │   │   │       │   ├── config.h
+│   │       │   │   │       │   └── config.h.bak
+│   │       │   │   │       ├── engine
+│   │       │   │   │       │   ├── engine.h
+│   │       │   │   │       │   ├── engine.h.bak
+│   │       │   │   │       │   ├── matcher.h
+│   │       │   │   │       │   ├── matcher.h.bak
+│   │       │   │   │       │   ├── pattern.h
+│   │       │   │   │       │   └── pattern.h.bak
+│   │       │   │   │       ├── errors
+│   │       │   │   │       │   ├── error.h
+│   │       │   │   │       │   ├── error.h.bak
+│   │       │   │   │       │   ├── regex_error_compat.h
+│   │       │   │   │       │   ├── regex_error_compat.h.bak
+│   │       │   │   │       │   ├── regex_error.h
+│   │       │   │   │       │   └── regex_error.h.bak
+│   │       │   │   │       ├── memory
+│   │       │   │   │       │   ├── memory.h
+│   │       │   │   │       │   └── memory.h.bak
+│   │       │   │   │       ├── parser
+│   │       │   │   │       │   ├── ast.h
+│   │       │   │   │       │   ├── ast.h.bak
+│   │       │   │   │       │   ├── ast_node.h
+│   │       │   │   │       │   ├── ast_node.h.bak
+│   │       │   │   │       │   ├── parser.h
+│   │       │   │   │       │   ├── parser.h.bak
+│   │       │   │   │       │   ├── validator.h
+│   │       │   │   │       │   └── validator.h.bak
+│   │       │   │   │       ├── patterns
+│   │       │   │   │       │   ├── baseline_patterns.h
+│   │       │   │   │       │   ├── baseline_patterns.h.bak
+│   │       │   │   │       │   ├── pattern_extensions.h
+│   │       │   │   │       │   └── pattern_extensions.h.bak
+│   │       │   │   │       ├── runtime
+│   │       │   │   │       │   ├── backtracker_backtracker_extension.h
+│   │       │   │   │       │   ├── backtracker_backtracker_extension.h.bak
+│   │       │   │   │       │   ├── backtracker_backtracker.h
+│   │       │   │   │       │   ├── backtracker_backtracker.h.bak
+│   │       │   │   │       │   ├── backtracker_backtracker_limit_registry.h
+│   │       │   │   │       │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │       │   │   │       │   ├── backtracker_bailout_strategy_manager.h
+│   │       │   │   │       │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │       │   ├── backtracker_safe_backtracker.h
+│   │       │   │   │       │   ├── backtracker_safe_backtracker.h.bak
+│   │       │   │   │       │   ├── context_context.h
+│   │       │   │   │       │   ├── context_context.h.bak
+│   │       │   │   │       │   ├── context_thread_safe_context.h
+│   │       │   │   │       │   ├── context_thread_safe_context.h.bak
+│   │       │   │   │       │   ├── execution_execution_tracker.h
+│   │       │   │   │       │   ├── execution_execution_tracker.h.bak
+│   │       │   │   │       │   ├── groups_groups.h
+│   │       │   │   │       │   ├── groups_groups.h.bak
+│   │       │   │   │       │   ├── pattern_pattern_complexity_strategy.h
+│   │       │   │   │       │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │       │   ├── pattern_pattern_tracking_strategy.h
+│   │       │   │   │       │   └── pattern_pattern_tracking_strategy.h.bak
+│   │       │   │   │       ├── syntax
+│   │       │   │   │       │   ├── integration.h
+│   │       │   │   │       │   ├── integration.h.bak
+│   │       │   │   │       │   ├── lexer.h
+│   │       │   │   │       │   ├── lexer.h.bak
+│   │       │   │   │       │   ├── parser.h
+│   │       │   │   │       │   ├── parser.h.bak
+│   │       │   │   │       │   ├── syntax.h
+│   │       │   │   │       │   └── syntax.h.bak
+│   │       │   │   │       ├── tests
+│   │       │   │   │       │   └── unit
+│   │       │   │   │       │       ├── automaton
+│   │       │   │   │       │       │   └── automaton
+│   │       │   │   │       │       │       ├── automaton_tests.h
+│   │       │   │   │       │       │       ├── automaton_tests.h.bak
+│   │       │   │   │       │       │       ├── minimizer_tests.h
+│   │       │   │   │       │       │       ├── minimizer_tests.h.bak
+│   │       │   │   │       │       │       ├── regex_tests.h
+│   │       │   │   │       │       │       ├── regex_tests.h.bak
+│   │       │   │   │       │       │       ├── state_tests.h
+│   │       │   │   │       │       │       ├── state_tests.h.bak
+│   │       │   │   │       │       │       ├── transition_tests.h
+│   │       │   │   │       │       │       └── transition_tests.h.bak
+│   │       │   │   │       │       ├── compiler
+│   │       │   │   │       │       │   └── compiler
+│   │       │   │   │       │       │       ├── compiler_test.h
+│   │       │   │   │       │       │       └── compiler_test.h.bak
+│   │       │   │   │       │       ├── core
+│   │       │   │   │       │       │   ├── config_test.h
+│   │       │   │   │       │       │   └── config_test.h.bak
+│   │       │   │   │       │       ├── engine
+│   │       │   │   │       │       │   └── engine
+│   │       │   │   │       │       │       ├── engine_test.h
+│   │       │   │   │       │       │       ├── engine_test.h.bak
+│   │       │   │   │       │       │       ├── matcher_test.h
+│   │       │   │   │       │       │       ├── matcher_test.h.bak
+│   │       │   │   │       │       │       ├── pattern_test.h
+│   │       │   │   │       │       │       └── pattern_test.h.bak
+│   │       │   │   │       │       ├── errors
+│   │       │   │   │       │       │   └── errors
+│   │       │   │   │       │       │       ├── error_test.h
+│   │       │   │   │       │       │       ├── error_test.h.bak
+│   │       │   │   │       │       │       ├── regex_error_compact_test.h
+│   │       │   │   │       │       │       ├── regex_error_compact_test.h.bak
+│   │       │   │   │       │       │       ├── regex_error_test.h
+│   │       │   │   │       │       │       └── regex_error_test.h.bak
+│   │       │   │   │       │       ├── memory
+│   │       │   │   │       │       │   └── memory
+│   │       │   │   │       │       │       ├── memory_test.h
+│   │       │   │   │       │       │       └── memory_test.h.bak
+│   │       │   │   │       │       ├── parser
+│   │       │   │   │       │       │   └── parser
+│   │       │   │   │       │       │       ├── ast_node_test.h
+│   │       │   │   │       │       │       ├── ast_node_test.h.bak
+│   │       │   │   │       │       │       ├── ast_test.h
+│   │       │   │   │       │       │       ├── ast_test.h.bak
+│   │       │   │   │       │       │       ├── parser_test.h
+│   │       │   │   │       │       │       ├── parser_test.h.bak
+│   │       │   │   │       │       │       ├── tokenizer_test.h
+│   │       │   │   │       │       │       ├── tokenizer_test.h.bak
+│   │       │   │   │       │       │       ├── token_test.h
+│   │       │   │   │       │       │       ├── token_test.h.bak
+│   │       │   │   │       │       │       ├── token_type_test.h
+│   │       │   │   │       │       │       ├── token_type_test.h.bak
+│   │       │   │   │       │       │       ├── validator_test.h
+│   │       │   │   │       │       │       └── validator_test.h.bak
+│   │       │   │   │       │       ├── patterns
+│   │       │   │   │       │       │   └── patterns
+│   │       │   │   │       │       │       ├── baseline_pattern_test.h
+│   │       │   │   │       │       │       ├── baseline_pattern_test.h.bak
+│   │       │   │   │       │       │       ├── pattern_extensions_test.h
+│   │       │   │   │       │       │       └── pattern_extensions_test.h.bak
+│   │       │   │   │       │       ├── runtime
+│   │       │   │   │       │       │   └── runtime
+│   │       │   │   │       │       │       ├── backtracker
+│   │       │   │   │       │       │       │   ├── backtracker_extension_test.h
+│   │       │   │   │       │       │       │   ├── backtracker_extension_test.h.bak
+│   │       │   │   │       │       │       │   ├── backtracker_limit_registry_test.h
+│   │       │   │   │       │       │       │   ├── backtracker_limit_registry_test.h.bak
+│   │       │   │   │       │       │       │   ├── backtracker_test.h
+│   │       │   │   │       │       │       │   ├── backtracker_test.h.bak
+│   │       │   │   │       │       │       │   ├── bailout_strategy_manager_test.h
+│   │       │   │   │       │       │       │   ├── bailout_strategy_manager_test.h.bak
+│   │       │   │   │       │       │       │   ├── safe_backtracker_test.h
+│   │       │   │   │       │       │       │   └── safe_backtracker_test.h.bak
+│   │       │   │   │       │       │       ├── context
+│   │       │   │   │       │       │       │   ├── context_test.h
+│   │       │   │   │       │       │       │   ├── context_test.h.bak
+│   │       │   │   │       │       │       │   ├── thread_safe_context_test.h
+│   │       │   │   │       │       │       │   └── thread_safe_context_test.h.bak
+│   │       │   │   │       │       │       ├── execution
+│   │       │   │   │       │       │       │   ├── execution_tracker_test.h
+│   │       │   │   │       │       │       │   └── execution_tracker_test.h.bak
+│   │       │   │   │       │       │       ├── groups
+│   │       │   │   │       │       │       │   ├── groups_test.h
+│   │       │   │   │       │       │       │   └── groups_test.h.bak
+│   │       │   │   │       │       │       └── pattern
+│   │       │   │   │       │       │           ├── pattern_complexity_strategy_test.h
+│   │       │   │   │       │       │           ├── pattern_complexity_strategy_test.h.bak
+│   │       │   │   │       │       │           ├── pattern_tracking_strategy_test.h
+│   │       │   │   │       │       │           └── pattern_tracking_strategy_test.h.bak
+│   │       │   │   │       │       └── syntax
+│   │       │   │   │       │           └── syntax
+│   │       │   │   │       │               ├── integration_test.h
+│   │       │   │   │       │               ├── integration_test.h.bak
+│   │       │   │   │       │               ├── lexer_test.h
+│   │       │   │   │       │               ├── lexer_test.h.bak
+│   │       │   │   │       │               ├── parser_test.h
+│   │       │   │   │       │               ├── parser_test.h.bak
+│   │       │   │   │       │               ├── syntax_test.h
+│   │       │   │   │       │               └── syntax_test.h.bak
+│   │       │   │   │       ├── tokenizer
+│   │       │   │   │       │   ├── token.h
+│   │       │   │   │       │   ├── token.h.bak
+│   │       │   │   │       │   ├── tokenizer.h
+│   │       │   │   │       │   ├── tokenizer.h.bak
+│   │       │   │   │       │   ├── token_type.h
+│   │       │   │   │       │   └── token_type.h.bak
+│   │       │   │   │       ├── visualizer
+│   │       │   │   │       │   ├── svg_element.h
+│   │       │   │   │       │   └── svg_element.h.bak
+│   │       │   │   │       ├── visualizer copy
+│   │       │   │   │       │   ├── svg_element.h
+│   │       │   │   │       │   └── svg_element.h.bak
+│   │       │   │   │       ├── webbridge
+│   │       │   │   │       │   ├── webbrige.h
+│   │       │   │   │       │   └── webbrige.h.bak
+│   │       │   │   │       └── webbridge copy
+│   │       │   │   │           ├── webbrige.h
+│   │       │   │   │           └── webbrige.h.bak
+│   │       │   │   ├── v2
+│   │       │   │   │   ├── engine
+│   │       │   │   │   │   ├── engine.h
+│   │       │   │   │   │   ├── engine.h.bak
+│   │       │   │   │   │   ├── matcher.h
+│   │       │   │   │   │   ├── matcher.h.bak
+│   │       │   │   │   │   ├── pattern.h
+│   │       │   │   │   │   └── pattern.h.bak
+│   │       │   │   │   ├── errors
+│   │       │   │   │   │   ├── error.h
+│   │       │   │   │   │   ├── error.h.bak
+│   │       │   │   │   │   ├── regex_error_compat.h
+│   │       │   │   │   │   ├── regex_error_compat.h.bak
+│   │       │   │   │   │   ├── regex_error.h
+│   │       │   │   │   │   └── regex_error.h.bak
+│   │       │   │   │   ├── parser
+│   │       │   │   │   │   ├── ast.h
+│   │       │   │   │   │   ├── ast.h.bak
+│   │       │   │   │   │   ├── ast_node.h
+│   │       │   │   │   │   ├── ast_node.h.bak
+│   │       │   │   │   │   ├── parser.h
+│   │       │   │   │   │   ├── parser.h.bak
+│   │       │   │   │   │   ├── validator.h
+│   │       │   │   │   │   └── validator.h.bak
+│   │       │   │   │   ├── patterns
+│   │       │   │   │   │   ├── baseline_patterns.h
+│   │       │   │   │   │   ├── baseline_patterns.h.bak
+│   │       │   │   │   │   ├── pattern_extensions.h
+│   │       │   │   │   │   └── pattern_extensions.h.bak
+│   │       │   │   │   ├── runtime
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker_extension.h
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker_extension.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker.h
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker_limit_registry.h
+│   │       │   │   │   │   ├── backtracker_backtracker_backtracker_limit_registry.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h
+│   │       │   │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_extension.h
+│   │       │   │   │   │   ├── backtracker_backtracker_extension.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker.h
+│   │       │   │   │   │   ├── backtracker_backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_limit_registry.h
+│   │       │   │   │   │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_safe_backtracker.h
+│   │       │   │   │   │   ├── backtracker_backtracker_safe_backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_bailout_strategy_manager.h
+│   │       │   │   │   │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │   │   ├── backtracker_safe_backtracker.h
+│   │       │   │   │   │   ├── backtracker_safe_backtracker.h.bak
+│   │       │   │   │   │   ├── context_context_context.h
+│   │       │   │   │   │   ├── context_context_context.h.bak
+│   │       │   │   │   │   ├── context_context.h
+│   │       │   │   │   │   ├── context_context.h.bak
+│   │       │   │   │   │   ├── context_context_thread_safe_context.h
+│   │       │   │   │   │   ├── context_context_thread_safe_context.h.bak
+│   │       │   │   │   │   ├── context_thread_safe_context.h
+│   │       │   │   │   │   ├── context_thread_safe_context.h.bak
+│   │       │   │   │   │   ├── execution_execution_execution_tracker.h
+│   │       │   │   │   │   ├── execution_execution_execution_tracker.h.bak
+│   │       │   │   │   │   ├── execution_execution_tracker.h
+│   │       │   │   │   │   ├── execution_execution_tracker.h.bak
+│   │       │   │   │   │   ├── groups_groups_groups.h
+│   │       │   │   │   │   ├── groups_groups_groups.h.bak
+│   │       │   │   │   │   ├── groups_groups.h
+│   │       │   │   │   │   ├── groups_groups.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_complexity_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_tracking_strategy.h
+│   │       │   │   │   │   └── pattern_pattern_tracking_strategy.h.bak
+│   │       │   │   │   ├── syntax
+│   │       │   │   │   │   ├── integration.h
+│   │       │   │   │   │   ├── integration.h.bak
+│   │       │   │   │   │   ├── lexer.h
+│   │       │   │   │   │   ├── lexer.h.bak
+│   │       │   │   │   │   ├── parser.h
+│   │       │   │   │   │   ├── parser.h.bak
+│   │       │   │   │   │   ├── syntax.h
+│   │       │   │   │   │   └── syntax.h.bak
+│   │       │   │   │   ├── tokenizer
+│   │       │   │   │   │   ├── token.h
+│   │       │   │   │   │   ├── token.h.bak
+│   │       │   │   │   │   ├── tokenizer.h
+│   │       │   │   │   │   ├── tokenizer.h.bak
+│   │       │   │   │   │   ├── token_type.h
+│   │       │   │   │   │   └── token_type.h.bak
+│   │       │   │   │   └── visualizer
+│   │       │   │   │       ├── svg_element.h
+│   │       │   │   │       └── svg_element.h.bak
+│   │       │   │   └── v4_missing
+│   │       │   │       ├── bytecode.h
+│   │       │   │       ├── bytecode.h.bak
+│   │       │   │       ├── bytecode_vm.h
+│   │       │   │       └── bytecode_vm.h.bak
+│   │       │   ├── CMakeFiles
+│   │       │   │   └── 3.31.6
+│   │       │   │       └── CompilerIdC
+│   │       │   │           ├── CMakeCCompilerId.h
+│   │       │   │           └── CMakeCCompilerId.h.bak
+│   │       │   ├── examples
+│   │       │   │   ├── benchmarks
+│   │       │   │   │   └── csv
+│   │       │   │   │       ├── format_tokenizer_benchmark.h
+│   │       │   │   │       └── format_tokenizer_benchmark.h.bak
+│   │       │   │   ├── bytecode
+│   │       │   │   │   └── src
+│   │       │   │   │       ├── main.h
+│   │       │   │   │       └── main.h.bak
+│   │       │   │   ├── co_feature
+│   │       │   │   │   ├── co_feature.h
+│   │       │   │   │   ├── co_feature.h.bak
+│   │       │   │   │   ├── new_feature_demo.h
+│   │       │   │   │   └── new_feature_demo.h.bak
+│   │       │   │   ├── floyd
+│   │       │   │   │   ├── string_pattern_detector.h
+│   │       │   │   │   └── string_pattern_detector.h.bak
+│   │       │   │   ├── log_analyzer
+│   │       │   │   │   ├── log_analyzer.h
+│   │       │   │   │   └── log_analyzer.h.bak
+│   │       │   │   ├── matcher
+│   │       │   │   │   ├── pattern_matcher.h
+│   │       │   │   │   └── pattern_matcher.h.bak
+│   │       │   │   ├── poc
+│   │       │   │   │   ├── rift_poc.h
+│   │       │   │   │   └── rift_poc.h.bak
+│   │       │   │   ├── simple_match
+│   │       │   │   │   ├── demo.h
+│   │       │   │   │   ├── demo.h.bak
+│   │       │   │   │   ├── example.h
+│   │       │   │   │   └── example.h.bak
+│   │       │   │   └── thread_safety
+│   │       │   │       ├── thread_safe_demo.h
+│   │       │   │       └── thread_safe_demo.h.bak
+│   │       │   ├── poc
+│   │       │   │   ├── backup.h
+│   │       │   │   ├── backup.h.bak
+│   │       │   │   ├── rift_poc.h
+│   │       │   │   ├── rift_poc.h.bak
+│   │       │   │   ├── tokenziation.h
+│   │       │   │   └── tokenziation.h.bak
+│   │       │   ├── src
+│   │       │   │   ├── automaton
+│   │       │   │   │   ├── automaton.h
+│   │       │   │   │   ├── automaton.h.bak
+│   │       │   │   │   ├── minimizer.h
+│   │       │   │   │   ├── minimizer.h.bak
+│   │       │   │   │   ├── state.h
+│   │       │   │   │   ├── state.h.bak
+│   │       │   │   │   ├── transition.h
+│   │       │   │   │   └── transition.h.bak
+│   │       │   │   ├── cli
+│   │       │   │   │   ├── accessibility
+│   │       │   │   │   │   ├── accessiblity_manager.h
+│   │       │   │   │   │   ├── accessiblity_manager.h.bak
+│   │       │   │   │   │   ├── color_scheme_manager.h
+│   │       │   │   │   │   ├── color_scheme_manager.h.bak
+│   │       │   │   │   │   ├── keyboard_navigation_manager.h
+│   │       │   │   │   │   ├── keyboard_navigation_manager.h.bak
+│   │       │   │   │   │   ├── preferences_manager.h
+│   │       │   │   │   │   ├── preferences_manager.h.bak
+│   │       │   │   │   │   ├── regex_accesibility_bridge.h
+│   │       │   │   │   │   ├── regex_accesibility_bridge.h.bak
+│   │       │   │   │   │   ├── screen_reader_adapter.h
+│   │       │   │   │   │   ├── screen_reader_adapter.h.bak
+│   │       │   │   │   │   ├── ui_adapation_manager.h
+│   │       │   │   │   │   └── ui_adapation_manager.h.bak
+│   │       │   │   │   ├── command
+│   │       │   │   │   │   ├── ast_command.h
+│   │       │   │   │   │   ├── ast_command.h.bak
+│   │       │   │   │   │   ├── bytecode_command.h
+│   │       │   │   │   │   ├── bytecode_command.h.bak
+│   │       │   │   │   │   ├── command_factory.h
+│   │       │   │   │   │   ├── command_factory.h.bak
+│   │       │   │   │   │   ├── command.h
+│   │       │   │   │   │   ├── command.h.bak
+│   │       │   │   │   │   ├── compile_command.h
+│   │       │   │   │   │   ├── compile_command.h.bak
+│   │       │   │   │   │   ├── parse_command.h
+│   │       │   │   │   │   ├── parse_command.h.bak
+│   │       │   │   │   │   ├── rift_tokenize_command.h
+│   │       │   │   │   │   └── rift_tokenize_command.h.bak
+│   │       │   │   │   ├── main.h
+│   │       │   │   │   └── main.h.bak
+│   │       │   │   ├── core
+│   │       │   │   │   ├── automaton
+│   │       │   │   │   │   ├── automaton.h
+│   │       │   │   │   │   ├── automaton.h.bak
+│   │       │   │   │   │   ├── flags.h
+│   │       │   │   │   │   ├── flags.h.bak
+│   │       │   │   │   │   ├── minimizer.h
+│   │       │   │   │   │   ├── minimizer.h.bak
+│   │       │   │   │   │   ├── regex.h
+│   │       │   │   │   │   ├── regex.h.bak
+│   │       │   │   │   │   ├── state.h
+│   │       │   │   │   │   ├── state.h.bak
+│   │       │   │   │   │   ├── transition.h
+│   │       │   │   │   │   └── transition.h.bak
+│   │       │   │   │   ├── bytecode
+│   │       │   │   │   │   ├── bytecode_compiler.h
+│   │       │   │   │   │   ├── bytecode_compiler.h.bak
+│   │       │   │   │   │   ├── bytecode.h
+│   │       │   │   │   │   ├── bytecode.h.bak
+│   │       │   │   │   │   ├── bytecode_program.h
+│   │       │   │   │   │   ├── bytecode_program.h.bak
+│   │       │   │   │   │   ├── bytecode_system.h
+│   │       │   │   │   │   ├── bytecode_system.h.bak
+│   │       │   │   │   │   ├── bytecode_vm.h
+│   │       │   │   │   │   └── bytecode_vm.h.bak
+│   │       │   │   │   ├── compiler
+│   │       │   │   │   │   ├── compiler.h
+│   │       │   │   │   │   └── compiler.h.bak
+│   │       │   │   │   ├── config
+│   │       │   │   │   │   ├── config.h
+│   │       │   │   │   │   └── config.h.bak
+│   │       │   │   │   ├── dsl
+│   │       │   │   │   │   ├── rift_dsl_compiler.h
+│   │       │   │   │   │   ├── rift_dsl_compiler.h.bak
+│   │       │   │   │   │   ├── rift_dsl.h
+│   │       │   │   │   │   ├── rift_dsl.h.bak
+│   │       │   │   │   │   ├── rift_dsl_io.h
+│   │       │   │   │   │   ├── rift_dsl_io.h.bak
+│   │       │   │   │   │   ├── rift_dsl_parser.h
+│   │       │   │   │   │   ├── rift_dsl_parser.h.bak
+│   │       │   │   │   │   ├── rift_dsl_test_runner.h
+│   │       │   │   │   │   └── rift_dsl_test_runner.h.bak
+│   │       │   │   │   ├── engine
+│   │       │   │   │   │   ├── engine.h
+│   │       │   │   │   │   ├── engine.h.bak
+│   │       │   │   │   │   ├── matcher.h
+│   │       │   │   │   │   ├── matcher.h.bak
+│   │       │   │   │   │   ├── pattern.h
+│   │       │   │   │   │   └── pattern.h.bak
+│   │       │   │   │   ├── errors
+│   │       │   │   │   │   ├── error.h
+│   │       │   │   │   │   ├── error.h.bak
+│   │       │   │   │   │   ├── regex_error_compat.h
+│   │       │   │   │   │   ├── regex_error_compat.h.bak
+│   │       │   │   │   │   ├── regex_error.h
+│   │       │   │   │   │   └── regex_error.h.bak
+│   │       │   │   │   ├── memory
+│   │       │   │   │   │   ├── memory.h
+│   │       │   │   │   │   └── memory.h.bak
+│   │       │   │   │   ├── parser
+│   │       │   │   │   │   ├── ast.h
+│   │       │   │   │   │   ├── ast.h.bak
+│   │       │   │   │   │   ├── ast_node.h
+│   │       │   │   │   │   ├── ast_node.h.bak
+│   │       │   │   │   │   ├── parser.h
+│   │       │   │   │   │   ├── parser.h.bak
+│   │       │   │   │   │   ├── validator.h
+│   │       │   │   │   │   └── validator.h.bak
+│   │       │   │   │   ├── patterns
+│   │       │   │   │   │   ├── baseline_patterns.h
+│   │       │   │   │   │   ├── baseline_patterns.h.bak
+│   │       │   │   │   │   ├── pattern_extensions.h
+│   │       │   │   │   │   └── pattern_extensions.h.bak
+│   │       │   │   │   ├── regex
+│   │       │   │   │   │   ├── flags.h
+│   │       │   │   │   │   ├── flags.h.bak
+│   │       │   │   │   │   ├── regex.h
+│   │       │   │   │   │   └── regex.h.bak
+│   │       │   │   │   ├── runtime
+│   │       │   │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h
+│   │       │   │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_extension.h
+│   │       │   │   │   │   ├── backtracker_backtracker_extension.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_limit_registry.h
+│   │       │   │   │   │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │       │   │   │   │   ├── backtracker_backtracker_safe_backtracker.h
+│   │       │   │   │   │   ├── backtracker_backtracker_safe_backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_bailout_strategy_manager.h
+│   │       │   │   │   │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │       │   │   │   │   ├── backtracker_extension.h
+│   │       │   │   │   │   ├── backtracker_extension.h.bak
+│   │       │   │   │   │   ├── backtracker.h
+│   │       │   │   │   │   ├── backtracker.h.bak
+│   │       │   │   │   │   ├── backtracker_limit_registry.h
+│   │       │   │   │   │   ├── backtracker_limit_registry.h.bak
+│   │       │   │   │   │   ├── context_context_thread_safe_context.h
+│   │       │   │   │   │   ├── context_context_thread_safe_context.h.bak
+│   │       │   │   │   │   ├── context.h
+│   │       │   │   │   │   ├── context.h.bak
+│   │       │   │   │   │   ├── execution_execution_execution_tracker.h
+│   │       │   │   │   │   ├── execution_execution_execution_tracker.h.bak
+│   │       │   │   │   │   ├── execution_execution_tracker.h
+│   │       │   │   │   │   ├── execution_execution_tracker.h.bak
+│   │       │   │   │   │   ├── groups_groups_groups.h
+│   │       │   │   │   │   ├── groups_groups_groups.h.bak
+│   │       │   │   │   │   ├── groups_groups.h
+│   │       │   │   │   │   ├── groups_groups.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_complexity_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h
+│   │       │   │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h.bak
+│   │       │   │   │   │   ├── pattern_tracking_strategy.h
+│   │       │   │   │   │   ├── pattern_tracking_strategy.h.bak
+│   │       │   │   │   │   ├── safe_backtracker.h
+│   │       │   │   │   │   ├── safe_backtracker.h.bak
+│   │       │   │   │   │   ├── thread_safe_context.h
+│   │       │   │   │   │   └── thread_safe_context.h.bak
+│   │       │   │   │   ├── syntax
+│   │       │   │   │   │   ├── integration.h
+│   │       │   │   │   │   ├── integration.h.bak
+│   │       │   │   │   │   ├── lexer.h
+│   │       │   │   │   │   ├── lexer.h.bak
+│   │       │   │   │   │   ├── parser.h
+│   │       │   │   │   │   ├── parser.h.bak
+│   │       │   │   │   │   ├── syntax.h
+│   │       │   │   │   │   └── syntax.h.bak
+│   │       │   │   │   ├── tokenizer
+│   │       │   │   │   │   ├── token.h
+│   │       │   │   │   │   ├── token.h.bak
+│   │       │   │   │   │   ├── tokenizer.h
+│   │       │   │   │   │   ├── tokenizer.h.bak
+│   │       │   │   │   │   ├── token_type.h
+│   │       │   │   │   │   └── token_type.h.bak
+│   │       │   │   │   └── webbridge
+│   │       │   │   │       ├── bridge_api.h
+│   │       │   │   │       ├── bridge_api.h.bak
+│   │       │   │   │       ├── webbrige.h
+│   │       │   │   │       └── webbrige.h.bak
+│   │       │   │   ├── engine
+│   │       │   │   │   ├── engine.h
+│   │       │   │   │   ├── engine.h.bak
+│   │       │   │   │   ├── matcher.h
+│   │       │   │   │   ├── matcher.h.bak
+│   │       │   │   │   ├── pattern.h
+│   │       │   │   │   └── pattern.h.bak
+│   │       │   │   ├── rift.h
+│   │       │   │   ├── rift.h.bak
+│   │       │   │   └── runtime
+│   │       │   │       ├── backtracker_bailout_strategy_manager.h
+│   │       │   │       ├── backtracker_bailout_strategy_manager.h.bak
+│   │       │   │       ├── backtracker_extension.h
+│   │       │   │       ├── backtracker_extension.h.bak
+│   │       │   │       ├── backtracker.h
+│   │       │   │       ├── backtracker.h.bak
+│   │       │   │       ├── backtracker_limit_registry.h
+│   │       │   │       ├── backtracker_limit_registry.h.bak
+│   │       │   │       ├── backtracker_safe_backtracker.h
+│   │       │   │       ├── backtracker_safe_backtracker.h.bak
+│   │       │   │       ├── context.h
+│   │       │   │       ├── context.h.bak
+│   │       │   │       ├── contexthread_safe_context.h
+│   │       │   │       ├── contexthread_safe_context.h.bak
+│   │       │   │       ├── context_thread_safe_context.h
+│   │       │   │       ├── context_thread_safe_context.h.bak
+│   │       │   │       ├── execution_tracker.h
+│   │       │   │       ├── execution_tracker.h.bak
+│   │       │   │       ├── groups.h
+│   │       │   │       ├── groups.h.bak
+│   │       │   │       ├── pattern_complexity_strategy.h
+│   │       │   │       ├── pattern_complexity_strategy.h.bak
+│   │       │   │       ├── pattern_pattern_tracking_strategy.h
+│   │       │   │       ├── pattern_pattern_tracking_strategy.h.bak
+│   │       │   │       ├── pattern_tracking_strategy.h
+│   │       │   │       └── pattern_tracking_strategy.h.bak
+│   │       │   └── tests
+│   │       │       ├── CMakeFiles
+│   │       │       │   └── 3.31.6
+│   │       │       │       └── CompilerIdC
+│   │       │       │           ├── CMakeCCompilerId.h
+│   │       │       │           └── CMakeCCompilerId.h.bak
+│   │       │       └── unit
+│   │       │           └── core
+│   │       │               ├── automaton
+│   │       │               │   ├── automaton_tests.h
+│   │       │               │   ├── automaton_tests.h.bak
+│   │       │               │   ├── test_automaton.h
+│   │       │               │   └── test_automaton.h.bak
+│   │       │               ├── bailout_strategy_manager_test.h
+│   │       │               ├── bailout_strategy_manager_test.h.bak
+│   │       │               ├── bytecode
+│   │       │               │   ├── bytecode_compiler_test.h
+│   │       │               │   └── bytecode_compiler_test.h.bak
+│   │       │               ├── compiler
+│   │       │               │   ├── compiler_test.h
+│   │       │               │   └── compiler_test.h.bak
+│   │       │               ├── config_test.h
+│   │       │               ├── config_test.h.bak
+│   │       │               ├── engine
+│   │       │               │   ├── baseline_pattern_test.h
+│   │       │               │   ├── baseline_pattern_test.h.bak
+│   │       │               │   ├── engine_test.h
+│   │       │               │   ├── engine_test.h.bak
+│   │       │               │   ├── matcher_test.h
+│   │       │               │   ├── matcher_test.h.bak
+│   │       │               │   ├── pattern_complexity_strategy_test.h
+│   │       │               │   ├── pattern_complexity_strategy_test.h.bak
+│   │       │               │   ├── pattern_extensions_test.h
+│   │       │               │   ├── pattern_extensions_test.h.bak
+│   │       │               │   ├── pattern_test.h
+│   │       │               │   ├── pattern_test.h.bak
+│   │       │               │   ├── pattern_tracking_strategy_test.h
+│   │       │               │   └── pattern_tracking_strategy_test.h.bak
+│   │       │               ├── errors
+│   │       │               │   ├── error_test.h
+│   │       │               │   ├── error_test.h.bak
+│   │       │               │   ├── regex_error_compact_test.h
+│   │       │               │   ├── regex_error_compact_test.h.bak
+│   │       │               │   ├── regex_error_test.h
+│   │       │               │   └── regex_error_test.h.bak
+│   │       │               ├── execution_tracker_test.h
+│   │       │               ├── execution_tracker_test.h.bak
+│   │       │               ├── groups_test.h
+│   │       │               ├── groups_test.h.bak
+│   │       │               ├── integration_test.h
+│   │       │               ├── integration_test.h.bak
+│   │       │               ├── lexer_test.h
+│   │       │               ├── lexer_test.h.bak
+│   │       │               ├── memory
+│   │       │               │   ├── memory_test.h
+│   │       │               │   └── memory_test.h.bak
+│   │       │               ├── minimizer_tests.h
+│   │       │               ├── minimizer_tests.h.bak
+│   │       │               ├── parser
+│   │       │               │   ├── ast_node_test.h
+│   │       │               │   ├── ast_node_test.h.bak
+│   │       │               │   ├── ast_test.h
+│   │       │               │   ├── ast_test.h.bak
+│   │       │               │   ├── parser_test.h
+│   │       │               │   └── parser_test.h.bak
+│   │       │               ├── regex_tests.h
+│   │       │               ├── regex_tests.h.bak
+│   │       │               ├── runtime
+│   │       │               │   ├── backtracker_extension_test.h
+│   │       │               │   ├── backtracker_extension_test.h.bak
+│   │       │               │   ├── backtracker_limit_registry_test.h
+│   │       │               │   ├── backtracker_limit_registry_test.h.bak
+│   │       │               │   ├── backtracker_test.h
+│   │       │               │   ├── backtracker_test.h.bak
+│   │       │               │   ├── context_test.h
+│   │       │               │   ├── context_test.h.bak
+│   │       │               │   ├── safe_backtracker_test.h
+│   │       │               │   ├── safe_backtracker_test.h.bak
+│   │       │               │   ├── thread_safe_context_test.h
+│   │       │               │   └── thread_safe_context_test.h.bak
+│   │       │               ├── state_tests.h
+│   │       │               ├── state_tests.h.bak
+│   │       │               ├── syntax
+│   │       │               │   ├── syntax_test.h
+│   │       │               │   └── syntax_test.h.bak
+│   │       │               ├── tokenizer
+│   │       │               │   ├── tokenizer_test.h
+│   │       │               │   ├── tokenizer_test.h.bak
+│   │       │               │   ├── token_test.h
+│   │       │               │   ├── token_test.h.bak
+│   │       │               │   ├── token_type_test.h
+│   │       │               │   └── token_type_test.h.bak
+│   │       │               ├── transition_tests.h
+│   │       │               ├── transition_tests.h.bak
+│   │       │               ├── validator_test.h
+│   │       │               └── validator_test.h.bak
+│   │       └── librift-a3c62d2-Milestone_Refatored
+│   │           ├── backup
+│   │           │   ├── v1
+│   │           │   │   └── src
+│   │           │   │       ├── accessibility
+│   │           │   │       │   ├── accessiblity_manager.h
+│   │           │   │       │   ├── accessiblity_manager.h.bak
+│   │           │   │       │   ├── color_scheme_manager.h
+│   │           │   │       │   ├── color_scheme_manager.h.bak
+│   │           │   │       │   ├── keyboard_navigation_manager.h
+│   │           │   │       │   ├── keyboard_navigation_manager.h.bak
+│   │           │   │       │   ├── preferences_manager.h
+│   │           │   │       │   ├── preferences_manager.h.bak
+│   │           │   │       │   ├── regex_accesibility_bridge.h
+│   │           │   │       │   ├── regex_accesibility_bridge.h.bak
+│   │           │   │       │   ├── screen_reader_adapter.h
+│   │           │   │       │   ├── screen_reader_adapter.h.bak
+│   │           │   │       │   ├── ui_adapation_manager.h
+│   │           │   │       │   └── ui_adapation_manager.h.bak
+│   │           │   │       ├── accessibility copy
+│   │           │   │       │   ├── accessiblity_manager.h
+│   │           │   │       │   ├── accessiblity_manager.h.bak
+│   │           │   │       │   ├── color_scheme_manager.h
+│   │           │   │       │   ├── color_scheme_manager.h.bak
+│   │           │   │       │   ├── keyboard_navigation_manager.h
+│   │           │   │       │   ├── keyboard_navigation_manager.h.bak
+│   │           │   │       │   ├── preferences_manager.h
+│   │           │   │       │   ├── preferences_manager.h.bak
+│   │           │   │       │   ├── regex_accesibility_bridge.h
+│   │           │   │       │   ├── regex_accesibility_bridge.h.bak
+│   │           │   │       │   ├── screen_reader_adapter.h
+│   │           │   │       │   ├── screen_reader_adapter.h.bak
+│   │           │   │       │   ├── ui_adapation_manager.h
+│   │           │   │       │   └── ui_adapation_manager.h.bak
+│   │           │   │       ├── automaton
+│   │           │   │       │   ├── automaton.h
+│   │           │   │       │   ├── automaton.h.bak
+│   │           │   │       │   ├── flags.h
+│   │           │   │       │   ├── flags.h.bak
+│   │           │   │       │   ├── minimizer.h
+│   │           │   │       │   ├── minimizer.h.bak
+│   │           │   │       │   ├── regex.h
+│   │           │   │       │   ├── regex.h.bak
+│   │           │   │       │   ├── state.h
+│   │           │   │       │   ├── state.h.bak
+│   │           │   │       │   ├── transition.h
+│   │           │   │       │   └── transition.h.bak
+│   │           │   │       ├── bytecode
+│   │           │   │       │   ├── bytecode.h
+│   │           │   │       │   └── bytecode.h.bak
+│   │           │   │       ├── cli
+│   │           │   │       │   ├── command_factory.h
+│   │           │   │       │   ├── command_factory.h.bak
+│   │           │   │       │   ├── command.h
+│   │           │   │       │   ├── command.h.bak
+│   │           │   │       │   ├── compile_command.h
+│   │           │   │       │   ├── compile_command.h.bak
+│   │           │   │       │   ├── main.h
+│   │           │   │       │   └── main.h.bak
+│   │           │   │       ├── cli copy
+│   │           │   │       │   ├── command_factory.h
+│   │           │   │       │   ├── command_factory.h.bak
+│   │           │   │       │   ├── command.h
+│   │           │   │       │   ├── command.h.bak
+│   │           │   │       │   ├── compile_command.h
+│   │           │   │       │   ├── compile_command.h.bak
+│   │           │   │       │   ├── main.h
+│   │           │   │       │   └── main.h.bak
+│   │           │   │       ├── compiler
+│   │           │   │       │   ├── compiler.h
+│   │           │   │       │   ├── compiler.h.bak
+│   │           │   │       │   ├── optimizer.h
+│   │           │   │       │   └── optimizer.h.bak
+│   │           │   │       ├── core
+│   │           │   │       │   ├── config.h
+│   │           │   │       │   └── config.h.bak
+│   │           │   │       ├── core copy
+│   │           │   │       │   ├── config.h
+│   │           │   │       │   └── config.h.bak
+│   │           │   │       ├── engine
+│   │           │   │       │   ├── engine.h
+│   │           │   │       │   ├── engine.h.bak
+│   │           │   │       │   ├── matcher.h
+│   │           │   │       │   ├── matcher.h.bak
+│   │           │   │       │   ├── pattern.h
+│   │           │   │       │   └── pattern.h.bak
+│   │           │   │       ├── errors
+│   │           │   │       │   ├── error.h
+│   │           │   │       │   ├── error.h.bak
+│   │           │   │       │   ├── regex_error_compat.h
+│   │           │   │       │   ├── regex_error_compat.h.bak
+│   │           │   │       │   ├── regex_error.h
+│   │           │   │       │   └── regex_error.h.bak
+│   │           │   │       ├── memory
+│   │           │   │       │   ├── memory.h
+│   │           │   │       │   └── memory.h.bak
+│   │           │   │       ├── parser
+│   │           │   │       │   ├── ast.h
+│   │           │   │       │   ├── ast.h.bak
+│   │           │   │       │   ├── ast_node.h
+│   │           │   │       │   ├── ast_node.h.bak
+│   │           │   │       │   ├── parser.h
+│   │           │   │       │   ├── parser.h.bak
+│   │           │   │       │   ├── validator.h
+│   │           │   │       │   └── validator.h.bak
+│   │           │   │       ├── patterns
+│   │           │   │       │   ├── baseline_patterns.h
+│   │           │   │       │   ├── baseline_patterns.h.bak
+│   │           │   │       │   ├── pattern_extensions.h
+│   │           │   │       │   └── pattern_extensions.h.bak
+│   │           │   │       ├── runtime
+│   │           │   │       │   ├── backtracker_backtracker_extension.h
+│   │           │   │       │   ├── backtracker_backtracker_extension.h.bak
+│   │           │   │       │   ├── backtracker_backtracker.h
+│   │           │   │       │   ├── backtracker_backtracker.h.bak
+│   │           │   │       │   ├── backtracker_backtracker_limit_registry.h
+│   │           │   │       │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │           │   │       │   ├── backtracker_bailout_strategy_manager.h
+│   │           │   │       │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │           │   │       │   ├── backtracker_safe_backtracker.h
+│   │           │   │       │   ├── backtracker_safe_backtracker.h.bak
+│   │           │   │       │   ├── context_context.h
+│   │           │   │       │   ├── context_context.h.bak
+│   │           │   │       │   ├── context_thread_safe_context.h
+│   │           │   │       │   ├── context_thread_safe_context.h.bak
+│   │           │   │       │   ├── execution_execution_tracker.h
+│   │           │   │       │   ├── execution_execution_tracker.h.bak
+│   │           │   │       │   ├── groups_groups.h
+│   │           │   │       │   ├── groups_groups.h.bak
+│   │           │   │       │   ├── pattern_pattern_complexity_strategy.h
+│   │           │   │       │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │           │   │       │   ├── pattern_pattern_tracking_strategy.h
+│   │           │   │       │   └── pattern_pattern_tracking_strategy.h.bak
+│   │           │   │       ├── syntax
+│   │           │   │       │   ├── integration.h
+│   │           │   │       │   ├── integration.h.bak
+│   │           │   │       │   ├── lexer.h
+│   │           │   │       │   ├── lexer.h.bak
+│   │           │   │       │   ├── parser.h
+│   │           │   │       │   ├── parser.h.bak
+│   │           │   │       │   ├── syntax.h
+│   │           │   │       │   └── syntax.h.bak
+│   │           │   │       ├── tests
+│   │           │   │       │   └── unit
+│   │           │   │       │       ├── automaton
+│   │           │   │       │       │   └── automaton
+│   │           │   │       │       │       ├── automaton_tests.h
+│   │           │   │       │       │       ├── automaton_tests.h.bak
+│   │           │   │       │       │       ├── minimizer_tests.h
+│   │           │   │       │       │       ├── minimizer_tests.h.bak
+│   │           │   │       │       │       ├── regex_tests.h
+│   │           │   │       │       │       ├── regex_tests.h.bak
+│   │           │   │       │       │       ├── state_tests.h
+│   │           │   │       │       │       ├── state_tests.h.bak
+│   │           │   │       │       │       ├── transition_tests.h
+│   │           │   │       │       │       └── transition_tests.h.bak
+│   │           │   │       │       ├── compiler
+│   │           │   │       │       │   └── compiler
+│   │           │   │       │       │       ├── compiler_test.h
+│   │           │   │       │       │       └── compiler_test.h.bak
+│   │           │   │       │       ├── core
+│   │           │   │       │       │   ├── config_test.h
+│   │           │   │       │       │   └── config_test.h.bak
+│   │           │   │       │       ├── engine
+│   │           │   │       │       │   └── engine
+│   │           │   │       │       │       ├── engine_test.h
+│   │           │   │       │       │       ├── engine_test.h.bak
+│   │           │   │       │       │       ├── matcher_test.h
+│   │           │   │       │       │       ├── matcher_test.h.bak
+│   │           │   │       │       │       ├── pattern_test.h
+│   │           │   │       │       │       └── pattern_test.h.bak
+│   │           │   │       │       ├── errors
+│   │           │   │       │       │   └── errors
+│   │           │   │       │       │       ├── error_test.h
+│   │           │   │       │       │       ├── error_test.h.bak
+│   │           │   │       │       │       ├── regex_error_compact_test.h
+│   │           │   │       │       │       ├── regex_error_compact_test.h.bak
+│   │           │   │       │       │       ├── regex_error_test.h
+│   │           │   │       │       │       └── regex_error_test.h.bak
+│   │           │   │       │       ├── memory
+│   │           │   │       │       │   └── memory
+│   │           │   │       │       │       ├── memory_test.h
+│   │           │   │       │       │       └── memory_test.h.bak
+│   │           │   │       │       ├── parser
+│   │           │   │       │       │   └── parser
+│   │           │   │       │       │       ├── ast_node_test.h
+│   │           │   │       │       │       ├── ast_node_test.h.bak
+│   │           │   │       │       │       ├── ast_test.h
+│   │           │   │       │       │       ├── ast_test.h.bak
+│   │           │   │       │       │       ├── parser_test.h
+│   │           │   │       │       │       ├── parser_test.h.bak
+│   │           │   │       │       │       ├── tokenizer_test.h
+│   │           │   │       │       │       ├── tokenizer_test.h.bak
+│   │           │   │       │       │       ├── token_test.h
+│   │           │   │       │       │       ├── token_test.h.bak
+│   │           │   │       │       │       ├── token_type_test.h
+│   │           │   │       │       │       ├── token_type_test.h.bak
+│   │           │   │       │       │       ├── validator_test.h
+│   │           │   │       │       │       └── validator_test.h.bak
+│   │           │   │       │       ├── patterns
+│   │           │   │       │       │   └── patterns
+│   │           │   │       │       │       ├── baseline_pattern_test.h
+│   │           │   │       │       │       ├── baseline_pattern_test.h.bak
+│   │           │   │       │       │       ├── pattern_extensions_test.h
+│   │           │   │       │       │       └── pattern_extensions_test.h.bak
+│   │           │   │       │       ├── runtime
+│   │           │   │       │       │   └── runtime
+│   │           │   │       │       │       ├── backtracker
+│   │           │   │       │       │       │   ├── backtracker_extension_test.h
+│   │           │   │       │       │       │   ├── backtracker_extension_test.h.bak
+│   │           │   │       │       │       │   ├── backtracker_limit_registry_test.h
+│   │           │   │       │       │       │   ├── backtracker_limit_registry_test.h.bak
+│   │           │   │       │       │       │   ├── backtracker_test.h
+│   │           │   │       │       │       │   ├── backtracker_test.h.bak
+│   │           │   │       │       │       │   ├── bailout_strategy_manager_test.h
+│   │           │   │       │       │       │   ├── bailout_strategy_manager_test.h.bak
+│   │           │   │       │       │       │   ├── safe_backtracker_test.h
+│   │           │   │       │       │       │   └── safe_backtracker_test.h.bak
+│   │           │   │       │       │       ├── context
+│   │           │   │       │       │       │   ├── context_test.h
+│   │           │   │       │       │       │   ├── context_test.h.bak
+│   │           │   │       │       │       │   ├── thread_safe_context_test.h
+│   │           │   │       │       │       │   └── thread_safe_context_test.h.bak
+│   │           │   │       │       │       ├── execution
+│   │           │   │       │       │       │   ├── execution_tracker_test.h
+│   │           │   │       │       │       │   └── execution_tracker_test.h.bak
+│   │           │   │       │       │       ├── groups
+│   │           │   │       │       │       │   ├── groups_test.h
+│   │           │   │       │       │       │   └── groups_test.h.bak
+│   │           │   │       │       │       └── pattern
+│   │           │   │       │       │           ├── pattern_complexity_strategy_test.h
+│   │           │   │       │       │           ├── pattern_complexity_strategy_test.h.bak
+│   │           │   │       │       │           ├── pattern_tracking_strategy_test.h
+│   │           │   │       │       │           └── pattern_tracking_strategy_test.h.bak
+│   │           │   │       │       └── syntax
+│   │           │   │       │           └── syntax
+│   │           │   │       │               ├── integration_test.h
+│   │           │   │       │               ├── integration_test.h.bak
+│   │           │   │       │               ├── lexer_test.h
+│   │           │   │       │               ├── lexer_test.h.bak
+│   │           │   │       │               ├── parser_test.h
+│   │           │   │       │               ├── parser_test.h.bak
+│   │           │   │       │               ├── syntax_test.h
+│   │           │   │       │               └── syntax_test.h.bak
+│   │           │   │       ├── tokenizer
+│   │           │   │       │   ├── token.h
+│   │           │   │       │   ├── token.h.bak
+│   │           │   │       │   ├── tokenizer.h
+│   │           │   │       │   ├── tokenizer.h.bak
+│   │           │   │       │   ├── token_type.h
+│   │           │   │       │   └── token_type.h.bak
+│   │           │   │       ├── visualizer
+│   │           │   │       │   ├── svg_element.h
+│   │           │   │       │   └── svg_element.h.bak
+│   │           │   │       ├── visualizer copy
+│   │           │   │       │   ├── svg_element.h
+│   │           │   │       │   └── svg_element.h.bak
+│   │           │   │       ├── webbridge
+│   │           │   │       │   ├── webbrige.h
+│   │           │   │       │   └── webbrige.h.bak
+│   │           │   │       └── webbridge copy
+│   │           │   │           ├── webbrige.h
+│   │           │   │           └── webbrige.h.bak
+│   │           │   ├── v2
+│   │           │   │   ├── engine
+│   │           │   │   │   ├── engine.h
+│   │           │   │   │   ├── engine.h.bak
+│   │           │   │   │   ├── matcher.h
+│   │           │   │   │   ├── matcher.h.bak
+│   │           │   │   │   ├── pattern.h
+│   │           │   │   │   └── pattern.h.bak
+│   │           │   │   ├── errors
+│   │           │   │   │   ├── error.h
+│   │           │   │   │   ├── error.h.bak
+│   │           │   │   │   ├── regex_error_compat.h
+│   │           │   │   │   ├── regex_error_compat.h.bak
+│   │           │   │   │   ├── regex_error.h
+│   │           │   │   │   └── regex_error.h.bak
+│   │           │   │   ├── parser
+│   │           │   │   │   ├── ast.h
+│   │           │   │   │   ├── ast.h.bak
+│   │           │   │   │   ├── ast_node.h
+│   │           │   │   │   ├── ast_node.h.bak
+│   │           │   │   │   ├── parser.h
+│   │           │   │   │   ├── parser.h.bak
+│   │           │   │   │   ├── validator.h
+│   │           │   │   │   └── validator.h.bak
+│   │           │   │   ├── patterns
+│   │           │   │   │   ├── baseline_patterns.h
+│   │           │   │   │   ├── baseline_patterns.h.bak
+│   │           │   │   │   ├── pattern_extensions.h
+│   │           │   │   │   └── pattern_extensions.h.bak
+│   │           │   │   ├── runtime
+│   │           │   │   │   ├── backtracker_backtracker_backtracker_extension.h
+│   │           │   │   │   ├── backtracker_backtracker_backtracker_extension.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_backtracker.h
+│   │           │   │   │   ├── backtracker_backtracker_backtracker.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_backtracker_limit_registry.h
+│   │           │   │   │   ├── backtracker_backtracker_backtracker_limit_registry.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h
+│   │           │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_extension.h
+│   │           │   │   │   ├── backtracker_backtracker_extension.h.bak
+│   │           │   │   │   ├── backtracker_backtracker.h
+│   │           │   │   │   ├── backtracker_backtracker.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_limit_registry.h
+│   │           │   │   │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_safe_backtracker.h
+│   │           │   │   │   ├── backtracker_backtracker_safe_backtracker.h.bak
+│   │           │   │   │   ├── backtracker_bailout_strategy_manager.h
+│   │           │   │   │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │           │   │   │   ├── backtracker_safe_backtracker.h
+│   │           │   │   │   ├── backtracker_safe_backtracker.h.bak
+│   │           │   │   │   ├── context_context_context.h
+│   │           │   │   │   ├── context_context_context.h.bak
+│   │           │   │   │   ├── context_context.h
+│   │           │   │   │   ├── context_context.h.bak
+│   │           │   │   │   ├── context_context_thread_safe_context.h
+│   │           │   │   │   ├── context_context_thread_safe_context.h.bak
+│   │           │   │   │   ├── context_thread_safe_context.h
+│   │           │   │   │   ├── context_thread_safe_context.h.bak
+│   │           │   │   │   ├── execution_execution_execution_tracker.h
+│   │           │   │   │   ├── execution_execution_execution_tracker.h.bak
+│   │           │   │   │   ├── execution_execution_tracker.h
+│   │           │   │   │   ├── execution_execution_tracker.h.bak
+│   │           │   │   │   ├── groups_groups_groups.h
+│   │           │   │   │   ├── groups_groups_groups.h.bak
+│   │           │   │   │   ├── groups_groups.h
+│   │           │   │   │   ├── groups_groups.h.bak
+│   │           │   │   │   ├── pattern_pattern_complexity_strategy.h
+│   │           │   │   │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │           │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h
+│   │           │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h.bak
+│   │           │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h
+│   │           │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h.bak
+│   │           │   │   │   ├── pattern_pattern_tracking_strategy.h
+│   │           │   │   │   └── pattern_pattern_tracking_strategy.h.bak
+│   │           │   │   ├── syntax
+│   │           │   │   │   ├── integration.h
+│   │           │   │   │   ├── integration.h.bak
+│   │           │   │   │   ├── lexer.h
+│   │           │   │   │   ├── lexer.h.bak
+│   │           │   │   │   ├── parser.h
+│   │           │   │   │   ├── parser.h.bak
+│   │           │   │   │   ├── syntax.h
+│   │           │   │   │   └── syntax.h.bak
+│   │           │   │   ├── tokenizer
+│   │           │   │   │   ├── token.h
+│   │           │   │   │   ├── token.h.bak
+│   │           │   │   │   ├── tokenizer.h
+│   │           │   │   │   ├── tokenizer.h.bak
+│   │           │   │   │   ├── token_type.h
+│   │           │   │   │   └── token_type.h.bak
+│   │           │   │   └── visualizer
+│   │           │   │       ├── svg_element.h
+│   │           │   │       └── svg_element.h.bak
+│   │           │   └── v4_missing
+│   │           │       ├── bytecode.h
+│   │           │       ├── bytecode.h.bak
+│   │           │       ├── bytecode_vm.h
+│   │           │       └── bytecode_vm.h.bak
+│   │           ├── CMakeFiles
+│   │           │   └── 3.31.6
+│   │           │       └── CompilerIdC
+│   │           │           ├── CMakeCCompilerId.h
+│   │           │           └── CMakeCCompilerId.h.bak
+│   │           ├── examples
+│   │           │   ├── benchmarks
+│   │           │   │   └── csv
+│   │           │   │       ├── format_tokenizer_benchmark.h
+│   │           │   │       └── format_tokenizer_benchmark.h.bak
+│   │           │   ├── bytecode
+│   │           │   │   └── src
+│   │           │   │       ├── main.h
+│   │           │   │       └── main.h.bak
+│   │           │   ├── co_feature
+│   │           │   │   ├── co_feature.h
+│   │           │   │   ├── co_feature.h.bak
+│   │           │   │   ├── new_feature_demo.h
+│   │           │   │   └── new_feature_demo.h.bak
+│   │           │   ├── floyd
+│   │           │   │   ├── string_pattern_detector.h
+│   │           │   │   └── string_pattern_detector.h.bak
+│   │           │   ├── log_analyzer
+│   │           │   │   ├── log_analyzer.h
+│   │           │   │   └── log_analyzer.h.bak
+│   │           │   ├── matcher
+│   │           │   │   ├── pattern_matcher.h
+│   │           │   │   └── pattern_matcher.h.bak
+│   │           │   ├── poc
+│   │           │   │   ├── rift_poc.h
+│   │           │   │   └── rift_poc.h.bak
+│   │           │   ├── simple_match
+│   │           │   │   ├── demo.h
+│   │           │   │   ├── demo.h.bak
+│   │           │   │   ├── example.h
+│   │           │   │   └── example.h.bak
+│   │           │   └── thread_safety
+│   │           │       ├── thread_safe_demo.h
+│   │           │       └── thread_safe_demo.h.bak
+│   │           ├── poc
+│   │           │   ├── backup.h
+│   │           │   ├── backup.h.bak
+│   │           │   ├── rift_poc.h
+│   │           │   ├── rift_poc.h.bak
+│   │           │   ├── tokenziation.h
+│   │           │   └── tokenziation.h.bak
+│   │           ├── src
+│   │           │   ├── automaton
+│   │           │   │   ├── automaton.h
+│   │           │   │   ├── automaton.h.bak
+│   │           │   │   ├── minimizer.h
+│   │           │   │   ├── minimizer.h.bak
+│   │           │   │   ├── state.h
+│   │           │   │   ├── state.h.bak
+│   │           │   │   ├── transition.h
+│   │           │   │   └── transition.h.bak
+│   │           │   ├── cli
+│   │           │   │   ├── accessibility
+│   │           │   │   │   ├── accessiblity_manager.h
+│   │           │   │   │   ├── accessiblity_manager.h.bak
+│   │           │   │   │   ├── color_scheme_manager.h
+│   │           │   │   │   ├── color_scheme_manager.h.bak
+│   │           │   │   │   ├── keyboard_navigation_manager.h
+│   │           │   │   │   ├── keyboard_navigation_manager.h.bak
+│   │           │   │   │   ├── preferences_manager.h
+│   │           │   │   │   ├── preferences_manager.h.bak
+│   │           │   │   │   ├── regex_accesibility_bridge.h
+│   │           │   │   │   ├── regex_accesibility_bridge.h.bak
+│   │           │   │   │   ├── screen_reader_adapter.h
+│   │           │   │   │   ├── screen_reader_adapter.h.bak
+│   │           │   │   │   ├── ui_adapation_manager.h
+│   │           │   │   │   └── ui_adapation_manager.h.bak
+│   │           │   │   ├── command
+│   │           │   │   │   ├── ast_command.h
+│   │           │   │   │   ├── ast_command.h.bak
+│   │           │   │   │   ├── bytecode_command.h
+│   │           │   │   │   ├── bytecode_command.h.bak
+│   │           │   │   │   ├── command_factory.h
+│   │           │   │   │   ├── command_factory.h.bak
+│   │           │   │   │   ├── command.h
+│   │           │   │   │   ├── command.h.bak
+│   │           │   │   │   ├── compile_command.h
+│   │           │   │   │   ├── compile_command.h.bak
+│   │           │   │   │   ├── parse_command.h
+│   │           │   │   │   ├── parse_command.h.bak
+│   │           │   │   │   ├── rift_tokenize_command.h
+│   │           │   │   │   └── rift_tokenize_command.h.bak
+│   │           │   │   ├── main.h
+│   │           │   │   └── main.h.bak
+│   │           │   ├── core
+│   │           │   │   ├── automaton
+│   │           │   │   │   ├── automaton.h
+│   │           │   │   │   ├── automaton.h.bak
+│   │           │   │   │   ├── flags.h
+│   │           │   │   │   ├── flags.h.bak
+│   │           │   │   │   ├── minimizer.h
+│   │           │   │   │   ├── minimizer.h.bak
+│   │           │   │   │   ├── regex.h
+│   │           │   │   │   ├── regex.h.bak
+│   │           │   │   │   ├── state.h
+│   │           │   │   │   ├── state.h.bak
+│   │           │   │   │   ├── transition.h
+│   │           │   │   │   └── transition.h.bak
+│   │           │   │   ├── bytecode
+│   │           │   │   │   ├── bytecode_compiler.h
+│   │           │   │   │   ├── bytecode_compiler.h.bak
+│   │           │   │   │   ├── bytecode.h
+│   │           │   │   │   ├── bytecode.h.bak
+│   │           │   │   │   ├── bytecode_program.h
+│   │           │   │   │   ├── bytecode_program.h.bak
+│   │           │   │   │   ├── bytecode_system.h
+│   │           │   │   │   ├── bytecode_system.h.bak
+│   │           │   │   │   ├── bytecode_vm.h
+│   │           │   │   │   └── bytecode_vm.h.bak
+│   │           │   │   ├── compiler
+│   │           │   │   │   ├── compiler.h
+│   │           │   │   │   └── compiler.h.bak
+│   │           │   │   ├── config
+│   │           │   │   │   ├── config.h
+│   │           │   │   │   └── config.h.bak
+│   │           │   │   ├── dsl
+│   │           │   │   │   ├── rift_dsl_compiler.h
+│   │           │   │   │   ├── rift_dsl_compiler.h.bak
+│   │           │   │   │   ├── rift_dsl.h
+│   │           │   │   │   ├── rift_dsl.h.bak
+│   │           │   │   │   ├── rift_dsl_io.h
+│   │           │   │   │   ├── rift_dsl_io.h.bak
+│   │           │   │   │   ├── rift_dsl_parser.h
+│   │           │   │   │   ├── rift_dsl_parser.h.bak
+│   │           │   │   │   ├── rift_dsl_test_runner.h
+│   │           │   │   │   └── rift_dsl_test_runner.h.bak
+│   │           │   │   ├── engine
+│   │           │   │   │   ├── engine.h
+│   │           │   │   │   ├── engine.h.bak
+│   │           │   │   │   ├── matcher.h
+│   │           │   │   │   ├── matcher.h.bak
+│   │           │   │   │   ├── pattern.h
+│   │           │   │   │   └── pattern.h.bak
+│   │           │   │   ├── errors
+│   │           │   │   │   ├── error.h
+│   │           │   │   │   ├── error.h.bak
+│   │           │   │   │   ├── regex_error_compat.h
+│   │           │   │   │   ├── regex_error_compat.h.bak
+│   │           │   │   │   ├── regex_error.h
+│   │           │   │   │   └── regex_error.h.bak
+│   │           │   │   ├── memory
+│   │           │   │   │   ├── memory.h
+│   │           │   │   │   └── memory.h.bak
+│   │           │   │   ├── parser
+│   │           │   │   │   ├── ast.h
+│   │           │   │   │   ├── ast.h.bak
+│   │           │   │   │   ├── ast_node.h
+│   │           │   │   │   ├── ast_node.h.bak
+│   │           │   │   │   ├── parser.h
+│   │           │   │   │   ├── parser.h.bak
+│   │           │   │   │   ├── validator.h
+│   │           │   │   │   └── validator.h.bak
+│   │           │   │   ├── patterns
+│   │           │   │   │   ├── baseline_patterns.h
+│   │           │   │   │   ├── baseline_patterns.h.bak
+│   │           │   │   │   ├── pattern_extensions.h
+│   │           │   │   │   └── pattern_extensions.h.bak
+│   │           │   │   ├── regex
+│   │           │   │   │   ├── flags.h
+│   │           │   │   │   ├── flags.h.bak
+│   │           │   │   │   ├── regex.h
+│   │           │   │   │   └── regex.h.bak
+│   │           │   │   ├── runtime
+│   │           │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h
+│   │           │   │   │   ├── backtracker_backtracker_bailout_strategy_manager.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_extension.h
+│   │           │   │   │   ├── backtracker_backtracker_extension.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_limit_registry.h
+│   │           │   │   │   ├── backtracker_backtracker_limit_registry.h.bak
+│   │           │   │   │   ├── backtracker_backtracker_safe_backtracker.h
+│   │           │   │   │   ├── backtracker_backtracker_safe_backtracker.h.bak
+│   │           │   │   │   ├── backtracker_bailout_strategy_manager.h
+│   │           │   │   │   ├── backtracker_bailout_strategy_manager.h.bak
+│   │           │   │   │   ├── backtracker_extension.h
+│   │           │   │   │   ├── backtracker_extension.h.bak
+│   │           │   │   │   ├── backtracker.h
+│   │           │   │   │   ├── backtracker.h.bak
+│   │           │   │   │   ├── backtracker_limit_registry.h
+│   │           │   │   │   ├── backtracker_limit_registry.h.bak
+│   │           │   │   │   ├── context_context_thread_safe_context.h
+│   │           │   │   │   ├── context_context_thread_safe_context.h.bak
+│   │           │   │   │   ├── context.h
+│   │           │   │   │   ├── context.h.bak
+│   │           │   │   │   ├── execution_execution_execution_tracker.h
+│   │           │   │   │   ├── execution_execution_execution_tracker.h.bak
+│   │           │   │   │   ├── execution_execution_tracker.h
+│   │           │   │   │   ├── execution_execution_tracker.h.bak
+│   │           │   │   │   ├── groups_groups_groups.h
+│   │           │   │   │   ├── groups_groups_groups.h.bak
+│   │           │   │   │   ├── groups_groups.h
+│   │           │   │   │   ├── groups_groups.h.bak
+│   │           │   │   │   ├── pattern_pattern_complexity_strategy.h
+│   │           │   │   │   ├── pattern_pattern_complexity_strategy.h.bak
+│   │           │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h
+│   │           │   │   │   ├── pattern_pattern_pattern_complexity_strategy.h.bak
+│   │           │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h
+│   │           │   │   │   ├── pattern_pattern_pattern_tracking_strategy.h.bak
+│   │           │   │   │   ├── pattern_tracking_strategy.h
+│   │           │   │   │   ├── pattern_tracking_strategy.h.bak
+│   │           │   │   │   ├── safe_backtracker.h
+│   │           │   │   │   ├── safe_backtracker.h.bak
+│   │           │   │   │   ├── thread_safe_context.h
+│   │           │   │   │   └── thread_safe_context.h.bak
+│   │           │   │   ├── syntax
+│   │           │   │   │   ├── integration.h
+│   │           │   │   │   ├── integration.h.bak
+│   │           │   │   │   ├── lexer.h
+│   │           │   │   │   ├── lexer.h.bak
+│   │           │   │   │   ├── parser.h
+│   │           │   │   │   ├── parser.h.bak
+│   │           │   │   │   ├── syntax.h
+│   │           │   │   │   └── syntax.h.bak
+│   │           │   │   ├── tokenizer
+│   │           │   │   │   ├── token.h
+│   │           │   │   │   ├── token.h.bak
+│   │           │   │   │   ├── tokenizer.h
+│   │           │   │   │   ├── tokenizer.h.bak
+│   │           │   │   │   ├── token_type.h
+│   │           │   │   │   └── token_type.h.bak
+│   │           │   │   └── webbridge
+│   │           │   │       ├── bridge_api.h
+│   │           │   │       ├── bridge_api.h.bak
+│   │           │   │       ├── webbrige.h
+│   │           │   │       └── webbrige.h.bak
+│   │           │   ├── engine
+│   │           │   │   ├── engine.h
+│   │           │   │   ├── engine.h.bak
+│   │           │   │   ├── matcher.h
+│   │           │   │   ├── matcher.h.bak
+│   │           │   │   ├── pattern.h
+│   │           │   │   └── pattern.h.bak
+│   │           │   ├── rift.h
+│   │           │   ├── rift.h.bak
+│   │           │   └── runtime
+│   │           │       ├── backtracker_bailout_strategy_manager.h
+│   │           │       ├── backtracker_bailout_strategy_manager.h.bak
+│   │           │       ├── backtracker_extension.h
+│   │           │       ├── backtracker_extension.h.bak
+│   │           │       ├── backtracker.h
+│   │           │       ├── backtracker.h.bak
+│   │           │       ├── backtracker_limit_registry.h
+│   │           │       ├── backtracker_limit_registry.h.bak
+│   │           │       ├── backtracker_safe_backtracker.h
+│   │           │       ├── backtracker_safe_backtracker.h.bak
+│   │           │       ├── context.h
+│   │           │       ├── context.h.bak
+│   │           │       ├── contexthread_safe_context.h
+│   │           │       ├── contexthread_safe_context.h.bak
+│   │           │       ├── context_thread_safe_context.h
+│   │           │       ├── context_thread_safe_context.h.bak
+│   │           │       ├── execution_tracker.h
+│   │           │       ├── execution_tracker.h.bak
+│   │           │       ├── groups.h
+│   │           │       ├── groups.h.bak
+│   │           │       ├── pattern_complexity_strategy.h
+│   │           │       ├── pattern_complexity_strategy.h.bak
+│   │           │       ├── pattern_pattern_tracking_strategy.h
+│   │           │       ├── pattern_pattern_tracking_strategy.h.bak
+│   │           │       ├── pattern_tracking_strategy.h
+│   │           │       └── pattern_tracking_strategy.h.bak
+│   │           └── tests
+│   │               ├── CMakeFiles
+│   │               │   └── 3.31.6
+│   │               │       └── CompilerIdC
+│   │               │           ├── CMakeCCompilerId.h
+│   │               │           └── CMakeCCompilerId.h.bak
+│   │               └── unit
+│   │                   └── core
+│   │                       ├── automaton
+│   │                       │   ├── automaton_tests.h
+│   │                       │   ├── automaton_tests.h.bak
+│   │                       │   ├── test_automaton.h
+│   │                       │   └── test_automaton.h.bak
+│   │                       ├── bailout_strategy_manager_test.h
+│   │                       ├── bailout_strategy_manager_test.h.bak
+│   │                       ├── bytecode
+│   │                       │   ├── bytecode_compiler_test.h
+│   │                       │   └── bytecode_compiler_test.h.bak
+│   │                       ├── compiler
+│   │                       │   ├── compiler_test.h
+│   │                       │   └── compiler_test.h.bak
+│   │                       ├── config_test.h
+│   │                       ├── config_test.h.bak
+│   │                       ├── engine
+│   │                       │   ├── baseline_pattern_test.h
+│   │                       │   ├── baseline_pattern_test.h.bak
+│   │                       │   ├── engine_test.h
+│   │                       │   ├── engine_test.h.bak
+│   │                       │   ├── matcher_test.h
+│   │                       │   ├── matcher_test.h.bak
+│   │                       │   ├── pattern_complexity_strategy_test.h
+│   │                       │   ├── pattern_complexity_strategy_test.h.bak
+│   │                       │   ├── pattern_extensions_test.h
+│   │                       │   ├── pattern_extensions_test.h.bak
+│   │                       │   ├── pattern_test.h
+│   │                       │   ├── pattern_test.h.bak
+│   │                       │   ├── pattern_tracking_strategy_test.h
+│   │                       │   └── pattern_tracking_strategy_test.h.bak
+│   │                       ├── errors
+│   │                       │   ├── error_test.h
+│   │                       │   ├── error_test.h.bak
+│   │                       │   ├── regex_error_compact_test.h
+│   │                       │   ├── regex_error_compact_test.h.bak
+│   │                       │   ├── regex_error_test.h
+│   │                       │   └── regex_error_test.h.bak
+│   │                       ├── execution_tracker_test.h
+│   │                       ├── execution_tracker_test.h.bak
+│   │                       ├── groups_test.h
+│   │                       ├── groups_test.h.bak
+│   │                       ├── integration_test.h
+│   │                       ├── integration_test.h.bak
+│   │                       ├── lexer_test.h
+│   │                       ├── lexer_test.h.bak
+│   │                       ├── memory
+│   │                       │   ├── memory_test.h
+│   │                       │   └── memory_test.h.bak
+│   │                       ├── minimizer_tests.h
+│   │                       ├── minimizer_tests.h.bak
+│   │                       ├── parser
+│   │                       │   ├── ast_node_test.h
+│   │                       │   ├── ast_node_test.h.bak
+│   │                       │   ├── ast_test.h
+│   │                       │   ├── ast_test.h.bak
+│   │                       │   ├── parser_test.h
+│   │                       │   └── parser_test.h.bak
+│   │                       ├── regex_tests.h
+│   │                       ├── regex_tests.h.bak
+│   │                       ├── runtime
+│   │                       │   ├── backtracker_extension_test.h
+│   │                       │   ├── backtracker_extension_test.h.bak
+│   │                       │   ├── backtracker_limit_registry_test.h
+│   │                       │   ├── backtracker_limit_registry_test.h.bak
+│   │                       │   ├── backtracker_test.h
+│   │                       │   ├── backtracker_test.h.bak
+│   │                       │   ├── context_test.h
+│   │                       │   ├── context_test.h.bak
+│   │                       │   ├── safe_backtracker_test.h
+│   │                       │   ├── safe_backtracker_test.h.bak
+│   │                       │   ├── thread_safe_context_test.h
+│   │                       │   └── thread_safe_context_test.h.bak
+│   │                       ├── state_tests.h
+│   │                       ├── state_tests.h.bak
+│   │                       ├── syntax
+│   │                       │   ├── syntax_test.h
+│   │                       │   └── syntax_test.h.bak
+│   │                       ├── tokenizer
+│   │                       │   ├── tokenizer_test.h
+│   │                       │   ├── tokenizer_test.h.bak
+│   │                       │   ├── token_test.h
+│   │                       │   ├── token_test.h.bak
+│   │                       │   ├── token_type_test.h
+│   │                       │   └── token_type_test.h.bak
+│   │                       ├── transition_tests.h
+│   │                       ├── transition_tests.h.bak
+│   │                       ├── validator_test.h
+│   │                       └── validator_test.h.bak
+│   ├── version.h
+│   └── version.h.bak
+├── LibRiftConfig.cmake
+├── LibRiftConfigVersion.cmake
+├── LICENSE
+├── Makefile
+├── projects
+│   ├── backtracking
+│   ├── backup.c
+│   ├── battle_tested
+│   │   ├── benches
+│   │   │   └── performance_benchmark.rs
+│   │   ├── Cargo.toml
+│   │   ├── README.md
+│   │   └── src
+│   │       ├── lib.rs
+│   │       └── main.rs
+│   ├── benchmarks
+│   │   └── csv
+│   │       └── format_tokenizer_benchmark.c
+│   ├── bytecode
+│   │   ├── src
+│   │   │   └── main.c
+│   │   └── test_bytecode_serialization.rift
+│   ├── capture_groups
+│   ├── co_feature
+│   │   ├── co_feature.c
+│   │   ├── new_feature_demo.c
+│   │   ├── README.md
+│   │   └── rift_cli.sh
+│   ├── floyd
+│   │   ├── Makefile
+│   │   ├── string_pattern_detector.c
+│   │   └── string_pattern_detector.o
+│   ├── log_analyzer
+│   │   ├── CMakeLists.txt
+│   │   ├── data.log
+│   │   ├── log_analyzer.c
+│   │   ├── log_analyzer.o
+│   │   ├── Makefile
+│   │   └── README.md
+│   ├── matcher
+│   │   ├── CMakeLists.txt
+│   │   └── pattern_matcher.c
+│   ├── poc
+│   │   └── rift_poc.c
+│   ├── rift_poc.c
+│   ├── simple_match
+│   │   ├── demo.c
+│   │   └── example.c
+│   ├── thread_safety
+│   │   ├── Makefile
+│   │   ├── README.md
+│   │   └── thread_safe_demo.c
+│   ├── tokenziation
+│   └── tokenziation.c
+├── README.md
+├── RIFTDir.txt
+├── src
+│   ├── automaton
+│   │   ├── automaton.c
+│   │   ├── automaton.c.bak
+│   │   ├── minimizer.c
+│   │   ├── minimizer.c.bak
+│   │   ├── README.md
+│   │   ├── state.c
+│   │   ├── state.c.bak
+│   │   ├── transition.c
+│   │   └── transition.c.bak
+│   ├── bridge
+│   │   ├── bridge.c
+│   │   ├── ropen.c
+│   │   └── trident.c
+│   ├── cli
+│   │   ├── accessibility
+│   │   │   ├── accessiblity_manager.c
+│   │   │   ├── accessiblity_manager.c.bak
+│   │   │   ├── color_scheme_manager.c
+│   │   │   ├── color_scheme_manager.c.bak
+│   │   │   ├── keyboard_navigation_manager.c
+│   │   │   ├── keyboard_navigation_manager.c.bak
+│   │   │   ├── preferences_manager.c
+│   │   │   ├── preferences_manager.c.bak
+│   │   │   ├── regex_accesibility_bridge.c
+│   │   │   ├── regex_accesibility_bridge.c.bak
+│   │   │   ├── screen_reader_adapter.c
+│   │   │   ├── screen_reader_adapter.c.bak
+│   │   │   ├── ui_adapation_manager.c
+│   │   │   └── ui_adapation_manager.c.bak
+│   │   ├── cmd_bridge.c
+│   │   ├── cmd_compile.c
+│   │   ├── cmd_doctor.c
+│   │   ├── cmd_emit.c
+│   │   ├── cmd_lang.c
+│   │   ├── cmd_man.c
+│   │   ├── cmd_parse.c
+│   │   ├── cmd_raf.c
+│   │   ├── cmd_test.c
+│   │   ├── cmd_tokenize.c
+│   │   ├── command
+│   │   │   ├── ast_command.c
+│   │   │   ├── ast_command.c.bak
+│   │   │   ├── bytecode_command.c
+│   │   │   ├── bytecode_command.c.bak
+│   │   │   ├── command.c
+│   │   │   ├── command.c.bak
+│   │   │   ├── command_factory.c
+│   │   │   ├── command_factory.c.bak
+│   │   │   ├── compile_command.c
+│   │   │   ├── compile_command.c.bak
+│   │   │   ├── parse_command.c
+│   │   │   ├── parse_command.c.bak
+│   │   │   ├── rift_tokenize_command.c
+│   │   │   └── rift_tokenize_command.c.bak
+│   │   ├── dispatch.c
+│   │   ├── main.c
+│   │   └── main.c.bak
+│   ├── CMakeFiles
+│   │   ├── CMakeDirectoryInformation.cmake
+│   │   ├── Export
+│   │   │   └── 58fe4d38843cbb54f0bb9966936dae7e
+│   │   │       ├── LibRiftTargets.cmake
+│   │   │       └── LibRiftTargets-debug.cmake
+│   │   ├── librift_core.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── cmake_clean_target.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   ├── depend.make
+│   │   │   ├── flags.make
+│   │   │   ├── link.txt
+│   │   │   └── progress.make
+│   │   ├── progress.marks
+│   │   └── rift-cli.dir
+│   │       ├── build.make
+│   │       ├── cmake_clean.cmake
+│   │       ├── compiler_depend.make
+│   │       ├── compiler_depend.ts
+│   │       ├── DependInfo.cmake
+│   │       ├── depend.make
+│   │       ├── flags.make
+│   │       ├── link.txt
+│   │       └── progress.make
+│   ├── cmake_install.cmake
+│   ├── CMakeLists.txt
+│   ├── codec
+│   │   ├── codec.c
+│   │   └── targets
+│   │       ├── emit_c.c
+│   │       └── emit_hexdump.c
+│   ├── core
+│   │   ├── automaton
+│   │   │   ├── automaton.c
+│   │   │   ├── automaton.c.bak
+│   │   │   ├── flags.c
+│   │   │   ├── flags.c.bak
+│   │   │   ├── minimizer.c
+│   │   │   ├── minimizer.c.bak
+│   │   │   ├── README.md
+│   │   │   ├── regex.c
+│   │   │   ├── regex.c.bak
+│   │   │   ├── state.c
+│   │   │   ├── state.c.bak
+│   │   │   ├── transition.c
+│   │   │   └── transition.c.bak
+│   │   ├── bytecode
+│   │   │   ├── bytecode.c
+│   │   │   ├── bytecode.c.bak
+│   │   │   ├── bytecode_compiler.c
+│   │   │   ├── bytecode_compiler.c.bak
+│   │   │   ├── bytecode_program.c
+│   │   │   ├── bytecode_program.c.bak
+│   │   │   ├── bytecode_system.c
+│   │   │   ├── bytecode_system.c.bak
+│   │   │   ├── bytecode_vm.c
+│   │   │   ├── bytecode_vm.c.bak
+│   │   │   └── README.md
+│   │   ├── compiler
+│   │   │   ├── compiler.c
+│   │   │   └── compiler.c.bak
+│   │   ├── config
+│   │   │   ├── config.c
+│   │   │   └── config.c.bak
+│   │   ├── dsl
+│   │   │   ├── rift_dsl.c
+│   │   │   ├── rift_dsl.c.bak
+│   │   │   ├── rift_dsl_compiler.c
+│   │   │   ├── rift_dsl_compiler.c.bak
+│   │   │   ├── rift_dsl_io.c
+│   │   │   ├── rift_dsl_io.c.bak
+│   │   │   ├── rift_dsl_parser.c
+│   │   │   ├── rift_dsl_parser.c.bak
+│   │   │   ├── rift_dsl_test_runner.c
+│   │   │   └── rift_dsl_test_runner.c.bak
+│   │   ├── engine
+│   │   │   ├── engine.c
+│   │   │   ├── engine.c.bak
+│   │   │   ├── matcher.c
+│   │   │   ├── matcher.c.bak
+│   │   │   ├── pattern.c
+│   │   │   └── pattern.c.bak
+│   │   ├── errors
+│   │   │   ├── error.c
+│   │   │   ├── error.c.bak
+│   │   │   ├── regex_error.c
+│   │   │   ├── regex_error.c.bak
+│   │   │   ├── regex_error_compat.c
+│   │   │   └── regex_error_compat.c.bak
+│   │   ├── memory
+│   │   │   ├── memory.c
+│   │   │   └── memory.c.bak
+│   │   ├── memory.c
+│   │   ├── parser
+│   │   │   ├── ast.c
+│   │   │   ├── ast.c.bak
+│   │   │   ├── ast_node.c
+│   │   │   ├── ast_node.c.bak
+│   │   │   ├── parser.c
+│   │   │   ├── parser.c.bak
+│   │   │   ├── validator.c
+│   │   │   └── validator.c.bak
+│   │   ├── patterns
+│   │   │   ├── baseline_patterns.c
+│   │   │   ├── baseline_patterns.c.bak
+│   │   │   ├── pattern_extensions.c
+│   │   │   └── pattern_extensions.c.bak
+│   │   ├── placeholder.c
+│   │   ├── placeholder.c.bak
+│   │   ├── platform.c
+│   │   ├── regex
+│   │   │   ├── flags.c
+│   │   │   ├── flags.c.bak
+│   │   │   ├── README.md
+│   │   │   ├── regex.c
+│   │   │   └── regex.c.bak
+│   │   ├── rift.c
+│   │   ├── runtime
+│   │   │   ├── backtracker_backtracker_bailout_strategy_manager.c
+│   │   │   ├── backtracker_backtracker_bailout_strategy_manager.c.bak
+│   │   │   ├── backtracker_backtracker_extension.c
+│   │   │   ├── backtracker_backtracker_extension.c.bak
+│   │   │   ├── backtracker_backtracker_limit_registry.c
+│   │   │   ├── backtracker_backtracker_limit_registry.c.bak
+│   │   │   ├── backtracker_backtracker_safe_backtracker.c
+│   │   │   ├── backtracker_backtracker_safe_backtracker.c.bak
+│   │   │   ├── backtracker_bailout_strategy_manager.c
+│   │   │   ├── backtracker_bailout_strategy_manager.c.bak
+│   │   │   ├── backtracker.c
+│   │   │   ├── backtracker.c.bak
+│   │   │   ├── backtracker_extension.c
+│   │   │   ├── backtracker_extension.c.bak
+│   │   │   ├── backtracker_limit_registry.c
+│   │   │   ├── backtracker_limit_registry.c.bak
+│   │   │   ├── context.c
+│   │   │   ├── context.c.bak
+│   │   │   ├── context_context_thread_safe_context.c
+│   │   │   ├── context_context_thread_safe_context.c.bak
+│   │   │   ├── execution_execution_execution_tracker.c
+│   │   │   ├── execution_execution_execution_tracker.c.bak
+│   │   │   ├── execution_execution_tracker.c
+│   │   │   ├── execution_execution_tracker.c.bak
+│   │   │   ├── groups_groups.c
+│   │   │   ├── groups_groups.c.bak
+│   │   │   ├── groups_groups_groups.c
+│   │   │   ├── groups_groups_groups.c.bak
+│   │   │   ├── pattern_pattern_complexity_strategy.c
+│   │   │   ├── pattern_pattern_complexity_strategy.c.bak
+│   │   │   ├── pattern_pattern_pattern_complexity_strategy.c
+│   │   │   ├── pattern_pattern_pattern_complexity_strategy.c.bak
+│   │   │   ├── pattern_pattern_pattern_tracking_strategy.c
+│   │   │   ├── pattern_pattern_pattern_tracking_strategy.c.bak
+│   │   │   ├── pattern_tracking_strategy.c
+│   │   │   ├── pattern_tracking_strategy.c.bak
+│   │   │   ├── safe_backtracker.c
+│   │   │   ├── safe_backtracker.c.bak
+│   │   │   ├── thread_safe_context.c
+│   │   │   └── thread_safe_context.c.bak
+│   │   ├── syntax
+│   │   │   ├── integration.c
+│   │   │   ├── integration.c.bak
+│   │   │   ├── lexer.c
+│   │   │   ├── lexer.c.bak
+│   │   │   ├── parser.c
+│   │   │   ├── parser.c.bak
+│   │   │   ├── syntax.c
+│   │   │   └── syntax.c.bak
+│   │   ├── token.c
+│   │   ├── tokenizer
+│   │   │   ├── token.c
+│   │   │   ├── token.c.bak
+│   │   │   ├── tokenizer.c
+│   │   │   ├── tokenizer.c.bak
+│   │   │   ├── token_type.c
+│   │   │   └── token_type.c.bak
+│   │   └── webbridge
+│   │       ├── bridge_api.c
+│   │       ├── bridge_api.c.bak
+│   │       ├── webbrige.c
+│   │       └── webbrige.c.bak
+│   ├── engine
+│   │   ├── engine.c
+│   │   ├── engine.c.bak
+│   │   ├── matcher.c
+│   │   ├── matcher.c.bak
+│   │   ├── pattern.c
+│   │   ├── pattern.c.bak
+│   │   └── README.md
+│   ├── lang
+│   │   ├── codegen.c
+│   │   ├── emitter.c
+│   │   ├── lexer.c
+│   │   ├── parser.c
+│   │   ├── pattern.c
+│   │   ├── semantic.c
+│   │   └── validator.c
+│   ├── main.c
+│   ├── Makefile
+│   ├── raf
+│   │   └── raf.c
+│   ├── README.md
+│   ├── rift.c
+│   ├── rift.c.bak
+│   ├── rift_codec.c
+│   ├── rift_codec.h
+│   ├── riftlang.c
+│   ├── RIFTlang Codex.md
+│   ├── riftlang.h
+│   ├── runtime
+│   │   ├── backtracker_bailout_strategy_manager.c
+│   │   ├── backtracker_bailout_strategy_manager.c.bak
+│   │   ├── backtracker.c
+│   │   ├── backtracker.c.bak
+│   │   ├── backtracker_extension.c
+│   │   ├── backtracker_extension.c.bak
+│   │   ├── backtracker_limit_registry.c
+│   │   ├── backtracker_limit_registry.c.bak
+│   │   ├── backtracker_safe_backtracker.c
+│   │   ├── backtracker_safe_backtracker.c.bak
+│   │   ├── context.c
+│   │   ├── context.c.bak
+│   │   ├── contexthread_safe_context.c
+│   │   ├── contexthread_safe_context.c.bak
+│   │   ├── context_thread_safe_context.c
+│   │   ├── context_thread_safe_context.c.bak
+│   │   ├── execution_tracker.c
+│   │   ├── execution_tracker.c.bak
+│   │   ├── groups.c
+│   │   ├── groups.c.bak
+│   │   ├── pattern_complexity_strategy.c
+│   │   ├── pattern_complexity_strategy.c.bak
+│   │   ├── pattern_pattern_tracking_strategy.c
+│   │   ├── pattern_pattern_tracking_strategy.c.bak
+│   │   ├── pattern_tracking_strategy.c
+│   │   └── pattern_tracking_strategy.c.bak
+│   ├── Symbolic DAG.png
+│   ├── Symbolic DAG Version 2.png
+│   ├── Symbolic Inteprator.pdf
+│   └── Symbol RIFT Engine DAG.svg
+├── tests
+│   ├── CMakeCache.txt
+│   ├── CMakeFiles
+│   │   ├── 3.31.6
+│   │   │   ├── CMakeCCompiler.cmake
+│   │   │   ├── CMakeCXXCompiler.cmake
+│   │   │   ├── CMakeDetermineCompilerABI_C.bin
+│   │   │   ├── CMakeDetermineCompilerABI_CXX.bin
+│   │   │   ├── CMakeSystem.cmake
+│   │   │   ├── CompilerIdC
+│   │   │   │   ├── a.out
+│   │   │   │   └── CMakeCCompilerId.c
+│   │   │   └── CompilerIdCXX
+│   │   │       ├── a.out
+│   │   │       └── CMakeCXXCompilerId.cpp
+│   │   ├── cmake.check_cache
+│   │   ├── CMakeConfigureLog.yaml
+│   │   ├── CMakeDirectoryInformation.cmake
+│   │   ├── Export
+│   │   │   └── 58fe4d38843cbb54f0bb9966936dae7e
+│   │   │       ├── LibRiftTargets.cmake
+│   │   │       └── LibRiftTargets-debug.cmake
+│   │   ├── librift_core.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── cmake_clean_target.cmake
+│   │   │   ├── compiler_depend.internal
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   ├── depend.make
+│   │   │   ├── flags.make
+│   │   │   ├── link.txt
+│   │   │   ├── progress.make
+│   │   │   └── src
+│   │   │       └── core
+│   │   │           ├── automaton
+│   │   │           │   ├── automaton.c.o
+│   │   │           │   ├── automaton.c.o.d
+│   │   │           │   ├── flags.c.o
+│   │   │           │   ├── flags.c.o.d
+│   │   │           │   ├── minimizer.c.o
+│   │   │           │   ├── minimizer.c.o.d
+│   │   │           │   ├── regex.c.o
+│   │   │           │   ├── regex.c.o.d
+│   │   │           │   ├── state.c.o
+│   │   │           │   ├── state.c.o.d
+│   │   │           │   ├── transition.c.o
+│   │   │           │   └── transition.c.o.d
+│   │   │           ├── bytecode
+│   │   │           │   ├── bytecode.c.o
+│   │   │           │   ├── bytecode.c.o.d
+│   │   │           │   ├── bytecode_compiler.c.o
+│   │   │           │   ├── bytecode_compiler.c.o.d
+│   │   │           │   ├── bytecode_program.c.o
+│   │   │           │   ├── bytecode_program.c.o.d
+│   │   │           │   ├── bytecode_system.c.o
+│   │   │           │   ├── bytecode_system.c.o.d
+│   │   │           │   ├── bytecode_vm.c.o
+│   │   │           │   └── bytecode_vm.c.o.d
+│   │   │           ├── compiler
+│   │   │           │   ├── compiler.c.o
+│   │   │           │   └── compiler.c.o.d
+│   │   │           ├── config
+│   │   │           │   ├── config.c.o
+│   │   │           │   └── config.c.o.d
+│   │   │           └── engine
+│   │   │               └── engine.c.o.d
+│   │   ├── librift_regex.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── cmake_clean_target.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   ├── depend.make
+│   │   │   ├── flags.make
+│   │   │   ├── link.txt
+│   │   │   └── progress.make
+│   │   ├── Makefile2
+│   │   ├── Makefile.cmake
+│   │   ├── Progress
+│   │   │   ├── 1
+│   │   │   ├── 10
+│   │   │   ├── 2
+│   │   │   ├── 3
+│   │   │   ├── 4
+│   │   │   ├── 5
+│   │   │   ├── 6
+│   │   │   ├── 7
+│   │   │   ├── 8
+│   │   │   ├── 9
+│   │   │   └── count.txt
+│   │   ├── progress.marks
+│   │   ├── rift-cli.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   ├── depend.make
+│   │   │   ├── flags.make
+│   │   │   ├── link.txt
+│   │   │   └── progress.make
+│   │   ├── rift.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── cmake_clean_target.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   ├── depend.make
+│   │   │   ├── flags.make
+│   │   │   ├── link.txt
+│   │   │   └── progress.make
+│   │   └── TargetDirectories.txt
+│   ├── cmake_install.cmake
+│   ├── CMakeLists.txt
+│   ├── include
+│   │   └── librift
+│   │       └── config.h
+│   ├── integration
+│   │   └── CMakeLists.txt
+│   ├── LibRiftConfig.cmake
+│   ├── LibRiftConfigVersion.cmake
+│   ├── Makefile
+│   ├── run_tests.sh
+│   └── unit
+│       ├── cli
+│       ├── CMakeLists.txt
+│       └── core
+│           ├── accessibility
+│           ├── automaton
+│           │   ├── automaton_tests.c
+│           │   ├── test_automaton.c
+│           │   └── test_automaton.h
+│           ├── bailout_strategy_manager_test.c
+│           ├── bytecode
+│           │   └── bytecode_compiler_test.c
+│           ├── compiler
+│           │   └── compiler_test.c
+│           ├── config_test.c
+│           ├── engine
+│           │   ├── baseline_pattern_test.c
+│           │   ├── engine_test.c
+│           │   ├── matcher_test.c
+│           │   ├── pattern_complexity_strategy_test.c
+│           │   ├── pattern_extensions_test.c
+│           │   ├── pattern_test.c
+│           │   └── pattern_tracking_strategy_test.c
+│           ├── errors
+│           │   ├── error_test.c
+│           │   ├── regex_error_compact_test.c
+│           │   └── regex_error_test.c
+│           ├── execution_tracker_test.c
+│           ├── groups_test.c
+│           ├── integration_test.c
+│           ├── lexer_test.c
+│           ├── memory
+│           │   └── memory_test.c
+│           ├── minimizer_tests.c
+│           ├── parser
+│           │   ├── ast_node_test.c
+│           │   ├── ast_test.c
+│           │   └── parser_test.c
+│           ├── regex_tests.c
+│           ├── runtime
+│           │   ├── backtracker_extension_test.c
+│           │   ├── backtracker_limit_registry_test.c
+│           │   ├── backtracker_test.c
+│           │   ├── context_test.c
+│           │   ├── safe_backtracker_test.c
+│           │   └── thread_safe_context_test.c
+│           ├── state_tests.c
+│           ├── syntax
+│           │   └── syntax_test.c
+│           ├── tokenizer
+│           │   ├── tokenizer_test.c
+│           │   ├── token_test.c
+│           │   └── token_type_test.c
+│           ├── transition_tests.c
+│           ├── validator_test.c
+│           └── visualizer
+├── tools
+│   ├── benchmark_suite
+│   │   ├── benchmark_runner.sh
+│   │   └── intergration_test_runner.sh
+│   ├── build.sh
+│   ├── formatter
+│   │   ├── format.sh
+│   │   └── sync_headers.sh
+│   ├── linter
+│   │   ├── check_quality.sh
+│   │   └── fix_includes.sh
+│   ├── scripts
+│   │   ├── clone_commit.py
+│   │   ├── revert_directories.py
+│   │   └── revert_modules.py
+│   └── setup
+│       ├── devsetup.sh
+│       ├── generate_config_template.sh
+│       ├── generate_module.sh
+│       ├── generate_test_modules.sh
+│       └── setup_testing.sh
+└── USAGE_GUIDE.md
+
+596 directories, 3011 files

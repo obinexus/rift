@@ -1,0 +1,221 @@
+
+#include "core/config/backtracker_limit_registry.h
+core/runtime/backtracker_limit_registry.h
+runtime/backtracker_limit_registry.h
+tmp/librift_analysis/librift-4933472-W/src/core/runtime/backtracker_limit_registry.h
+tmp/librift_analysis/librift-4933472-W/src/runtime/backtracker_limit_registry.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/runtime/backtracker_limit_registry.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/runtime/backtracker_limit_registry.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/runtime/backtracker_limit_registry.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/runtime/backtracker_limit_registry.h"
+#include <stdlib.h>
+#include <string.h>
+core/runtime/backtracker_limit_registry.h
+core/config/backtracker_limit_registry.h"
+struct rift_backtrack_limit_registry {
+    rift_backtrack_limit_config_t *global_config;
+    struct {
+        uint32_t pattern_id;
+        rift_backtrack_limit_config_t *config;
+    } *pattern_configs;
+    size_t pattern_config_count;
+    size_t pattern_config_capacity;
+
+    struct {
+        uint32_t match_id;
+        rift_backtrack_limit_config_t *config;
+    } *match_configs;
+    size_t match_config_count;
+    size_t match_config_capacity;
+};
+
+rift_backtrack_limit_registry_t *
+rift_backtrack_limit_registry_create(void)
+{
+    rift_backtrack_limit_registry_t *registry =
+        (rift_backtrack_limit_registry_t *)malloc(sizeof(rift_backtrack_limit_registry_t));
+
+    if (registry) {
+        registry->global_config =
+            rift_backtrack_limit_config_create_global(1000,  // Default max depth
+                                                      5000,  // Default max duration (5 seconds)
+                                                      100000 // Default max transitions
+            );
+
+        registry->pattern_configs = NULL;
+        registry->pattern_config_count = 0;
+        registry->pattern_config_capacity = 0;
+
+        registry->match_configs = NULL;
+        registry->match_config_count = 0;
+        registry->match_config_capacity = 0;
+    }
+
+    return registry;
+}
+
+bool
+rift_backtrack_limit_registry_set_global(rift_backtrack_limit_registry_t *registry,
+                                         const rift_backtrack_limit_config_t *config)
+{
+
+    if (!registry || !config || config->scope != RIFT_BACKTRACK_SCOPE_GLOBAL) {
+        return false;
+    }
+
+    if (registry->global_config) {
+        rift_backtrack_limit_config_free(registry->global_config);
+    }
+
+    // Make a copy of the configuration
+    registry->global_config = rift_backtrack_limit_config_create_global(
+        config->max_depth, config->max_duration_ms, config->max_transitions);
+
+    return registry->global_config != NULL;
+}
+
+// Implementation of pattern registry functions
+bool
+rift_backtrack_limit_registry_register_pattern(rift_backtrack_limit_registry_t *registry,
+                                               uint32_t pattern_id,
+                                               const rift_backtrack_limit_config_t *config)
+{
+
+    if (!registry || !config || config->scope != RIFT_BACKTRACK_SCOPE_PATTERN) {
+        return false;
+    }
+
+    // Check if we need to expand capacity
+    if (registry->pattern_config_count >= registry->pattern_config_capacity) {
+        size_t new_capacity =
+            registry->pattern_config_capacity == 0 ? 8 : registry->pattern_config_capacity * 2;
+
+        void *new_array =
+            realloc(registry->pattern_configs, new_capacity * sizeof(*registry->pattern_configs));
+
+        if (!new_array) {
+            return false;
+        }
+
+        registry->pattern_configs = new_array;
+        registry->pattern_config_capacity = new_capacity;
+    }
+
+    // Check if pattern already exists
+    for (size_t i = 0; i < registry->pattern_config_count; i++) {
+        if (registry->pattern_configs[i].pattern_id == pattern_id) {
+            // Replace existing configuration
+            rift_backtrack_limit_config_free(registry->pattern_configs[i].config);
+
+            registry->pattern_configs[i].config = rift_backtrack_limit_config_create_pattern(
+                pattern_id, config->override_parent, config->max_depth, config->max_duration_ms,
+                config->max_transitions);
+
+            return registry->pattern_configs[i].config != NULL;
+        }
+    }
+
+    // Add new pattern configuration
+    registry->pattern_configs[registry->pattern_config_count].pattern_id = pattern_id;
+    registry->pattern_configs[registry->pattern_config_count].config =
+        rift_backtrack_limit_config_create_pattern(pattern_id, config->override_parent,
+                                                   config->max_depth, config->max_duration_ms,
+                                                   config->max_transitions);
+
+    if (!registry->pattern_configs[registry->pattern_config_count].config) {
+        return false;
+    }
+
+    registry->pattern_config_count++;
+    return true;
+}
+
+// Implementation of match registry functions (similar to pattern)
+bool
+rift_backtrack_limit_registry_register_match(rift_backtrack_limit_registry_t *registry,
+                                             uint32_t match_id,
+                                             const rift_backtrack_limit_config_t *config)
+{
+    // Similar to register_pattern implementation
+    // ...
+    return true;
+}
+
+rift_backtrack_limit_config_t *
+rift_backtrack_limit_registry_get_effective_config(const rift_backtrack_limit_registry_t *registry,
+                                                   uint32_t pattern_id, uint32_t match_id)
+{
+
+    if (!registry) {
+        return NULL;
+    }
+
+    // Start with global config as base
+    rift_backtrack_limit_config_t *effective_config = rift_backtrack_limit_config_create_global(
+        registry->global_config->max_depth, registry->global_config->max_duration_ms,
+        registry->global_config->max_transitions);
+
+    if (!effective_config) {
+        return NULL;
+    }
+
+    // Apply pattern-specific overrides if applicable
+    for (size_t i = 0; i < registry->pattern_config_count; i++) {
+        if (registry->pattern_configs[i].pattern_id == pattern_id) {
+            rift_backtrack_limit_config_t *pattern_config = registry->pattern_configs[i].config;
+
+            if (pattern_config->override_parent) {
+                effective_config->max_depth = pattern_config->max_depth;
+                effective_config->max_duration_ms = pattern_config->max_duration_ms;
+                effective_config->max_transitions = pattern_config->max_transitions;
+            }
+
+            break;
+        }
+    }
+
+    // Apply match-specific overrides if applicable
+    for (size_t i = 0; i < registry->match_config_count; i++) {
+        if (registry->match_configs[i].match_id == match_id) {
+            rift_backtrack_limit_config_t *match_config = registry->match_configs[i].config;
+
+            if (match_config->override_parent) {
+                effective_config->max_depth = match_config->max_depth;
+                effective_config->max_duration_ms = match_config->max_duration_ms;
+                effective_config->max_transitions = match_config->max_transitions;
+            }
+
+            break;
+        }
+    }
+
+    return effective_config;
+}
+
+void
+rift_backtrack_limit_registry_free(rift_backtrack_limit_registry_t *registry)
+{
+    if (!registry) {
+        return;
+    }
+
+    // Free global config
+    if (registry->global_config) {
+        rift_backtrack_limit_config_free(registry->global_config);
+    }
+
+    // Free pattern configs
+    for (size_t i = 0; i < registry->pattern_config_count; i++) {
+        rift_backtrack_limit_config_free(registry->pattern_configs[i].config);
+    }
+    free(registry->pattern_configs);
+
+    // Free match configs
+    for (size_t i = 0; i < registry->match_config_count; i++) {
+        rift_backtrack_limit_config_free(registry->match_configs[i].config);
+    }
+    free(registry->match_configs);
+
+    free(registry);
+}
+y itself free(registry);

@@ -1,0 +1,42 @@
+core/runtime/backtracker_backtracker_extension.h"
+/**
+ * @file backtracker_extension.c
+ * @brief Implementation of extension functions for the backtracker component
+ *
+ * This file implements the extension functions defined in backtracker_extension.h
+ * for the LibRift regex engine.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/runtime/backtracker_backtracker_extension.h
+#include "core/runtime/backtracker_extension.h"
+#include "Creating missing header: include/core/runtime/backtracker_backtracker_extension.h
+#include "librift/runtime/backtracker_extension.h"
+
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/runtime/backtracker_backtracker_extension.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/runtime/backtracker_backtracker_extension.h
+tmp/librift_analysis/librift-4933472-W/src/core/runtime/backtracker_backtracker_extension.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/runtime/backtracker_backtracker_extension.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/runtime/backtracker_backtracker_extension.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/runtime/backtracker_backtracker_extension.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/runtime/backtracker_backtracker_extension.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/runtime/backtracker_backtracker_extension.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/runtime/backtracker_backtracker_extension.h"
+/**
+ * @brief Get the number of groups in the backtracker
+ *
+ * @param backtracker The backtracker
+ * @return The number of groups or 0 if the backtracker is invalid
+ */
+size_t
+rift_backtracker_get_num_groups(const rift_regex_backtracker_t *backtracker)
+{
+    if (!backtracker) {
+        return 0;
+    }
+
+    /* Access the internal num_groups field of the backtracker */
+    return backtracker->num_groups;
+}

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 600">
+  <!-- Styles -->
+  <defs>
+    <style>
+      .class-box { fill: #f5f5f5; stroke: #333; stroke-width: 2; }
+      .class-title { fill: #333; font-family: Arial; font-size: 16px; font-weight: bold; }
+      .class-section { stroke: #333; stroke-width: 1; }
+      .class-attr { fill: #333; font-family: Arial; font-size: 14px; }
+      .class-method { fill: #333; font-family: Arial; font-size: 14px; }
+      .relation { stroke: #333; stroke-width: 1.5; fill: none; }
+      .relation-text { fill: #333; font-family: Arial; font-size: 12px; }
+      .arrow { stroke: #333; stroke-width: 1.5; fill: #333; }
+    </style>
+  </defs>
+
+  <!-- Parser class -->
+  <rect x="300" y="50" width="200" height="140" class="class-box" />
+  <text x="400" y="75" text-anchor="middle" class="class-title">Parser</text>
+  <line x1="300" y1="90" x2="500" y2="90" class="class-section" />
+  <text x="310" y="110" class="class-attr">- tokenizer: Tokenizer*</text>
+  <text x="310" y="130" class="class-attr">- validator: Validator*</text>
+  <line x1="300" y1="140" x2="500" y2="140" class="class-section" />
+  <text x="310" y="160" class="class-method">+ parse(pattern: char*): AST*</text>
+  <text x="310" y="180" class="class-method">+ parse_with_options(pattern, flags)</text>
+
+  <!-- Tokenizer class -->
+  <rect x="50" y="240" width="200" height="160" class="class-box" />
+  <text x="150" y="265" text-anchor="middle" class="class-title">Tokenizer</text>
+  <line x1="50" y1="280" x2="250" y2="280" class="class-section" />
+  <text x="60" y="300" class="class-attr">- input: char*</text>
+  <text x="60" y="320" class="class-attr">- position: size_t</text>
+  <text x="60" y="340" class="class-attr">- current_token: Token</text>
+  <line x1="50" y1="355" x2="250" y2="355" class="class-section" />
+  <text x="60" y="375" class="class-method">+ next_token(): Token</text>
+  <text x="60" y="395" class="class-method">+ peek_token(): Token</text>
+
+  <!-- AST class -->
+  <rect x="550" y="240" width="200" height="160" class="class-box" />
+  <text x="650" y="265" text-anchor="middle" class="class-title">AST</text>
+  <line x1="550" y1="280" x2="750" y2="280" class="class-section" />
+  <text x="560" y="300" class="class-attr">- root: ASTNode*</text>
+  <text x="560" y="320" class="class-attr">- node_count: size_t</text>
+  <line x1="550" y1="335" x2="750" y2="335" class="class-section" />
+  <text x="560" y="355" class="class-method">+ create_node(type): ASTNode*</text>
+  <text x="560" y="375" class="class-method">+ add_child(parent, child): bool</text>
+  <text x="560" y="395" class="class-method">+ to_string(): char*</text>
+
+  <!-- Validator class -->
+  <rect x="300" y="240" width="200" height="160" class="class-box" />
+  <text x="400" y="265" text-anchor="middle" class="class-title">Validator</text>
+  <line x1="300" y1="280" x2="500" y2="280" class="class-section" />
+  <text x="310" y="300" class="class-attr">- error_message: char*</text>
+  <text x="310" y="320" class="class-attr">- flags: regex_flags_t</text>
+  <line x1="300" y1="335" x2="500" y2="335" class="class-section" />
+  <text x="310" y="355" class="class-method">+ validate(ast: AST*): bool</text>
+  <text x="310" y="375" class="class-method">+ validate_with_options(ast, flags)</text>
+  <text x="310" y="395" class="class-method">+ get_last_error(): char*</text>
+
+  <!-- ASTNode class -->
+  <rect x="550" y="450" width="200" height="140" class="class-box" />
+  <text x="650" y="475" text-anchor="middle" class="class-title">ASTNode</text>
+  <line x1="550" y1="490" x2="750" y2="490" class="class-section" />
+  <text x="560" y="510" class="class-attr">- type: node_type_t</text>
+  <text x="560" y="530" class="class-attr">- value: char*</text>
+  <text x="560" y="550" class="class-attr">- children: ASTNode**</text>
+  <line x1="550" y1="565" x2="750" y2="565" class="class-section" />
+  <text x="560" y="585" class="class-method">+ get_type(): node_type_t</text>
+
+  <!-- Token class -->
+  <rect x="50" y="450" width="200" height="140" class="class-box" />
+  <text x="150" y="475" text-anchor="middle" class="class-title">Token</text>
+  <line x1="50" y1="490" x2="250" y2="490" class="class-section" />
+  <text x="60" y="510" class="class-attr">+ type: token_type_t</text>
+  <text x="60" y="530" class="class-attr">+ value: char*</text>
+  <text x="60" y="550" class="class-attr">+ position: size_t</text>
+  <line x1="50" y1="565" x2="250" y2="565" class="class-section" />
+
+  <!-- Relationships -->
+  <!-- Parser -> Tokenizer -->
+  <path d="M 300 130 L 200 130 L 200 240" class="relation" />
+  <text x="220" y="120" class="relation-text">uses</text>
+  
+  <!-- Parser -> Validator -->
+  <path d="M 400 190 L 400 240" class="relation" />
+  <text x="410" y="220" class="relation-text">uses</text>
+  
+  <!-- Parser -> AST -->
+  <path d="M 500 130 L 600 130 L 600 240" class="relation" />
+  <text x="580" y="120" class="relation-text">creates</text>
+  
+  <!-- Tokenizer -> Token -->
+  <path d="M 150 400 L 150 450" class="relation" />
+  <text x="160" y="430" class="relation-text">produces</text>
+  
+  <!-- AST -> ASTNode -->
+  <path d="M 650 400 L 650 450" class="relation" />
+  <text x="660" y="430" class="relation-text">contains</text>
+  
+  <!-- Validator -> AST -->
+  <path d="M 500 320 L 550 320" class="relation" />
+  <text x="520" y="310" class="relation-text">validates</text>
+</svg>

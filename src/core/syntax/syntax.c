@@ -1,0 +1,777 @@
+/**
+ * @file syntax.c
+ * @brief Implementation of regex literals and extended syntax for LibRift
+ *
+ * This file implements the handling of the dedicated `R''` regex literal syntax
+ * in the LibRift language, providing functions for parsing, validation, compilation
+ * and management of regex literals.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/syntax/syntax.h
+#include "core/parser/parser.h"
+#include "core/syntax/integration.h"
+#include "core/syntax/lexer.h"
+#include "core/syntax/parser.h"
+#include "librift/syntax/integration.h"
+#include "librift/syntax/lexer.h"
+#include "librift/syntax/parser.h"
+#include "librift/syntax/syntax.h"
+
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/syntax/syntax.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/syntax/syntax.h
+tmp/librift_analysis/librift-4933472-W/src/core/syntax/syntax.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/syntax/syntax.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/syntax/syntax.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/syntax/syntax.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/syntax/syntax.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/syntax/syntax.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/syntax/syntax.h"
+
+/* Global variables */
+static bool g_syntax_registered = false;
+
+/**
+ * @brief Create a new regex literal
+ *
+ * @param pattern The regex pattern string
+ * @param flags Compilation flags
+ * @return A new regex literal or NULL on failure
+ */
+rift_regex_literal_t *
+rift_regex_literal_create(const char *pattern, rift_regex_flags_t flags)
+{
+    if (!pattern) {
+        return NULL;
+    }
+
+    rift_regex_literal_t *literal = (rift_regex_literal_t *)malloc(sizeof(rift_regex_literal_t));
+    if (!literal) {
+        return NULL;
+    }
+
+    literal->pattern = strdup(pattern);
+    if (!literal->pattern) {
+        free(literal);
+        return NULL;
+    }
+
+    literal->flags = flags;
+    literal->compiled_pattern = NULL;
+
+    return literal;
+}
+
+/**
+ * @brief Free resources associated with a regex literal
+ *
+ * @param literal The regex literal to free
+ */
+void
+rift_regex_literal_free(rift_regex_literal_t *literal)
+{
+    if (!literal) {
+        return;
+    }
+
+    if (literal->pattern) {
+        free(literal->pattern);
+    }
+
+    if (literal->compiled_pattern) {
+        rift_regex_pattern_free(literal->compiled_pattern);
+    }
+
+    free(literal);
+}
+
+/**
+ * @brief Compile a regex literal
+ *
+ * @param literal The regex literal to compile
+ * @param error Pointer to store error code (can be NULL)
+ * @return true if compilation was successful, false otherwise
+ */
+bool
+rift_regex_literal_compile(rift_regex_literal_t *literal, rift_regex_error_t *error)
+{
+    if (!literal || !literal->pattern) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+            strncpy(error->message, "Invalid parameters", RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return false;
+    }
+
+    // Free existing compiled pattern if any
+    if (literal->compiled_pattern) {
+        rift_regex_pattern_free(literal->compiled_pattern);
+        literal->compiled_pattern = NULL;
+    }
+
+    // Determine if this is a LibRift R'' pattern
+    bool is_rift_syntax = rift_regex_is_rift_syntax(literal->pattern);
+
+    // Extract the actual pattern from R'' syntax if needed
+    char *effective_pattern = literal->pattern;
+    char *extracted_pattern = NULL;
+
+    if (is_rift_syntax) {
+        // For R'' syntax, extract the pattern between quotes
+        size_t len = strlen(literal->pattern);
+        if (len >= 4) { // At minimum we need R''
+            // Determine quote type (' or ")
+            char quote = literal->pattern[1];
+            // Skip the R and quotes to get to the pattern content
+            const char *start = literal->pattern + 2;
+            // Find the end quote
+            const char *end = strrchr(start, quote);
+
+            if (end && end > start) {
+                size_t pattern_len = end - start;
+                extracted_pattern = (char *)malloc(pattern_len + 1);
+                if (!extracted_pattern) {
+                    if (error) {
+                        error->code = RIFT_REGEX_ERROR_MEMORY;
+                        strncpy(error->message, "Memory allocation failed",
+                                RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+                    }
+                    return false;
+                }
+
+                // Copy the pattern without the R'' wrapper
+                strncpy(extracted_pattern, start, pattern_len);
+                extracted_pattern[pattern_len] = '\0';
+                effective_pattern = extracted_pattern;
+            }
+        }
+
+        // Set the RIFT_SYNTAX flag if using R'' syntax
+        rift_regex_flags_t effective_flags = literal->flags;
+        if (is_rift_syntax) {
+            effective_flags |= RIFT_REGEX_FLAG_RIFT_SYNTAX;
+        }
+
+        // Compile the pattern
+        rift_regex_error_t compile_error = {RIFT_REGEX_ERROR_NONE};
+        literal->compiled_pattern =
+            rift_regex_compile(effective_pattern, effective_flags, &compile_error);
+
+        // Free the extracted pattern if we created one
+        if (extracted_pattern) {
+            free(extracted_pattern);
+        }
+
+        // Check for compilation errors
+        if (!literal->compiled_pattern) {
+            if (error) {
+                *error = compile_error;
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    // For non-R'' syntax, just compile the pattern directly
+    rift_regex_error_t compile_error = {RIFT_REGEX_ERROR_NONE};
+    literal->compiled_pattern =
+        rift_regex_compile(effective_pattern, literal->flags, &compile_error);
+
+    // Check for compilation errors
+    if (!literal->compiled_pattern) {
+        if (error) {
+            *error = compile_error;
+        }
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Extract the pattern from a regex literal
+ *
+ * @param literal_text The text of the regex literal
+ * @param output Buffer to store the extracted pattern
+ * @param output_size Size of the output buffer
+ * @return true if the pattern was extracted successfully, false otherwise
+ */
+bool
+rift_regex_parser_extract_pattern(const char *literal_text, char *output, size_t output_size)
+{
+    if (!literal_text || !output || output_size == 0) {
+        return false;
+    }
+
+    // Initialize output
+    output[0] = '\0';
+
+    // Check if this is a valid regex literal
+    if (strlen(literal_text) < 3 || literal_text[0] != 'R' ||
+        (literal_text[1] != '\'' && literal_text[1] != '"')) {
+        return false;
+    }
+
+    // Determine quote type
+    char quote = literal_text[1];
+
+    // Find the pattern content between quotes
+    const char *start = literal_text + 2;
+    const char *end = strrchr(start, quote);
+
+    if (!end || end <= start) {
+        return false;
+    }
+
+    // Calculate pattern length
+    size_t pattern_len = end - start;
+
+    if (pattern_len >= output_size) {
+        pattern_len = output_size - 1;
+    }
+
+    // Copy the pattern without the R'' wrapper
+    strncpy(output, start, pattern_len);
+    output[pattern_len] = '\0';
+
+    return true;
+}
+
+/**
+ * @brief Register the regex syntax extension with the LibRift runtime
+ *
+ * This function registers the R'' syntax extension with the LibRift
+ * runtime system, enabling it to recognize and process patterns
+ * using this syntax.
+ *
+ * @return true if registration was successful, false otherwise
+ */
+bool
+rift_regex_syntax_register(void)
+{
+    // Already registered?
+    if (g_syntax_registered) {
+        return true;
+    }
+
+    // Set the registration flag
+    g_syntax_registered = true;
+
+    return true;
+}
+
+/**
+ * @brief Unregister the regex syntax extension from the LibRift runtime
+ *
+ * This function unregisters the R'' syntax extension from the LibRift
+ * runtime system, disabling its recognition and processing.
+ *
+ * @return true if unregistration was successful, false otherwise
+ */
+bool
+rift_regex_syntax_unregister(void)
+{
+    // Already unregistered?
+    if (!g_syntax_registered) {
+        return true;
+    }
+
+    // Clear the registration flag
+    g_syntax_registered = false;
+
+    return true;
+}
+
+/**
+ * @brief Check if the regex syntax extension is registered
+ *
+ * @return true if the extension is registered, false otherwise
+ */
+bool
+rift_regex_syntax_is_registered(void)
+{
+    return g_syntax_registered;
+}
+
+/**
+ * @brief Generate code for a regex literal
+ *
+ * This function generates C code that represents the compilation
+ * and usage of the provided regex literal.
+ *
+ * @param literal The regex literal
+ * @param output Buffer to store the generated code
+ * @param output_size Size of the output buffer
+ * @return true if code generation was successful, false otherwise
+ */
+bool
+rift_regex_syntax_generate_code(const rift_regex_literal_t *literal, char *output,
+                                size_t output_size)
+{
+    if (!literal || !output || output_size == 0) {
+        return false;
+    }
+
+    // Initialize output
+    output[0] = '\0';
+
+    // Get the pattern string
+    const char *pattern = rift_regex_literal_get_string(literal);
+    if (!pattern) {
+        return false;
+    }
+
+    // Generate flags string
+    char flags_str[256] = "RIFT_REGEX_FLAG_NONE";
+    rift_regex_flags_t flags = literal->flags;
+    if (flags & RIFT_REGEX_FLAG_CASE_INSENSITIVE) {
+        snprintf(flags_str, sizeof(flags_str), "RIFT_REGEX_FLAG_CASE_INSENSITIVE");
+    }
+    if (flags & RIFT_REGEX_FLAG_MULTILINE) {
+        snprintf(flags_str, sizeof(flags_str), "RIFT_REGEX_FLAG_MULTILINE");
+    }
+    if (flags & RIFT_REGEX_FLAG_DOTALL) {
+        snprintf(flags_str, sizeof(flags_str), "RIFT_REGEX_FLAG_DOTALL");
+    }
+    if (flags & RIFT_REGEX_FLAG_EXTENDED) {
+        snprintf(flags_str, sizeof(flags_str), "RIFT_REGEX_FLAG_EXTENDED");
+    }
+
+    // Generate the code
+    int written =
+        snprintf(output, output_size,
+                 "rift_regex_error_t error = {RIFT_REGEX_ERROR_NONE};\n"
+                 "rift_regex_pattern_t *pattern = rift_regex_compile(\"%s\", %s, &error);\n"
+                 "if (!pattern) {\n"
+                 "    // Handle compilation error\n"
+                 "    return false;\n"
+                 "}\n"
+                 "// Use the pattern...\n"
+                 "rift_regex_pattern_free(pattern);",
+                 pattern, flags_str);
+
+    return (written > 0 && (size_t)written < output_size);
+
+    return true;
+}
+
+/**
+ * @brief Get the compiled pattern from a regex literal
+ *
+ * @param literal The regex literal
+ * @return The compiled pattern or NULL if not compiled
+ */
+rift_regex_pattern_t *
+rift_regex_literal_get_pattern(const rift_regex_literal_t *literal)
+{
+    if (!literal) {
+        return NULL;
+    }
+
+    return literal->compiled_pattern;
+}
+
+/**
+ * @brief Get the pattern string from a regex literal
+ *
+ * @param literal The regex literal
+ * @return The pattern string
+ */
+const char *
+rift_regex_literal_get_string(const rift_regex_literal_t *literal)
+{
+    if (!literal) {
+        return NULL;
+    }
+
+    return literal->pattern;
+}
+
+/**
+ * @brief Get the flags from a regex literal
+ *
+ * @param literal The regex literal
+ * @return The compilation flags
+ */
+rift_regex_flags_t
+rift_regex_literal_get_flags(const rift_regex_literal_t *literal)
+{
+    if (!literal) {
+        return RIFT_REGEX_FLAG_NONE;
+    }
+
+    return literal->flags;
+}
+
+/**
+ * @brief Set the flags for a regex literal
+ *
+ * @param literal The regex literal
+ * @param flags The compilation flags
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_literal_set_flags(rift_regex_literal_t *literal, rift_regex_flags_t flags)
+{
+    if (!literal) {
+        return false;
+    }
+
+    literal->flags = flags;
+
+    // If already compiled, recompile with new flags
+    if (literal->compiled_pattern) {
+        rift_regex_error_t error;
+        return rift_regex_literal_compile(literal, &error);
+    }
+
+    return true;
+}
+
+/**
+ * @brief Clone a regex literal
+ *
+ * @param literal The regex literal to clone
+ * @return A new regex literal that is a copy of the original, or NULL on failure
+ */
+rift_regex_literal_t *
+rift_regex_literal_clone(const rift_regex_literal_t *literal)
+{
+    if (!literal || !literal->pattern) {
+        return NULL;
+    }
+
+    rift_regex_literal_t *clone = rift_regex_literal_create(literal->pattern, literal->flags);
+    if (!clone) {
+        return NULL;
+    }
+
+    // If original is compiled, compile the clone too
+    if (literal->compiled_pattern) {
+        rift_regex_error_t error;
+        if (!rift_regex_literal_compile(clone, &error)) {
+            rift_regex_literal_free(clone);
+            return NULL;
+        }
+    }
+
+    return clone;
+}
+
+/**
+ * @brief Parse a regex literal from source code
+ *
+ * @param parser The regex parser
+ * @param source The source code containing the regex literal
+ * @param line_number The line number of the regex literal
+ * @param column The column of the regex literal
+ * @param error Pointer to store error code (can be NULL)
+ * @return The parsed regex literal or NULL on failure
+ */
+rift_regex_literal_t *
+rift_regex_parser_parse_literal(rift_regex_parser_t *parser, const char *source, size_t line_number,
+                                size_t column, rift_regex_error_t *error)
+{
+    if (!parser || !source) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+            strncpy(error->message, "Invalid parameters", RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return NULL;
+    }
+
+    // Check if we have a valid regex literal pattern
+    size_t start_pos = 0;
+    size_t end_pos = 0;
+    if (!rift_regex_parser_is_literal(source, &start_pos, &end_pos)) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_SYNTAX;
+            strncpy(error->message, "No valid regex literal found",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return NULL;
+    }
+
+    // Extract the literal text
+    if (end_pos <= start_pos || end_pos > strlen(source)) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INTERNAL;
+            strncpy(error->message, "Invalid literal positions",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return NULL;
+    }
+
+    size_t literal_len = end_pos - start_pos;
+    char *literal_text = (char *)malloc(literal_len + 1);
+    if (!literal_text) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_MEMORY;
+            strncpy(error->message, "Memory allocation failed",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return NULL;
+    }
+
+    strncpy(literal_text, source + start_pos, literal_len);
+    literal_text[literal_len] = '\0';
+
+    // Extract flags from the literal if any
+    rift_regex_flags_t flags = RIFT_REGEX_FLAG_NONE;
+    if (!rift_regex_parser_extract_flags(literal_text, &flags)) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+            strncpy(error->message, "Error extracting flags from literal",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        free(literal_text);
+        return NULL;
+    }
+
+    // Use the parser's flags as base and add any extracted flags
+    flags |= rift_regex_parser_get_flags(parser);
+
+    // Create the literal object
+    rift_regex_literal_t *literal = rift_regex_literal_create(literal_text, flags);
+    free(literal_text);
+
+    if (!literal) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_MEMORY;
+            strncpy(error->message, "Failed to create regex literal",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return NULL;
+    }
+
+    return literal;
+}
+
+/**
+ * @brief Check if a source string contains a valid regex literal
+ *
+ * @param source The source code to check
+ * @param start_pos Pointer to store the start position of the literal (can be NULL)
+ * @param end_pos Pointer to store the end position of the literal (can be NULL)
+ * @return true if a valid regex literal was found, false otherwise
+ */
+bool
+rift_regex_parser_is_literal(const char *source, size_t *start_pos, size_t *end_pos)
+{
+    if (!source) {
+        return false;
+    }
+
+    // Initialize output parameters
+    if (start_pos) {
+        *start_pos = 0;
+    }
+    if (end_pos) {
+        *end_pos = 0;
+    }
+
+    // Look for R prefix followed by a quote
+    size_t pos = 0;
+    while (source[pos]) {
+        if (source[pos] == 'R' && (source[pos + 1] == '\'' || source[pos + 1] == '"')) {
+            if (start_pos) {
+                *start_pos = pos;
+            }
+
+            // Determine quote type
+            char quote = source[pos + 1];
+
+            // Look for matching end quote
+            size_t literal_end = pos + 2;
+            int nesting = 0;
+            bool escaped = false;
+
+            while (source[literal_end]) {
+                if (escaped) {
+                    escaped = false;
+                } else if (source[literal_end] == '\\') {
+                    escaped = true;
+                } else if (source[literal_end] == quote && nesting == 0) {
+                    // Found matching end quote
+                    if (end_pos) {
+                        *end_pos = literal_end + 1;
+                    }
+                    return true;
+                } else if (source[literal_end] == '(') {
+                    nesting++;
+                } else if (source[literal_end] == ')') {
+                    if (nesting > 0) {
+                        nesting--;
+                    }
+                }
+
+                literal_end++;
+            }
+
+            // No matching end quote found
+            return false;
+        }
+        pos++;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Extract flags from a regex literal
+ *
+ * @param literal_text The text of the regex literal
+ * @param flags Pointer to store the extracted flags
+ * @return true if flags were extracted successfully, false otherwise
+ */
+bool
+rift_regex_parser_extract_flags(const char *literal_text, rift_regex_flags_t *flags)
+{
+    if (!literal_text || !flags) {
+        return false;
+    }
+
+    // Initialize flags
+    *flags = RIFT_REGEX_FLAG_NONE;
+
+    // Check for flag characters after the closing quote
+    size_t len = strlen(literal_text);
+    if (len < 3) {
+        return false;
+    }
+
+    // Determine quote type
+    char quote = literal_text[1];
+
+    // Find the closing quote
+    const char *end = strrchr(literal_text + 2, quote);
+    if (!end) {
+        return false;
+    }
+
+    // Process flag characters after the closing quote
+    const char *flag_str = end + 1;
+    while (*flag_str) {
+        switch (*flag_str) {
+        case 'i':
+            *flags |= RIFT_REGEX_FLAG_CASE_INSENSITIVE;
+            break;
+        case 'm':
+            *flags |= RIFT_REGEX_FLAG_MULTILINE;
+            break;
+        case 's':
+            *flags |= RIFT_REGEX_FLAG_DOTALL;
+            break;
+        case 'x':
+            *flags |= RIFT_REGEX_FLAG_EXTENDED;
+            break;
+        case 'U':
+            *flags |= RIFT_REGEX_FLAG_UNGREEDY;
+            break;
+        case 'r':
+            *flags |= RIFT_REGEX_FLAG_RIFT_SYNTAX;
+            break;
+        default:
+            // Ignore unknown flags
+            break;
+        }
+        flag_str++; // Move to next flag character
+    }
+
+    return true; // Successfully processed all flags
+}
+/**
+ * @brief Extended regex pattern compilation function with automatic R'' syntax detection
+ *
+ * This function detects whether the pattern uses R'' syntax and sets up
+ * appropriate backtracking limits and strategies.
+ */
+rift_regex_automaton_t *
+rift_regex_compile_pattern_extended(const char *pattern, rift_regex_flags_t flags,
+                                    rift_backtrack_limit_registry_t *limit_registry,
+                                    uint32_t pattern_id, rift_regex_error_t *error)
+{
+    if (!pattern) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+            strncpy(error->message, "Invalid pattern parameter",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return NULL;
+    }
+
+    // Detect R'' syntax
+    bool is_r_syntax = rift_regex_is_rift_syntax(pattern);
+
+    // If using R'' syntax, ensure the RIFT_SYNTAX flag is set
+    if (is_r_syntax) {
+        flags |= RIFT_REGEX_FLAG_RIFT_SYNTAX;
+    }
+
+    // Parse the pattern into an AST
+    rift_regex_ast_t *ast = rift_regex_parse(pattern, flags, error);
+    if (!ast) {
+        return NULL;
+    }
+
+    // Compile the AST into an automaton
+    rift_regex_automaton_t *automaton = rift_regex_compile_ast(ast, flags, error);
+
+    // Free the AST (no longer needed after compilation)
+    rift_regex_ast_free(ast);
+
+    if (!automaton) {
+        return NULL;
+    }
+
+    // If using R'' syntax and limit registry is provided, register pattern-specific limits
+    if (is_r_syntax && limit_registry) {
+        // Calculate pattern complexity
+        float complexity = rift_bailout_calculate_pattern_complexity(
+            rift_regex_pattern_create_from_automaton(automaton, flags), true);
+
+        // Create appropriate limits based on complexity
+        rift_backtrack_limit_config_t *r_syntax_config = NULL;
+
+        if (complexity > 5.0f) {
+            // Stricter limits for highly complex patterns
+            r_syntax_config =
+                rift_backtrack_limit_config_create_pattern(pattern_id,
+                                                           true, // Override global settings
+                                                           800,  // Reduced depth limit
+                                                           3000, // Reduced time limit (3 seconds)
+                                                           50000 // Reduced transitions
+                );
+        } else if (complexity > 2.0f) {
+            // Moderate limits for medium complexity
+            r_syntax_config =
+                rift_backtrack_limit_config_create_pattern(pattern_id,
+                                                           true, // Override global settings
+                                                           1200, // Slightly reduced depth
+                                                           4000, // 4 seconds
+                                                           75000 // Moderately reduced transitions
+                );
+        } else {
+            // Default limits for simple patterns
+            r_syntax_config = rift_backtrack_limit_config_create_pattern(
+                pattern_id,
+                false,  // Use global settings
+                0, 0, 0 // These values are ignored when not overriding
+            );
+        }
+
+        // Register the configuration
+        if (r_syntax_config) {
+            rift_backtrack_limit_registry_register_pattern(limit_registry, pattern_id,
+                                                           r_syntax_config);
+
+            // Free the local copy
+            rift_backtrack_limit_config_free(r_syntax_config);
+        }
+    }
+
+    return automaton;
+}

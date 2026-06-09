@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 800">
+  <!-- Background -->
+  <rect width="1000" height="800" fill="#f8f9fa" />
+  
+  <!-- Title -->
+  <text x="500" y="40" text-anchor="middle" font-family="Arial" font-size="24" font-weight="bold">LibRift DSL Parser Architecture</text>
+  
+  <!-- Include Directory Section -->
+  <rect x="50" y="80" width="420" height="400" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" rx="5" />
+  <text x="260" y="105" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold">include/librift/dsl</text>
+  
+  <!-- Source Directory Section -->
+  <rect x="530" y="80" width="420" height="400" fill="#fff2e8" stroke="#fa8c16" stroke-width="2" rx="5" />
+  <text x="740" y="105" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold">src/librift/dsl</text>
+  
+  <!-- Interface Classes (Include) -->
+  <rect x="70" y="130" width="180" height="120" fill="#ffffff" stroke="#1890ff" stroke-width="2" rx="5" />
+  <text x="160" y="150" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">rift_dsl.h</text>
+  <line x1="70" y1="160" x2="250" y2="160" stroke="#1890ff" stroke-width="1" />
+  <text x="80" y="180" font-family="Arial" font-size="12">+ rift_dsl_parse()</text>
+  <text x="80" y="200" font-family="Arial" font-size="12">+ rift_dsl_compile()</text>
+  <text x="80" y="220" font-family="Arial" font-size="12">+ rift_dsl_to_bytecode()</text>
+  <text x="80" y="240" font-family="Arial" font-size="12">+ rift_dsl_load_file()</text>
+  
+  <rect x="70" y="270" width="180" height="120" fill="#ffffff" stroke="#1890ff" stroke-width="2" rx="5" />
+  <text x="160" y="290" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">rift_dsl_types.h</text>
+  <line x1="70" y1="300" x2="250" y2="300" stroke="#1890ff" stroke-width="1" />
+  <text x="80" y="320" font-family="Arial" font-size="12">+ rift_dsl_file_t</text>
+  <text x="80" y="340" font-family="Arial" font-size="12">+ rift_dsl_pattern_t</text>
+  <text x="80" y="360" font-family="Arial" font-size="12">+ rift_dsl_test_case_t</text>
+  <text x="80" y="380" font-family="Arial" font-size="12">+ rift_dsl_config_t</text>
+  
+  <rect x="270" y="130" width="180" height="120" fill="#ffffff" stroke="#1890ff" stroke-width="2" rx="5" />
+  <text x="360" y="150" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">rift_dsl_error.h</text>
+  <line x1="270" y1="160" x2="450" y2="160" stroke="#1890ff" stroke-width="1" />
+  <text x="280" y="180" font-family="Arial" font-size="12">+ rift_dsl_error_t</text>
+  <text x="280" y="200" font-family="Arial" font-size="12">+ rift_dsl_set_error()</text>
+  <text x="280" y="220" font-family="Arial" font-size="12">+ rift_dsl_get_error()</text>
+  <text x="280" y="240" font-family="Arial" font-size="12">+ rift_dsl_clear_error()</text>
+  
+  <rect x="270" y="270" width="180" height="120" fill="#ffffff" stroke="#1890ff" stroke-width="2" rx="5" />
+  <text x="360" y="290" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">rift_dsl_test.h</text>
+  <line x1="270" y1="300" x2="450" y2="300" stroke="#1890ff" stroke-width="1" />
+  <text x="280" y="320" font-family="Arial" font-size="12">+ rift_dsl_test_run()</text>
+  <text x="280" y="340" font-family="Arial" font-size="12">+ rift_dsl_test_verify()</text>
+  <text x="280" y="360" font-family="Arial" font-size="12">+ rift_dsl_test_report()</text>
+  <text x="280" y="380" font-family="Arial" font-size="12">+ rift_dsl_test_load()</text>
+  
+  <!-- Implementation Classes (Source) -->
+  <rect x="550" y="130" width="180" height="120" fill="#ffffff" stroke="#fa8c16" stroke-width="2" rx="5" />
+  <text x="640" y="150" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">rift_dsl_parser.c</text>
+  <line x1="550" y1="160" x2="730" y2="160" stroke="#fa8c16" stroke-width="1" />
+  <text x="560" y="180" font-family="Arial" font-size="12">- parse_pattern()</text>
+  <text x="560" y="200" font-family="Arial" font-size="12">- parse_test_case()</text>
+  <text x="560" y="220" font-family="Arial" font-size="12">- parse_config()</text>
+  <text x="560" y="240" font-family="Arial" font-size="12">- tokenize_rift_file()</text>
+  
+  <rect x="550" y="270" width="180" height="120" fill="#ffffff" stroke="#fa8c16" stroke-width="2" rx="5" />
+  <text x="640" y="290" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">rift_dsl_compiler.c</text>
+  <line x1="550" y1="300" x2="730" y2="300" stroke="#fa8c16" stroke-width="1" />
+  <text x="560" y="320" font-family="Arial" font-size="12">- compile_pattern()</text>
+  <text x="560" y="340" font-family="Arial" font-size="12">- optimize_bytecode()</text>
+  <text x="560" y="360" font-family="Arial" font-size="12">- validate_bytecode()</text>
+  <text x="560" y="380" font-family="Arial" font-size="12">- serialize_bytecode()</text>
+  
+  <rect x="750" y="130" width="180" height="120" fill="#ffffff" stroke="#fa8c16" stroke-width="2" rx="5" />
+  <text x="840" y="150" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">rift_dsl_io.c</text>
+  <line x1="750" y1="160" x2="930" y2="160" stroke="#fa8c16" stroke-width="1" />
+  <text x="760" y="180" font-family="Arial" font-size="12">- read_rift_file()</text>
+  <text x="760" y="200" font-family="Arial" font-size="12">- write_rift_file()</text>
+  <text x="760" y="220" font-family="Arial" font-size="12">- validate_file_format()</text>
+  <text x="760" y="240" font-family="Arial" font-size="12">- sanitize_input()</text>
+  
+  <rect x="750" y="270" width="180" height="120" fill="#ffffff" stroke="#fa8c16" stroke-width="2" rx="5" />
+  <text x="840" y="290" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">rift_dsl_test_runner.c</text>
+  <line x1="750" y1="300" x2="930" y2="300" stroke="#fa8c16" stroke-width="1" />
+  <text x="760" y="320" font-family="Arial" font-size="12">- execute_test_case()</text>
+  <text x="760" y="340" font-family="Arial" font-size="12">- compare_results()</text>
+  <text x="760" y="360" font-family="Arial" font-size="12">- generate_report()</text>
+  <text x="760" y="380" font-family="Arial" font-size="12">- collect_metrics()</text>
+  
+  <!-- DSL File Format Section -->
+  <rect x="50" y="500" width="900" height="280" fill="#f0f5ff" stroke="#2f54eb" stroke-width="2" rx="5" />
+  <text x="500" y="525" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold">.rift File Format</text>
+  
+  <!-- DSL Syntax Example -->
+  <rect x="70" y="550" width="410" height="210" fill="#ffffff" stroke="#2f54eb" stroke-width="2" rx="5" />
+  <text x="275" y="570" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">DSL Syntax</text>
+  <line x1="70" y1="580" x2="480" y2="580" stroke="#2f54eb" stroke-width="1" />
+  <text x="80" y="600" font-family="Courier" font-size="12"># Sample .rift file format</text>
+  <text x="80" y="620" font-family="Courier" font-size="12">@pattern NAME = "r'[a-z]+'"</text>
+  <text x="80" y="640" font-family="Courier" font-size="12">@flags = [CASE_INSENSITIVE, OPTIMIZE]</text>
+  <text x="80" y="660" font-family="Courier" font-size="12">@test_case {</text>
+  <text x="100" y="680" font-family="Courier" font-size="12">input = "abcDEF123"</text>
+  <text x="100" y="700" font-family="Courier" font-size="12">expect_match = true</text>
+  <text x="100" y="720" font-family="Courier" font-size="12">match_groups = ["abcDEF"]</text>
+  <text x="80" y="740" font-family="Courier" font-size="12">}</text>
+  
+  <!-- DSL Schema Structure -->
+  <rect x="520" y="550" width="410" height="210" fill="#ffffff" stroke="#2f54eb" stroke-width="2" rx="5" />
+  <text x="725" y="570" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">DSL Schema</text>
+  <line x1="520" y1="580" x2="930" y2="580" stroke="#2f54eb" stroke-width="1" />
+  <text x="530" y="600" font-family="Arial" font-size="12">• @pattern: Defines regex pattern with name</text>
+  <text x="530" y="620" font-family="Arial" font-size="12">• @flags: Compilation flags (optional)</text>
+  <text x="530" y="640" font-family="Arial" font-size="12">• @config: Performance/behavior settings</text>
+  <text x="530" y="660" font-family="Arial" font-size="12">• @test_case: Test input and expected results</text>
+  <text x="530" y="680" font-family="Arial" font-size="12">• @bytecode: Serialized bytecode (optional)</text>
+  <text x="530" y="700" font-family="Arial" font-size="12">• @comment/# line: Documentation</text>
+  <text x="530" y="720" font-family="Arial" font-size="12">• @metadata: Author, version, date</text>
+  <text x="530" y="740" font-family="Arial" font-size="12">• @include: Import other .rift files</text>
+  
+  <!-- Connections -->
+  <!-- Include to Source Implementation -->
+  <line x1="250" y1="190" x2="550" y2="190" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" />
+  <polygon points="550,190 540,185 540,195" fill="#000" />
+  
+  <line x1="250" y1="340" x2="550" y2="340" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" />
+  <polygon points="550,340 540,335 540,345" fill="#000" />
+  
+  <line x1="450" y1="190" x2="550" y2="190" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" />
+  <polygon points="550,190 540,185 540,195" fill="#000" />
+  
+  <line x1="450" y1="340" x2="750" y2="340" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" />
+  <polygon points="750,340 740,335 740,345" fill="#000" />
+  
+  <!-- Internal Include Dependencies -->
+  <line x1="160" y1="250" x2="160" y2="270" stroke="#000" stroke-width="1.5" />
+  <polygon points="160,270 155,260 165,260" fill="#000" />
+  
+  <line x1="260" y1="190" x2="270" y2="190" stroke="#000" stroke-width="1.5" />
+  <polygon points="270,190 260,185 260,195" fill="#000" />
+  
+  <line x1="240" y1="270" x2="270" y2="320" stroke="#000" stroke-width="1.5" />
+  <polygon points="270,320 261,313 267,307" fill="#000" />
+  
+  <!-- Internal Source Dependencies -->
+  <line x1="640" y1="250" x2="640" y2="270" stroke="#000" stroke-width="1.5" />
+  <polygon points="640,270 635,260 645,260" fill="#000" />
+  
+  <line x1="730" y1="190" x2="750" y2="190" stroke="#000" stroke-width="1.5" />
+  <polygon points="750,190 740,185 740,195" fill="#000" />
+  
+  <line x1="730" y1="340" x2="750" y2="340" stroke="#000" stroke-width="1.5" />
+  <polygon points="750,340 740,335 740,345" fill="#000" />
+  
+  <!-- Connection to DSL Format -->
+  <line x1="275" y1="550" x2="275" y2="390" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" />
+  <polygon points="275,390 270,400 280,400" fill="#000" />
+  
+  <line x1="725" y1="550" x2="725" y2="390" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" />
+  <polygon points="725,390 720,400 730,400" fill="#000" />
+</svg>

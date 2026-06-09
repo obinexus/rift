@@ -1,0 +1,26 @@
+CMakeFiles/librift_core.dir/src/core/config/config.c.o: \
+ /home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/src/core/config/config.c \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/stdc-predef.h \
+ /home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/include/core/config/config.h \
+ /home/nnamdi/miniconda3/lib/gcc/x86_64-conda-linux-gnu/12.4.0/include/stdbool.h \
+ /home/nnamdi/miniconda3/lib/gcc/x86_64-conda-linux-gnu/12.4.0/include/stddef.h \
+ /home/nnamdi/miniconda3/lib/gcc/x86_64-conda-linux-gnu/12.4.0/include/stdint.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/stdint.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/features.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/sys/cdefs.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/bits/wordsize.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/gnu/stubs.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/gnu/stubs-64.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/bits/wchar.h \
+ /home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/include/core/errors/error.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/stdio.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/bits/types.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/bits/typesizes.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/libio.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/_G_config.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/wchar.h \
+ /home/nnamdi/miniconda3/lib/gcc/x86_64-conda-linux-gnu/12.4.0/include/stdarg.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/bits/stdio_lim.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/bits/sys_errlist.h \
+ /home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/include/core/memory/memory.h \
+ /home/nnamdi/miniconda3/x86_64-conda-linux-gnu/sysroot/usr/include/string.h

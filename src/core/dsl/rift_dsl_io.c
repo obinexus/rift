@@ -1,0 +1,442 @@
+/**
+ #include <stdbool.h>
+tmp/librift_analysis/librift-4933472-W/src/core/dsl/rift_dsl_io.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/dsl/rift_dsl_io.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/dsl/rift_dsl_io.h"
+ #include <stdbool.h>
+ #include <stdbool.h>
+ #include <stdio.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <string.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ * @file rift_dsl_io.c
+ * @brief Implementation of I/O utilities for the .rift DSL
+ *
+ * This file implements the functionality to read and write .rift DSL files,
+ * including serialization and deserialization of bytecode.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/dsl/rift_dsl_io.h
+#include "core/engine/pattern.h"
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdbool.h>
+ 
+ /* Forward declarations from rift_dsl_parser.c */
+ extern void *rift_dsl_parse(const char *source);
+ extern void *rift_dsl_load_file(const char *filename);
+ extern void rift_dsl_free(void *handle);
+ 
+ /* Forward declarations from rift_dsl_compiler.c */
+ extern void *rift_dsl_compile(const char *source);
+ extern void rift_dsl_free_compilation(void *handle);
+ extern bool rift_dsl_serialize_compilation(void *handle, uint8_t **data, size_t *size);
+ extern void *rift_dsl_deserialize_compilation(const uint8_t *data, size_t size);
+ 
+ /**
+  * @brief Structure containing a raw binary buffer and its size
+  */
+ typedef struct {
+     uint8_t *data;
+     size_t size;
+     char error_message[256];
+     bool has_error;
+ } rift_dsl_binary_t;
+ 
+ /**
+  * @brief Set an error in the binary buffer
+  * 
+  * @param binary The binary buffer
+  * @param message The error message
+  */
+ static void
+ rift_dsl_binary_error(rift_dsl_binary_t *binary, const char *message)
+ {
+     if (!binary) {
+         return;
+     }
+     
+     binary->has_error = true;
+     strncpy(binary->error_message, message, sizeof(binary->error_message) - 1);
+     binary->error_message[sizeof(binary->error_message) - 1] = '\0';
+ }
+ 
+ /**
+  * @brief Create a new binary buffer
+  * 
+  * @param size Initial size for the buffer
+  * @return New binary buffer or NULL on failure
+  */
+ static rift_dsl_binary_t *
+ rift_dsl_binary_create(size_t size)
+ {
+     rift_dsl_binary_t *binary = (rift_dsl_binary_t *)malloc(sizeof(rift_dsl_binary_t));
+     
+     if (!binary) {
+         return NULL;
+     }
+     
+     binary->data = (uint8_t *)malloc(size);
+     
+     if (!binary->data && size > 0) {
+         free(binary);
+         return NULL;
+     }
+     
+     binary->size = size;
+     binary->has_error = false;
+     binary->error_message[0] = '\0';
+     
+     return binary;
+ }
+ 
+ /**
+  * @brief Free resources associated with a binary buffer
+  * 
+  * @param binary The binary buffer to free
+  */
+ static void
+ rift_dsl_binary_free(rift_dsl_binary_t *binary)
+ {
+     if (!binary) {
+         return;
+     }
+     
+     free(binary->data);
+     free(binary);
+ }
+ 
+ /**
+  * @brief Resize a binary buffer
+  * 
+  * @param binary The binary buffer
+  * @param new_size The new size
+  * @return true if successful, false otherwise
+  */
+ static bool
+ rift_dsl_binary_resize(rift_dsl_binary_t *binary, size_t new_size)
+ {
+     if (!binary) {
+         return false;
+     }
+     
+     uint8_t *new_data = (uint8_t *)realloc(binary->data, new_size);
+     
+     if (!new_data && new_size > 0) {
+         return false;
+     }
+     
+     binary->data = new_data;
+     binary->size = new_size;
+     
+     return true;
+ }
+ 
+ /* Public API functions */
+ 
+ /**
+  * @brief Compile a .rift DSL source and export as bytecode binary
+  * 
+  * @param source The .rift DSL source code
+  * @return Opaque handle to binary data or NULL on error
+  */
+ void *
+ rift_dsl_compile_to_binary(const char *source)
+ {
+     if (!source) {
+         return NULL;
+     }
+     
+     // Compile the DSL
+     void *compilation = rift_dsl_compile(source);
+     if (!compilation) {
+         return NULL;
+     }
+     
+     // Serialize the compilation
+     uint8_t *data;
+     size_t size;
+     
+     if (!rift_dsl_serialize_compilation(compilation, &data, &size)) {
+         rift_dsl_free_compilation(compilation);
+         return NULL;
+     }
+     
+     // Free the compilation, we don't need it anymore
+     rift_dsl_free_compilation(compilation);
+     
+     // Create a binary buffer
+     rift_dsl_binary_t *binary = rift_dsl_binary_create(size);
+     if (!binary) {
+         free(data);
+         return NULL;
+     }
+     
+     // Copy the data
+     memcpy(binary->data, data, size);
+     binary->size = size;
+     
+     // Free the serialized data
+     free(data);
+     
+     return binary;
+ }
+ 
+ /**
+  * @brief Load and compile a .rift DSL file and export as bytecode binary
+  * 
+  * @param filename The .rift DSL file path
+  * @return Opaque handle to binary data or NULL on error
+  */
+ void *
+ rift_dsl_load_compile_to_binary(const char *filename)
+ {
+     if (!filename) {
+         return NULL;
+     }
+     
+     // Load the file content
+     FILE *file = fopen(filename, "r");
+     if (!file) {
+         return NULL;
+     }
+     
+     // Get file size
+     fseek(file, 0, SEEK_END);
+     long file_size = ftell(file);
+     fseek(file, 0, SEEK_SET);
+     
+     if (file_size <= 0) {
+         fclose(file);
+         return NULL;
+     }
+     
+     // Allocate buffer for file content
+     char *buffer = (char *)malloc(file_size + 1);
+     if (!buffer) {
+         fclose(file);
+         return NULL;
+     }
+     
+     // Read file content
+     size_t bytes_read = fread(buffer, 1, file_size, file);
+     fclose(file);
+     
+     if (bytes_read != (size_t)file_size) {
+         free(buffer);
+         return NULL;
+     }
+     
+     // Null-terminate the buffer
+     buffer[file_size] = '\0';
+     
+     // Compile to binary
+     void *binary = rift_dsl_compile_to_binary(buffer);
+     
+     // Free the buffer
+     free(buffer);
+     
+     return binary;
+ }
+ 
+ /**
+  * @brief Free resources associated with binary data
+  * 
+  * @param handle Opaque handle returned by rift_dsl_compile_to_binary
+  */
+ void
+ rift_dsl_binary_free(void *handle)
+ {
+     rift_dsl_binary_free((rift_dsl_binary_t *)handle);
+ }
+ 
+ /**
+  * @brief Get error message from binary data
+  * 
+  * @param handle Opaque handle returned by rift_dsl_compile_to_binary
+  * @return Error message or NULL if no error
+  */
+ const char *
+ rift_dsl_binary_get_error(void *handle)
+ {
+     rift_dsl_binary_t *binary = (rift_dsl_binary_t *)handle;
+     if (!binary || !binary->has_error) {
+         return NULL;
+     }
+     
+     return binary->error_message;
+ }
+ 
+ /**
+  * @brief Save binary data to a file
+  * 
+  * @param handle Opaque handle returned by rift_dsl_compile_to_binary
+  * @param filename The output file path
+  * @return true if successful, false otherwise
+  */
+ bool
+ rift_dsl_binary_save(void *handle, const char *filename)
+ {
+     rift_dsl_binary_t *binary = (rift_dsl_binary_t *)handle;
+     if (!binary || !filename) {
+         return false;
+     }
+     
+     // Open the file for writing
+     FILE *file = fopen(filename, "wb");
+     if (!file) {
+         rift_dsl_binary_error(binary, "Failed to open output file");
+         return false;
+     }
+     
+     // Write the data
+     size_t bytes_written = fwrite(binary->data, 1, binary->size, file);
+     fclose(file);
+     
+     if (bytes_written != binary->size) {
+         rift_dsl_binary_error(binary, "Failed to write all data to file");
+         return false;
+     }
+     
+     return true;
+ }
+ 
+ /**
+  * @brief Load binary data from a file
+  * 
+  * @param filename The input file path
+  * @return Opaque handle to binary data or NULL on error
+  */
+ void *
+ rift_dsl_binary_load(const char *filename)
+ {
+     if (!filename) {
+         return NULL;
+     }
+     
+     // Open the file for reading
+     FILE *file = fopen(filename, "rb");
+     if (!file) {
+         return NULL;
+     }
+     
+     // Get file size
+     fseek(file, 0, SEEK_END);
+     long file_size = ftell(file);
+     fseek(file, 0, SEEK_SET);
+     
+     if (file_size <= 0) {
+         fclose(file);
+         return NULL;
+     }
+     
+     // Create a binary buffer
+     rift_dsl_binary_t *binary = rift_dsl_binary_create(file_size);
+     if (!binary) {
+         fclose(file);
+         return NULL;
+     }
+     
+     // Read the data
+     size_t bytes_read = fread(binary->data, 1, file_size, file);
+     fclose(file);
+     
+     if (bytes_read != (size_t)file_size) {
+         rift_dsl_binary_error(binary, "Failed to read all data from file");
+         return binary;
+     }
+     
+     return binary;
+ }
+ 
+ /**
+  * @brief Get binary data and size
+  * 
+  * @param handle Opaque handle returned by rift_dsl_compile_to_binary
+  * @param data Pointer to receive the data pointer
+  * @param size Pointer to receive the data size
+  * @return true if successful, false otherwise
+  */
+ bool
+ rift_dsl_binary_get_data(void *handle, const uint8_t **data, size_t *size)
+ {
+     rift_dsl_binary_t *binary = (rift_dsl_binary_t *)handle;
+     if (!binary || !data || !size) {
+         return false;
+     }
+     
+     *data = binary->data;
+     *size = binary->size;
+     
+     return true;
+ }
+ 
+ /**
+  * @brief Create a compiled pattern handle from binary data
+  * 
+  * @param handle Opaque handle returned by rift_dsl_compile_to_binary
+  * @return Opaque handle to compiled patterns or NULL on error
+  */
+ void *
+ rift_dsl_compilation_from_binary(void *handle)
+ {
+     rift_dsl_binary_t *binary = (rift_dsl_binary_t *)handle;
+     if (!binary) {
+         return NULL;
+     }
+     
+     return rift_dsl_deserialize_compilation(binary->data, binary->size);
+ }
+ 
+ /**
+  * @brief Validate binary data format
+  * 
+  * @param handle Opaque handle returned by rift_dsl_compile_to_binary
+  * @return true if valid format, false otherwise
+  */
+ bool
+ rift_dsl_binary_validate(void *handle)
+ {
+     rift_dsl_binary_t *binary = (rift_dsl_binary_t *)handle;
+     if (!binary || binary->size < sizeof(uint32_t)) {
+         return false;
+     }
+     
+     // Read program count
+     uint32_t program_count = *((uint32_t *)binary->data);
+     size_t offset = sizeof(uint32_t);
+     
+     // Validate each program
+     for (uint32_t i = 0; i < program_count; i++) {
+         // Check if we have enough data for the size
+         if (offset + sizeof(size_t) > binary->size) {
+             rift_dsl_binary_error(binary, "Binary data truncated");
+             return false;
+         }
+         
+         // Read program size
+         size_t program_size = *((size_t *)(binary->data + offset));
+         offset += sizeof(size_t);
+         
+         // Check if we have enough data for the program
+         if (offset + program_size > binary->size) {
+             rift_dsl_binary_error(binary, "Binary data truncated");
+             return false;
+         }
+         
+         // Skip the program
+         offset += program_size;
+     }
+     
+     // If we've processed all the data, it's valid
+     return true;
+ }

@@ -1,0 +1,25 @@
+# test_bytecode_serialization.rift
+
+# Define pattern with metadata
+@pattern TIMESTAMP = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+@flags = [CASE_INSENSITIVE, OPTIMIZE]
+@metadata = {
+    "author": "Engineering Team",
+    "created": "2025-02-15",
+    "purpose": "Timestamp extraction with platform-independent bytecode"
+}
+
+# Define test cases with expected matches
+@test_case {
+    input = "Process started at 2024-03-15 14:32:45 with PID 1234"
+    expect_match = true
+    match_groups = ["2024-03-15 14:32:45"]
+}
+
+@test_case {
+    input = "Invalid timestamp format: 2024/03/15"
+    expect_match = false
+}
+
+# Serialized bytecode for validation
+@bytecode = 0x52494654010203040100000001000000...

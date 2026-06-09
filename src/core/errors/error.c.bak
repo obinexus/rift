@@ -1,0 +1,248 @@
+/**
+ * @file error.c
+ * @brief Error handling for the LibRift library
+ *
+ * This file implements the error handling and reporting facilities for the
+ * LibRift library, providing meaningful error messages and status codes.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+
+#include "core/errors/error.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/errors/error.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/errors/error.h
+tmp/librift_analysis/librift-4933472-W/src/core/errors/error.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/errors/error.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/errors/error.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/errors/error.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/errors/error.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/errors/error.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/errors/error.h"
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * @brief Set a regex-specific error
+ *
+ * @param status Error status code
+ * @param line Line number where the error occurred
+ * @param file Source file where the error occurred
+ * @param message Error message format string
+ * @param ... Additional arguments for formatting
+ */
+
+/* Thread-local error information (could be made thread-local using platform-specific methods) */
+static rift_error_info_t current_error = {RIFT_OK, 0, "", ""};
+
+/* Error callback function pointer */
+static rift_error_callback_t error_callback = NULL;
+
+/**
+ * @brief Error descriptions keyed by status code
+ */
+static const char *error_descriptions[] = {
+    [RIFT_OK] = "No error",
+    [RIFT_ERROR_UNKNOWN] = "Unknown error",
+    [RIFT_ERROR_INVALID_PARAMETER] = "Invalid parameter",
+    [RIFT_ERROR_MEMORY_ALLOCATION] = "Memory allocation failed",
+    [RIFT_ERROR_BUFFER_OVERFLOW] = "Buffer overflow",
+    [RIFT_ERROR_NOT_IMPLEMENTED] = "Feature not implemented",
+    [RIFT_ERROR_IO] = "I/O error",
+    [RIFT_ERROR_FORMAT] = "Format error",
+    [RIFT_ERROR_SYNTAX] = "Syntax error",
+    [RIFT_ERROR_INVALID_STATE] = "Invalid state",
+    [RIFT_ERROR_TIMEOUT] = "Operation timed out",
+    [RIFT_ERROR_LIMIT_EXCEEDED] = "Resource limit exceeded",
+    [RIFT_ERROR_INVALID_REGEX] = "Invalid regular expression",
+    [RIFT_ERROR_REGEX_COMPILE] = "Regular expression compilation failed",
+    [RIFT_ERROR_REGEX_MATCH] = "Regular expression matching failed",
+    [RIFT_ERROR_REGEX_BACKTRACK_LIMIT] = "Regular expression backtracking limit exceeded",
+    [RIFT_ERROR_REGEX_INVALID_FLAG] = "Invalid regular expression flag",
+    [RIFT_ERROR_REGEX_GROUP_NOT_FOUND] = "Capture group not found",
+    [RIFT_ERROR_REGEX_TOO_MANY_GROUPS] = "Too many capture groups"};
+
+/**
+ * @brief Get the error description for a status code
+ *
+ * @param status Status code
+ * @return Error description
+ */
+static const char *
+get_error_description(rift_status_t status)
+{
+    if (status < 0 || status >= (int)(sizeof(error_descriptions) / sizeof(error_descriptions[0]))) {
+        return "Unknown error code";
+    }
+    return error_descriptions[status];
+}
+
+/**
+ * @brief Set the current error information
+ *
+ * @param status Error status code
+ * @param line Line number where the error occurred
+ * @param file Source file where the error occurred
+ * @param message Error message format
+ * @param ... Variable arguments for the error message
+ */
+void
+rift_error_set(rift_status_t status, int line, const char *file, const char *message, ...)
+{
+    /* Update the current error information */
+    current_error.status = status;
+    current_error.line = line;
+
+    /* Set the file location */
+    strncpy(current_error.file, file ? file : "", RIFT_ERROR_MAX_FILE_LENGTH - 1);
+    current_error.file[RIFT_ERROR_MAX_FILE_LENGTH - 1] = '\0';
+
+    /* Format the error message with the variable arguments */
+    va_list args;
+    va_start(args, message);
+    vsnprintf(current_error.message, RIFT_ERROR_MAX_MESSAGE_LENGTH, message ? message : "", args);
+    va_end(args);
+
+    /* If no specific message was provided, use the default description */
+    if (!message || message[0] == '\0') {
+        strncpy(current_error.message, get_error_description(status),
+                RIFT_ERROR_MAX_MESSAGE_LENGTH - 1);
+        current_error.message[RIFT_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+    }
+
+    /* Call the error callback if registered */
+    if (error_callback) {
+        error_callback(&current_error);
+    }
+}
+
+/**
+ * @brief Get the current error information
+ *
+ * @return Pointer to the current error information
+ */
+const rift_error_info_t *
+rift_error_get(void)
+{
+    return &current_error;
+}
+
+/**
+ * @brief Clear the current error
+ */
+void
+rift_error_clear(void)
+{
+    current_error.status = RIFT_OK;
+    current_error.line = 0;
+    current_error.file[0] = '\0';
+    current_error.message[0] = '\0';
+}
+
+/**
+ * @brief Register an error callback function
+ *
+ * @param callback Function to call when an error occurs
+ * @return Previous callback function
+ */
+rift_error_callback_t
+rift_error_set_callback(rift_error_callback_t callback)
+{
+    rift_error_callback_t previous = error_callback;
+    error_callback = callback;
+    return previous;
+}
+
+/**
+ * @brief Get the description for a status code
+ *
+ * @param status Status code
+ * @return Description string
+ */
+const char *
+rift_error_status_string(rift_status_t status)
+{
+    return get_error_description(status);
+}
+
+/**
+ * @brief Format an error into a string
+ *
+ * @param info Error information to format
+ * @param buffer Buffer to store the formatted error
+ * @param buffer_size Size of the buffer
+ * @return RIFT_OK on success, error code on failure
+ */
+rift_status_t
+rift_error_format(const rift_error_info_t *info, char *buffer, size_t buffer_size)
+{
+    if (!info || !buffer || buffer_size == 0) {
+        return RIFT_ERROR_INVALID_PARAMETER;
+    }
+
+    int written =
+        snprintf(buffer, buffer_size, "Error %d (%s) at %s:%d: %s", info->status,
+                 get_error_description(info->status), info->file[0] ? info->file : "unknown",
+                 info->line, info->message[0] ? info->message : "No additional information");
+
+    if (written < 0 || (size_t)written >= buffer_size) {
+        return RIFT_ERROR_BUFFER_OVERFLOW;
+    }
+
+    return RIFT_OK;
+}
+
+/**
+ * @brief Check if a status code indicates an error
+ *
+ * @param status Status code to check
+ * @return true if the status indicates an error, false otherwise
+ */
+bool
+rift_error_is_error(rift_status_t status)
+{
+    return status != RIFT_OK;
+}
+
+/**
+ * @brief Format the current error into a string
+ *
+ * @param buffer Buffer to store the formatted error
+ * @param buffer_size Size of the buffer
+ * @return RIFT_OK on success, error code on failure
+ */
+rift_status_t
+rift_error_current_format(char *buffer, size_t buffer_size)
+{
+    return rift_error_format(&current_error, buffer, buffer_size);
+}
+
+/**
+ * @brief Log an error message with a status code
+ *
+ * @param status Status code
+ * @param line Line number
+ * @param file Source file
+ * @param message Error message format
+ * @param ... Variable arguments for the error message
+ * @return The status code passed in
+ */
+rift_status_t
+rift_error_log(rift_status_t status, int line, const char *file, const char *message, ...)
+{
+    /* Format the error message with the variable arguments */
+    char formatted_message[RIFT_ERROR_MAX_MESSAGE_LENGTH];
+    va_list args;
+    va_start(args, message);
+    vsnprintf(formatted_message, sizeof(formatted_message), message ? message : "", args);
+    va_end(args);
+
+    /* Set the error information */
+    rift_error_set(status, line, file, "%s", formatted_message);
+
+    return status;
+}

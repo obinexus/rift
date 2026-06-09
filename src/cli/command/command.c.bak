@@ -1,0 +1,248 @@
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+#include "cli/command/command.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/cli/command.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/cli copy/command.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/cli/command.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/cli copy/command.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/cli/command/command.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/cli/command.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/cli copy/command.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/cli/command/command.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "librift/cli/command.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/runtime/matcher.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @file command.c
+ * @brief Implementation of the base command interface for LibRift CLI
+ *
+ * This file implements the base command interface functions used by the
+ * LibRift CLI. These implementations serve as adapters to the concrete
+ * command implementations.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+ommand/command.h"/a #include "core/runtime/matcher.h"
+
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Base command interface structure
+ *
+ * This structure defines the virtual function table pattern for the
+ * command interface. Each concrete command implementation must
+ * provide these function pointers.
+ */
+struct rift_command {
+    /* Virtual function pointers */
+    rift_command_type_t (*get_type)(const struct rift_command *);
+    void (*set_verbose)(struct rift_command *, bool);
+    void (*set_quiet)(struct rift_command *, bool);
+    bool (*parse_args)(struct rift_command *, int, char *[]);
+    int (*execute)(struct rift_command *);
+    const char *(*get_help)(const struct rift_command *);
+    void (*free)(struct rift_command *);
+};
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Get the type of a command
+ *
+ * @param command The command
+ * @return The command type
+ */
+rift_command_type_t
+rift_command_get_type(const rift_command_t *command)
+{
+    if (!command || !command->get_type) {
+        return RIFT_COMMAND_UNKNOWN;
+    }
+
+    return command->get_type(command);
+}
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Set verbose flag for a command
+ *
+ * @param command The command
+ * @param verbose Whether to enable verbose output
+ */
+void
+rift_command_set_verbose(rift_command_t *command, bool verbose)
+{
+    if (!command || !command->set_verbose) {
+        return;
+    }
+
+    command->set_verbose(command, verbose);
+}
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Set quiet flag for a command
+ *
+ * @param command The command
+ * @param quiet Whether to enable quiet mode
+ */
+void
+rift_command_set_quiet(rift_command_t *command, bool quiet)
+{
+    if (!command || !command->set_quiet) {
+        return;
+    }
+
+    command->set_quiet(command, quiet);
+}
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Parse command-specific arguments
+ *
+ * @param command The command
+ * @param argc Argument count
+ * @param argv Argument vector
+ * @return true if parsing was successful, false otherwise
+ */
+bool
+rift_command_parse_args(rift_command_t *command, int argc, char *argv[])
+{
+    if (!command || !command->parse_args) {
+        return false;
+    }
+
+    return command->parse_args(command, argc, argv);
+}
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Execute a command
+ *
+ * @param command The command
+ * @return 0 on success, non-zero on failure
+ */
+int
+rift_command_execute(rift_command_t *command)
+{
+    if (!command || !command->execute) {
+        fprintf(stderr, "Error: Invalid command or execute function not implemented\n");
+        return 1;
+    }
+
+    return command->execute(command);
+}
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Get help information for a command
+ *
+ * @param command The command
+ * @return Help string for the command
+ */
+const char *
+rift_command_get_help(const rift_command_t *command)
+{
+    if (!command || !command->get_help) {
+        static const char DEFAULT_HELP[] = "No help available for this command.";
+        return DEFAULT_HELP;
+    }
+
+    return command->get_help(command);
+}
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Free resources associated with a command
+ *
+ * @param command The command to free
+ */
+void
+rift_command_free(rift_command_t *command)
+{
+    if (!command || !command->free) {
+        return;
+    }
+
+    command->free(command);
+    free(command);
+}
+
+
+ommand/command.h"/a #include "core/bytecode/bytecode_vm.h"
+/**
+ * @brief Create a new command instance by type
+ *
+ * This factory function creates a new command instance of the specified type.
+ * The caller is responsible for freeing the returned command using 
+ * rift_command_free() when it is no longer needed.
+ *
+ * @param type The type of command to create
+ * @return A new command instance or NULL if the type is invalid or memory allocation failed
+ */
+rift_command_t *
+rift_command_create(rift_command_type_t type)
+{
+    rift_command_t *command = NULL;
+    
+    switch (type) {
+        case RIFT_COMMAND_COMPILE:
+            /* Create compile command (implementation to be added) */
+            break;
+        case RIFT_COMMAND_PARSE:
+            /* Create parse command (implementation to be added) */
+            break;
+        case RIFT_COMMAND_TOKENIZE:
+            /* Create tokenize command (implementation to be added) */
+            break;
+        case RIFT_COMMAND_MATCH:
+            /* Create match command (implementation to be added) */
+            break;
+        case RIFT_COMMAND_VISUALIZE:
+            /* Create visualize command (implementation to be added) */
+            break;
+        case RIFT_COMMAND_BENCHMARK:
+            /* Create benchmark command (implementation to be added) */
+            break;
+        case RIFT_COMMAND_CONFIG:
+            /* Create config command (implementation to be added) */
+            break;
+        default:
+            fprintf(stderr, "Error: Unknown command type %d\n", type);
+            return NULL;
+    }
+    
+    return command;
+}

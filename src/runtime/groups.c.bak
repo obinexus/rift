@@ -1,0 +1,370 @@
+/**
+core/runtime/groups.h"
+ * @file groups.c
+ * @brief Implementation of capture group handling for the LibRift regex engine
+ *
+ * This file implements the capture group functionality of the LibRift regex engine,
+ * which allows for extracting matched substrings from the input.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+
+#include "core/runtime/groups.h
+runtime/groups.h
+tmp/librift_analysis/librift-4933472-W/src/runtime/groups.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/runtime/groups.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/runtime/groups.h"
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * @brief Create a new capture group
+ *
+ * @param index The group index
+ * @param name The group name (can be NULL for unnamed groups)
+ * @param start_pos Start position in the input string
+ * @param end_pos End position in the input string
+ * @return Pointer to the new capture group or NULL on failure
+ */
+rift_regex_capture_group_t *
+rift_capture_group_create(size_t index, const char *name, size_t start_pos, size_t end_pos)
+{
+    rift_regex_capture_group_t *group =
+        (rift_regex_capture_group_t *)malloc(sizeof(rift_regex_capture_group_t));
+
+    if (!group) {
+        return NULL;
+    }
+
+    group->index = index;
+    group->start_pos = start_pos;
+    group->end_pos = end_pos;
+
+    // Copy the name if provided
+    if (name) {
+        group->name = strdup(name);
+        if (!group->name) {
+            free(group);
+            return NULL;
+        }
+    } else {
+        group->name = NULL;
+    }
+
+    return group;
+}
+
+/**
+ * @brief Free resources associated with a capture group
+ *
+ * @param group The capture group to free
+ */
+void
+rift_capture_group_free(rift_regex_capture_group_t *group)
+{
+    if (!group) {
+        return;
+    }
+
+    if (group->name) {
+        free(group->name);
+    }
+
+    free(group);
+}
+
+/**
+ * @brief Get the start position of a capture group
+ *
+ * @param group The capture group
+ * @return Start position or (size_t)-1 on error
+ */
+size_t
+rift_capture_group_get_start(const rift_regex_capture_group_t *group)
+{
+    if (!group) {
+        return (size_t)-1;
+    }
+
+    return group->start_pos;
+}
+
+/**
+ * @brief Get the end position of a capture group
+ *
+ * @param group The capture group
+ * @return End position or (size_t)-1 on error
+ */
+size_t
+rift_capture_group_get_end(const rift_regex_capture_group_t *group)
+{
+    if (!group) {
+        return (size_t)-1;
+    }
+
+    return group->end_pos;
+}
+
+/**
+ * @brief Get the content of a capture group
+ *
+ * @param group The capture group
+ * @param input The input string
+ * @param output Buffer to store the content
+ * @param output_size Size of the output buffer
+ * @return true if successful, false otherwise
+ */
+bool
+rift_capture_group_get_content(const rift_regex_capture_group_t *group, const char *input,
+                               char *output, size_t output_size)
+{
+    if (!group || !input || !output || output_size == 0) {
+        return false;
+    }
+
+    // Calculate the length of the captured text
+    size_t length = group->end_pos - group->start_pos;
+
+    // Make sure the output buffer is large enough
+    if (length >= output_size) {
+        length = output_size - 1; // Leave room for null terminator
+    }
+
+    // Copy the captured text to the output buffer
+    memcpy(output, input + group->start_pos, length);
+    output[length] = '\0';
+
+    return true;
+}
+
+/**
+ * @brief Create a container for capture groups
+ *
+ * @param max_groups Maximum number of groups to support
+ * @return Pointer to the new capture groups container or NULL on failure
+ */
+rift_regex_capture_groups_t *
+rift_capture_groups_create(size_t max_groups)
+{
+    if (max_groups == 0) {
+        return NULL;
+    }
+
+    rift_regex_capture_groups_t *groups =
+        (rift_regex_capture_groups_t *)malloc(sizeof(rift_regex_capture_groups_t));
+
+    if (!groups) {
+        return NULL;
+    }
+
+    // Allocate the array for storing group pointers
+    groups->groups =
+        (rift_regex_capture_group_t **)calloc(max_groups, sizeof(rift_regex_capture_group_t *));
+    if (!groups->groups) {
+        free(groups);
+        return NULL;
+    }
+
+    groups->count = 0;
+    groups->capacity = max_groups;
+
+    return groups;
+}
+
+/**
+ * @brief Free resources associated with a capture groups container
+ *
+ * @param groups The capture groups container to free
+ */
+void
+rift_capture_groups_free(rift_regex_capture_groups_t *groups)
+{
+    if (!groups) {
+        return;
+    }
+
+    // Free all the individual groups
+    if (groups->groups) {
+        for (size_t i = 0; i < groups->count; i++) {
+            if (groups->groups[i]) {
+                rift_capture_group_free(groups->groups[i]);
+            }
+        }
+        free(groups->groups);
+    }
+
+    free(groups);
+}
+
+/**
+ * @brief Record a capture group
+ *
+ * @param groups The capture groups container
+ * @param index Group index
+ * @param name Group name (can be NULL for unnamed groups)
+ * @param start_pos Start position
+ * @param end_pos End position
+ * @return true if successful, false otherwise
+ */
+bool
+rift_capture_groups_record(rift_regex_capture_groups_t *groups, size_t index, const char *name,
+                           size_t start_pos, size_t end_pos)
+{
+    if (!groups || index >= groups->capacity) {
+        return false;
+    }
+
+    // Check if we already have a group with this index
+    if (index < groups->count && groups->groups[index]) {
+        // Update the existing group
+        rift_regex_capture_group_t *group = groups->groups[index];
+        group->start_pos = start_pos;
+        group->end_pos = end_pos;
+
+        // Update the name if provided
+        if (name) {
+            if (group->name) {
+                free(group->name);
+            }
+            group->name = strdup(name);
+            if (!group->name) {
+                return false;
+            }
+        }
+    } else {
+        // Create a new group
+        rift_regex_capture_group_t *group =
+            rift_capture_group_create(index, name, start_pos, end_pos);
+
+        if (!group) {
+            return false;
+        }
+
+        // Add it to the array
+        groups->groups[index] = group;
+        if (index >= groups->count) {
+            groups->count = index + 1;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Reset all capture groups
+ *
+ * @param groups The capture groups container
+ */
+void
+rift_capture_groups_reset(rift_regex_capture_groups_t *groups)
+{
+    if (!groups) {
+        return;
+    }
+
+    // Free all the individual groups
+    for (size_t i = 0; i < groups->count; i++) {
+        if (groups->groups[i]) {
+            rift_capture_group_free(groups->groups[i]);
+            groups->groups[i] = NULL;
+        }
+    }
+
+    groups->count = 0;
+}
+
+/**
+ * @brief Clone a capture groups container
+ *
+ * @param groups The capture groups container to clone
+ * @return Pointer to the cloned container or NULL on failure
+ */
+rift_regex_capture_groups_t *
+rift_capture_groups_clone(const rift_regex_capture_groups_t *groups)
+{
+    if (!groups) {
+        return NULL;
+    }
+
+    // Create a new container with the same capacity
+    rift_regex_capture_groups_t *clone = rift_capture_groups_create(groups->capacity);
+    if (!clone) {
+        return NULL;
+    }
+
+    // Clone each group
+    for (size_t i = 0; i < groups->count; i++) {
+        if (groups->groups[i]) {
+            rift_regex_capture_group_t *original = groups->groups[i];
+
+            // Record the group in the clone
+            if (!rift_capture_groups_record(clone, original->index, original->name,
+                                            original->start_pos, original->end_pos)) {
+                rift_capture_groups_free(clone);
+                return NULL;
+            }
+        }
+    }
+
+    return clone;
+}
+
+/**
+ * @brief Get a capture group by index
+ *
+ * @param groups The capture groups container
+ * @param index Group index
+ * @return Pointer to the capture group or NULL if not found
+ */
+rift_regex_capture_group_t *
+rift_capture_groups_get_by_index(const rift_regex_capture_groups_t *groups, size_t index)
+{
+    if (!groups || index >= groups->count) {
+        return NULL;
+    }
+
+    return groups->groups[index];
+}
+
+/**
+ * @brief Get a capture group by name
+ *
+ * @param groups The capture groups container
+ * @param name Group name
+ * @return Pointer to the capture group or NULL if not found
+ */
+rift_regex_capture_group_t *
+rift_capture_groups_get_by_name(const rift_regex_capture_groups_t *groups, const char *name)
+{
+    if (!groups || !name) {
+        return NULL;
+    }
+
+    // Search for a group with the given name
+    for (size_t i = 0; i < groups->count; i++) {
+        if (groups->groups[i] && groups->groups[i]->name &&
+            strcmp(groups->groups[i]->name, name) == 0) {
+            return groups->groups[i];
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Get the number of capture groups
+ *
+ * @param groups The capture groups container
+ * @return Number of groups
+ */
+size_t
+rift_capture_groups_get_count(const rift_regex_capture_groups_t *groups)
+{
+    if (!groups) {
+        return 0;
+    }
+
+    return groups->count;
+}

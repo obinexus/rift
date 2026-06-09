@@ -1,0 +1,10 @@
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/librift_core.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/librift_regex.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/rift.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/rift-cli.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/edit_cache.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/rebuild_cache.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/list_install_components.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/install.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/install/local.dir
+/home/nnamdi/Projects/obinexuscomputing/pkg/dev/librift/tests/CMakeFiles/install/strip.dir

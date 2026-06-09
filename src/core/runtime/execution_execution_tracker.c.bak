@@ -1,0 +1,87 @@
+
+
+#include "core/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-4933472-W/src/core/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/runtime/execution_execution_tracker.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/runtime/execution_execution_tracker.h"
+#include <sys/time.h>
+#include "execution_time_tracker.h"
+static uint64_t
+get_current_time_us()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (uint64_t)(tv.tv_sec) * 1000000 + (uint64_t)(tv.tv_usec);
+}
+
+rift_execution_time_tracker_t *
+rift_execution_time_tracker_create(uint32_t max_duration_ms)
+{
+    rift_execution_time_tracker_t *tracker =
+        (rift_execution_time_tracker_t *)malloc(sizeof(rift_execution_time_tracker_t));
+
+    if (tracker) {
+        tracker->start_time = 0;
+        tracker->max_duration = (uint64_t)max_duration_ms * 1000; // Convert to microseconds
+        tracker->time_limit_enabled = (max_duration_ms > 0);
+    }
+
+    return tracker;
+}
+
+void
+rift_execution_time_tracker_start(rift_execution_time_tracker_t *tracker)
+{
+    if (tracker && tracker->time_limit_enabled) {
+        tracker->start_time = get_current_time_us();
+    }
+}
+
+bool
+rift_execution_time_tracker_has_exceeded_limit(const rift_execution_time_tracker_t *tracker)
+{
+
+    if (!tracker || !tracker->time_limit_enabled || tracker->start_time == 0) {
+        return false;
+    }
+
+    uint64_t current_time = get_current_time_us();
+    uint64_t elapsed = current_time - tracker->start_time;
+
+    return elapsed > tracker->max_duration;
+}
+
+uint64_t
+rift_execution_time_tracker_get_elapsed(const rift_execution_time_tracker_t *tracker)
+{
+
+    if (!tracker || tracker->start_time == 0) {
+        return 0;
+    }
+
+    uint64_t current_time = get_current_time_us();
+    return current_time - tracker->start_time;
+}
+
+void
+rift_execution_time_tracker_set_max_duration(rift_execution_time_tracker_t *tracker,
+                                             uint32_t max_duration_ms)
+{
+
+    if (tracker) {
+        tracker->max_duration = (uint64_t)max_duration_ms * 1000;
+        tracker->time_limit_enabled = (max_duration_ms > 0);
+    }
+}
+
+void
+rift_execution_time_tracker_free(rift_execution_time_tracker_t *tracker)
+{
+    free(tracker);
+}

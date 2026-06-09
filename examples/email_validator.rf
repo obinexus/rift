@@ -1,0 +1,315 @@
+// ============================================================================
+// Email Validator - RiftLang Example
+// ============================================================================
+//
+// This example demonstrates core RiftLang features:
+//   - Pattern definitions with regex and composition
+//   - Type definitions with semantic constraints
+//   - Function declarations with pattern matching
+//   - Test blocks with property-based testing
+//   - Package system and imports
+//
+// Compilation targets: C, C++, Go, Python, Rust, Java, JavaScript, Lua, WASM
+// Author: OBINexus Computing
+// Date: May 28, 2026
+// Version: 1.0.0
+
+package patterns.email;
+
+// ============================================================================
+// Pattern Definitions
+// ============================================================================
+
+// Basic character patterns using regex
+pattern DIGIT = /[0-9]/;
+pattern WORD = /[a-zA-Z0-9_]/;
+pattern WHITESPACE = /\s/;
+
+// Local part patterns (left side of @)
+pattern LOCAL_START = /[a-zA-Z0-9]/;
+pattern LOCAL_CHAR = /[a-zA-Z0-9._-]/;
+pattern LOCAL = LOCAL_START @ (LOCAL_CHAR)* ;
+
+// Domain patterns (right side of @)
+pattern DOMAIN_LABEL = (WORD)+;
+pattern DOMAIN_SEP = /-/;
+pattern DOMAIN = DOMAIN_LABEL @ (DOMAIN_SEP @ DOMAIN_LABEL)*;
+
+// TLD patterns
+pattern TLD_CHAR = /[a-zA-Z]/;
+pattern TLD = (TLD_CHAR){2,6};
+
+// Complete email pattern
+pattern EMAIL = LOCAL @ /@/ @ DOMAIN @ /./ @ TLD;
+
+// ============================================================================
+// Type Definitions with Constraints
+// ============================================================================
+
+type Email {
+    pattern: EMAIL,
+    constraints: {
+        length: { min: 5, max: 254 },
+        regex: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/,
+        unique: true,
+        required: true
+    }
+}
+
+type LocalPart {
+    pattern: LOCAL,
+    constraints: {
+        length: { min: 1, max: 64 },
+        regex: /^[a-zA-Z0-9._-]+$/
+    }
+}
+
+type DomainPart {
+    pattern: DOMAIN @ /./ @ TLD,
+    constraints: {
+        length: { min: 4, max: 253 },
+        regex: /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/
+    }
+}
+
+// ============================================================================
+// Function Declarations
+// ============================================================================
+
+fn validate_email(input: string) -> bool {
+    match input {
+        EMAIL => true,
+        _ => false
+    }
+}
+
+fn extract_local_part(email: string) -> string | null {
+    match email {
+        (LOCAL) @ /@/ @ DOMAIN @ /./ @ TLD => {
+            return (LOCAL);
+        },
+        _ => {
+            return null;
+        }
+    }
+}
+
+fn extract_domain_part(email: string) -> string | null {
+    match email {
+        LOCAL @ /@/ @ (DOMAIN @ /./ @ TLD) => {
+            return (DOMAIN @ /./ @ TLD);
+        },
+        _ => {
+            return null;
+        }
+    }
+}
+
+fn is_corporate_email(email: string, allowed_domains: string[]) -> bool {
+    match email {
+        LOCAL @ /@/ @ (DOMAIN @ /./ @ TLD) => {
+            let domain = DOMAIN @ /./ @ TLD;
+            let allowed = false;
+
+            for allowed_domain in allowed_domains {
+                if domain == allowed_domain {
+                    allowed = true;
+                    break;
+                }
+            }
+
+            return allowed;
+        },
+        _ => {
+            return false;
+        }
+    }
+}
+
+// ============================================================================
+// Semantic Constraints (Custom Validation)
+// ============================================================================
+
+constraint EmailDomainWhitelist {
+    allowed_domains: string[],
+
+    fn validate(email: string) -> bool {
+        match email {
+            LOCAL @ /@/ @ (DOMAIN @ /./ @ TLD) => {
+                let domain = DOMAIN @ /./ @ TLD;
+                for allowed in self.allowed_domains {
+                    if domain == allowed {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            _ => false
+        }
+    }
+}
+
+constraint NoConsecutiveDots {
+    fn validate(email: string) -> bool {
+        return !email.contains("..");
+    }
+}
+
+// ============================================================================
+// Test Blocks
+// ============================================================================
+
+test validate_email {
+    config {
+        framework: "property-based",
+        timeout_ms: 5000,
+        max_iterations: 1000
+    }
+
+    // Simple test case
+    assert validate_email("user@example.com") == true,
+           "Valid email should return true";
+
+    // Comprehensive valid emails
+    assert validate_email("john.doe+tag@company.co.uk") == true,
+           "Complex valid email should return true";
+
+    assert validate_email("test_email@sub-domain.example.org") == true,
+           "Subdomain email should be valid";
+
+    // Invalid cases
+    assert validate_email("invalid") == false,
+           "Plain text without @ should return false";
+
+    assert validate_email("@example.com") == false,
+           "Missing local part should return false";
+
+    assert validate_email("user@") == false,
+           "Missing domain should return false";
+
+    assert validate_email("user..name@example.com") == false,
+           "Consecutive dots should be invalid";
+
+    // Edge cases
+    assert validate_email("a@b.co") == true,
+           "Minimal valid email should pass";
+
+    assert validate_email("very.long.email.address.with.many.dots@subdomain.example.co.uk") == true,
+           "Long complex email should be valid";
+}
+
+test extract_local_part {
+    config {
+        framework: "unit",
+        timeout_ms: 1000
+    }
+
+    let email = "john.doe@example.com";
+    let local = extract_local_part(email);
+
+    assert local == "john.doe",
+           "Should extract correct local part";
+
+    assert extract_local_part("invalid") == null,
+           "Invalid email should return null";
+
+    assert extract_local_part("test@domain.org") == "test",
+           "Single word local part should extract correctly";
+}
+
+test extract_domain_part {
+    config {
+        framework: "unit",
+        timeout_ms: 1000
+    }
+
+    let email = "user@mail.example.com";
+    let domain = extract_domain_part(email);
+
+    assert domain == "mail.example.com",
+           "Should extract correct domain part";
+
+    assert extract_domain_part("no-domain") == null,
+           "Invalid email should return null";
+
+    assert extract_domain_part("test@example.org") == "example.org",
+           "Simple domain should extract correctly";
+}
+
+test is_corporate_email {
+    config {
+        framework: "unit",
+        timeout_ms: 1000
+    }
+
+    let allowed = ["company.com", "subsidiary.com"];
+
+    assert is_corporate_email("john@company.com", allowed) == true,
+           "Company email should be corporate";
+
+    assert is_corporate_email("jane@subsidiary.com", allowed) == true,
+           "Subsidiary email should be corporate";
+
+    assert is_corporate_email("user@external.com", allowed) == false,
+           "External email should not be corporate";
+
+    assert is_corporate_email("invalid-email", allowed) == false,
+           "Invalid email should return false";
+}
+
+// ============================================================================
+// Performance and Memory Tests
+// ============================================================================
+
+test email_validation_performance {
+    config {
+        framework: "benchmark",
+        iterations: 10000,
+        timeout_ms: 5000,
+        performance_assertions: {
+            max_time_per_op_us: 100,
+            max_memory_bytes: 1024,
+            throughput_min_ops_per_sec: 10000
+        }
+    }
+
+    for i in 0..10000 {
+        validate_email("user" @ i @ "@example.com");
+    }
+}
+
+// ============================================================================
+// Integration Tests
+// ============================================================================
+
+test email_domain_whitelist_integration {
+    config {
+        framework: "integration",
+        timeout_ms: 2000
+    }
+
+    let whitelist = EmailDomainWhitelist {
+        allowed_domains: ["trusted.com", "verified.org"]
+    };
+
+    assert whitelist.validate("admin@trusted.com") == true,
+           "Whitelisted domain should pass";
+
+    assert whitelist.validate("user@verified.org") == true,
+           "Alternative whitelisted domain should pass";
+
+    assert whitelist.validate("external@unknown.com") == false,
+           "Non-whitelisted domain should fail";
+
+    // Combined constraint test
+    let consecutive_dot_check = NoConsecutiveDots {};
+    assert consecutive_dot_check.validate("valid@example.com") == true,
+           "Normal email should pass";
+
+    assert consecutive_dot_check.validate("invalid..name@example.com") == false,
+           "Consecutive dots should fail";
+}
+
+// ============================================================================
+// End of email_validator.rf
+// ============================================================================

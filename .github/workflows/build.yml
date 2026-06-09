@@ -1,0 +1,75 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  linux:
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build/${{ matrix.compiler }} -DCMAKE_C_COMPILER=${{ matrix.compiler }} -DRIFT_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build/${{ matrix.compiler }} --parallel
+      - name: Test
+        run: ctest --test-dir build/${{ matrix.compiler }} --output-on-failure
+      - name: Check artifacts
+        run: |
+          test -f build/bin/linux-${{ matrix.compiler }}/rift.a
+          test -f build/bin/linux-${{ matrix.compiler }}/rift.so
+          test -f build/bin/linux-${{ matrix.compiler }}/riftlang.a
+          test -f build/bin/linux-${{ matrix.compiler }}/riftlang.so
+          test -f build/bin/linux-${{ matrix.compiler }}/rifttest.a
+          test -f build/bin/linux-${{ matrix.compiler }}/rifttest.so
+          nm -D build/bin/linux-${{ matrix.compiler }}/rift.so | grep rift_regex_compile
+          nm -D build/bin/linux-${{ matrix.compiler }}/riftlang.so | grep rlang_compile
+          nm -D build/bin/linux-${{ matrix.compiler }}/rifttest.so | grep rtest_run_suite
+
+  windows-msvc:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build/msvc -DRIFT_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build/msvc --config Release --parallel
+      - name: Test
+        run: ctest --test-dir build/msvc -C Release --output-on-failure
+      - name: Check artifacts
+        shell: pwsh
+        run: |
+          if (!(Test-Path build/bin/windows-msvc/rift.dll)) { exit 1 }
+          if (!(Test-Path build/bin/windows-msvc/rift.lib)) { exit 1 }
+          if (!(Test-Path build/bin/windows-msvc/riftlang.dll)) { exit 1 }
+          if (!(Test-Path build/bin/windows-msvc/rifttest.dll)) { exit 1 }
+          dumpbin /exports build/bin/windows-msvc/rift.dll | Select-String rift_regex_compile
+          dumpbin /exports build/bin/windows-msvc/riftlang.dll | Select-String rlang_compile
+          dumpbin /exports build/bin/windows-msvc/rifttest.dll | Select-String rtest_run_suite
+
+  windows-mingw:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build/mingw -G "MinGW Makefiles" -DRIFT_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build/mingw --parallel
+      - name: Test
+        run: ctest --test-dir build/mingw --output-on-failure
+      - name: Check artifacts
+        shell: pwsh
+        run: |
+          if (!(Test-Path build/bin/windows-mingw/rift.a)) { exit 1 }
+          if (!(Test-Path build/bin/windows-mingw/rift.dll)) { exit 1 }
+          if (!(Test-Path build/bin/windows-mingw/riftlang.a)) { exit 1 }
+          if (!(Test-Path build/bin/windows-mingw/riftlang.dll)) { exit 1 }
+          if (!(Test-Path build/bin/windows-mingw/rifttest.a)) { exit 1 }
+          if (!(Test-Path build/bin/windows-mingw/rifttest.dll)) { exit 1 }
+          objdump -p build/bin/windows-mingw/rift.dll | Select-String rift_regex_compile
+          objdump -p build/bin/windows-mingw/riftlang.dll | Select-String rlang_compile
+          objdump -p build/bin/windows-mingw/rifttest.dll | Select-String rtest_run_suite

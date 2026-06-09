@@ -1,0 +1,304 @@
+/**
+ * @file regex_error.c
+ * @brief Implementation of error handling for the LibRift regex engine
+ *
+ * This file implements the functions declared in regex_error.h for error
+ * handling in the LibRift regex engine.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/errors/regex_error.h
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include "core/errors/error.h"
+#include "librift/errors/regex_error.h"
+
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/errors/regex_error.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/errors/regex_error.h
+tmp/librift_analysis/librift-4933472-W/src/core/errors/regex_error.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/errors/regex_error.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/errors/regex_error.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/errors/regex_error.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/errors/regex_error.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/errors/regex_error.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/errors/regex_error.h"
+
+/**
+ * @brief Initialize a regex error object
+ *
+ * @param error Pointer to the error object
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_error_init(rift_regex_error_t *error)
+{
+    if (!error) {
+        return false;
+    }
+
+    error->code = RIFT_REGEX_ERROR_NONE;
+    error->message[0] = '\0';
+    error->position = 0;
+
+    return true;
+}
+
+/**
+ * @brief Get a string description for a regex error code
+ *
+ * @param error_code The error code
+ * @return A string describing the error
+ */
+const char *
+rift_regex_error_code_to_string(rift_regex_error_code_t error_code)
+{
+    switch (error_code) {
+    case RIFT_REGEX_ERROR_NONE:
+        return "No error";
+    case RIFT_REGEX_ERROR_INTERNAL:
+        return "Internal error";
+    case RIFT_REGEX_ERROR_INVALID_PARAMETER:
+        return "Invalid parameter";
+    case RIFT_REGEX_ERROR_MEMORY:
+        return "Memory allocation failed";
+    case RIFT_REGEX_ERROR_INVALID_AUTOMATON:
+        return "Invalid automaton";
+    case RIFT_REGEX_ERROR_EMPTY_AUTOMATON:
+        return "Empty automaton";
+    case RIFT_REGEX_ERROR_SYNTAX:
+        return "Syntax error";
+    case RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE:
+        return "Unsupported feature";
+    case RIFT_REGEX_ERROR_INVALID_QUANTIFIER:
+        return "Invalid quantifier";
+    case RIFT_REGEX_ERROR_INVALID_ESCAPE:
+        return "Invalid escape sequence";
+    case RIFT_REGEX_ERROR_INVALID_CHARACTER_CLASS:
+        return "Invalid character class";
+    case RIFT_REGEX_ERROR_INVALID_BACKREFERENCE:
+        return "Invalid backreference";
+    case RIFT_REGEX_ERROR_UNBALANCED_PARENTHESES:
+        return "Unbalanced parentheses";
+    case RIFT_REGEX_ERROR_UNBALANCED_BRACKETS:
+        return "Unbalanced brackets";
+    case RIFT_REGEX_ERROR_TRAILING_BACKSLASH:
+        return "Trailing backslash";
+    case RIFT_REGEX_ERROR_BACKTRACKING_LIMIT:
+        return "Backtracking limit exceeded";
+    case RIFT_REGEX_ERROR_TIMEOUT:
+        return "Operation timed out";
+    case RIFT_REGEX_ERROR_UNSUPPORTED_OPERATION:
+        return "Unsupported operation";
+    case RIFT_REGEX_ERROR_UNEXPECTED_TOKEN:
+        return "Unexpected token";
+    case RIFT_REGEX_ERROR_LIMIT_EXCEEDED:
+        return "Limit exceeded";
+    case RIFT_REGEX_ERROR_BUFFER_OVERFLOW:
+        return "Buffer overflow";
+    default:
+        return "Unknown error";
+    }
+}
+
+/**
+ * @brief Get a descriptive string for a regex error
+ *
+ * @param error The regex error structure
+ * @return A string describing the error
+ */
+const char *
+rift_regex_get_error_string(rift_regex_error_t error)
+{
+    if (error.code == RIFT_REGEX_ERROR_NONE) {
+        return "No error";
+    }
+
+    if (error.message[0] != '\0') {
+        return error.message;
+    }
+
+    return rift_regex_error_code_to_string(error.code);
+}
+
+/**
+ * @brief Set an error object with a fixed message
+ *
+ * @param error Pointer to the error object (can be NULL)
+ * @param code The error code
+ * @param message The error message
+ */
+void
+rift_regex_error_set_with_message(rift_regex_error_t *error, int code, const char *message)
+{
+    if (!error) {
+        return;
+    }
+
+    error->code = (rift_regex_error_code_t)code;
+
+    if (message) {
+        strncpy(error->message, message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+    } else {
+        const char *default_message =
+            rift_regex_error_code_to_string((rift_regex_error_code_t)code);
+        strncpy(error->message, default_message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+    }
+
+    error->position = 0;
+}
+
+/**
+ * @brief Set a formatted regex error message
+ *
+ * @param error The regex error object
+ * @param code The error code
+ * @param format The format string
+ * @param ... Variable arguments for the format
+ */
+void
+rift_regex_error_set_formatted(rift_regex_error_t *error, rift_regex_error_code_t code,
+                               const char *format, ...)
+{
+    if (!error) {
+        return;
+    }
+
+    error->code = code;
+
+    if (format) {
+        va_list args;
+        va_start(args, format);
+        vsnprintf(error->message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH, format, args);
+        va_end(args);
+    } else {
+        const char *default_message = rift_regex_error_code_to_string(code);
+        strncpy(error->message, default_message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+    }
+
+    error->position = 0;
+}
+
+/**
+ * @brief Clear an error object
+ *
+ * @param error Pointer to the error object (can be NULL)
+ */
+void
+rift_regex_error_clear(rift_regex_error_t *error)
+{
+    if (!error) {
+        return;
+    }
+
+    error->code = RIFT_REGEX_ERROR_NONE;
+    error->message[0] = '\0';
+    error->position = 0;
+}
+
+/**
+ * @brief Create a new error
+ *
+ * @param code The error code
+ * @param message The error message
+ * @return A new error object (must be freed by the caller)
+ */
+rift_regex_error_t *
+rift_regex_error_create(rift_regex_error_code_t code, const char *message)
+{
+    rift_regex_error_t *error = (rift_regex_error_t *)malloc(sizeof(rift_regex_error_t));
+    if (!error) {
+        return NULL;
+    }
+
+    error->code = code;
+
+    if (message) {
+        strncpy(error->message, message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+    } else {
+        const char *default_message = rift_regex_error_code_to_string(code);
+        strncpy(error->message, default_message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+    }
+
+    error->position = 0;
+
+    return error;
+}
+
+/**
+ * @brief Free an error object
+ *
+ * @param error Pointer to the error object (can be NULL)
+ */
+void
+rift_regex_error_free(rift_regex_error_t *error)
+{
+    if (error) {
+        free(error);
+    }
+}
+
+/**
+ * @brief Format an error object to a string
+ *
+ * @param error Pointer to the error object
+ * @param buffer Buffer to store the string
+ * @param buffer_size Size of the buffer
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_error_format(const rift_regex_error_t *error, char *buffer, size_t buffer_size)
+{
+    if (!error || !buffer || buffer_size == 0) {
+        return false;
+    }
+
+    if (error->position > 0) {
+        snprintf(buffer, buffer_size, "Error %d at position %zu: %s", (int)error->code,
+                 error->position, error->message);
+    } else {
+        snprintf(buffer, buffer_size, "Error %d: %s", (int)error->code, error->message);
+    }
+
+    return true;
+}
+
+/**
+ * @brief Check if an error exists
+ *
+ * @param error Pointer to the error object
+ * @return true if the error code is not RIFT_REGEX_ERROR_NONE, false otherwise
+ */
+bool
+rift_regex_error_exists(const rift_regex_error_t *error)
+{
+    return error && error->code != RIFT_REGEX_ERROR_NONE;
+}
+
+/**
+ * @brief Copy an error object
+ *
+ * @param dest Destination error object
+ * @param src Source error object
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_error_copy(rift_regex_error_t *dest, const rift_regex_error_t *src)
+{
+    if (!dest || !src) {
+        return false;
+    }
+
+    dest->code = src->code;
+    strncpy(dest->message, src->message, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH);
+    dest->position = src->position;
+
+    return true;
+}

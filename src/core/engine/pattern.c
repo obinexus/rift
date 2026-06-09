@@ -1,0 +1,782 @@
+/**
+engine/pattern.h
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/engine/pattern.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/engine/pattern.h
+tmp/librift_analysis/librift-4933472-W/src/core/engine/pattern.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/engine/pattern.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/engine/pattern.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/engine/pattern.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/engine/pattern.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/engine/pattern.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/engine/pattern.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/engine/pattern.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/engine/pattern.h"
+engine/pattern.h"
+ * @file regex_pattern.c
+ * @brief Implementation of the pattern compilation for the LibRift regex engine
+ *
+ * This file implements the compilation and management of regex patterns,
+ * supporting both standard regex syntax and the dedicated `r''` syntax.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/engine/pattern.h
+#include <stdlib.h>
+#include <string.h>
+
+
+/**
+ * @brief Extended regex pattern compilation function with automatic R'' syntax detection
+ *
+ * This function detects whether the pattern uses R'' syntax and sets up
+ * appropriate backtracking limits and strategies.
+ */
+rift_regex_automaton_t *
+rift_regex_compile_pattern_extended(const char *pattern, rift_regex_flags_t flags,
+                                    rift_backtrack_limit_registry_t *limit_registry,
+                                    uint32_t pattern_id, rift_regex_error_t *error)
+{
+    if (!pattern) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+            strncpy(error->message, "Invalid pattern parameter",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+        }
+        return NULL;
+    }
+
+    // Detect R'' syntax
+    bool is_r_syntax = rift_regex_is_rift_syntax(pattern);
+
+    // If using R'' syntax, ensure the RIFT_SYNTAX flag is set
+    if (is_r_syntax) {
+        flags |= RIFT_REGEX_FLAG_RIFT_SYNTAX;
+    }
+
+    // Parse the pattern into an AST
+    rift_regex_ast_t *ast = rift_regex_parse(pattern, flags, error);
+    if (!ast) {
+        return NULL;
+    }
+
+    // Compile the AST into an automaton
+    rift_regex_automaton_t *automaton = rift_regex_compile_ast(ast, flags, error);
+
+    // Free the AST (no longer needed after compilation)
+    rift_regex_ast_free(ast);
+
+    if (!automaton) {
+        return NULL;
+    }
+
+    // If using R'' syntax and limit registry is provided, register pattern-specific limits
+    if (is_r_syntax && limit_registry) {
+        // Calculate pattern complexity
+        float complexity = rift_bailout_calculate_pattern_complexity(
+            rift_regex_pattern_create_from_automaton(automaton, flags), true);
+
+        // Create appropriate limits based on complexity
+        rift_backtrack_limit_config_t *r_syntax_config = NULL;
+
+        if (complexity > 5.0f) {
+            // Stricter limits for highly complex patterns
+            r_syntax_config =
+                rift_backtrack_limit_config_create_pattern(pattern_id,
+                                                           true, // Override global settings
+                                                           800,  // Reduced depth limit
+                                                           3000, // Reduced time limit (3 seconds)
+                                                           50000 // Reduced transitions
+                );
+        } else if (complexity > 2.0f) {
+            // Moderate limits for medium complexity
+            r_syntax_config =
+                rift_backtrack_limit_config_create_pattern(pattern_id,
+                                                           true, // Override global settings
+                                                           1200, // Slightly reduced depth
+                                                           4000, // 4 seconds
+                                                           75000 // Moderately reduced transitions
+                );
+        } else {
+            // Default limits for simple patterns
+            r_syntax_config = rift_backtrack_limit_config_create_pattern(
+                pattern_id,
+                false,  // Use global settings
+                0, 0, 0 // These values are ignored when not overriding
+            );
+        }
+
+        // Register the configuration
+        if (r_syntax_config) {
+            rift_backtrack_limit_registry_register_pattern(limit_registry, pattern_id,
+                                                           r_syntax_config);
+
+            // Free the local copy
+            rift_backtrack_limit_config_free(r_syntax_config);
+        }
+    }
+
+    return automaton;
+}
+
+/**
+ * @brief Create a new regex pattern from a string
+ *
+ * @param pattern The pattern string
+ * @param flags Compilation flags
+ * @param error Pointer to store error code (can be NULL)
+ * @return A new pattern or NULL on failure
+ */
+rift_regex_pattern_t *
+rift_regex_compile(const char *pattern, rift_regex_flags_t flags, rift_regex_error_t *error)
+{
+    if (!pattern) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+        }
+        return NULL;
+    }
+
+    /* Allocate the pattern structure */
+    rift_regex_pattern_t *regex = (rift_regex_pattern_t *)malloc(sizeof(rift_regex_pattern_t));
+    if (!regex) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_MEMORY_ALLOCATION;
+            strncpy(error->message, "Failed to allocate memory for regex pattern",
+                    RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+            error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+        }
+        return NULL;
+    }
+
+    /* Initialize the pattern */
+    regex->source = strdup(pattern);
+    regex->ast = NULL;
+    regex->automaton = NULL;
+    regex->flags = flags;
+    regex->group_count = 0;
+    regex->is_rift_syntax = false;
+    regex->error_message[0] = '\0';
+
+    if (!regex->source) {
+        free(regex);
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_MEMORY_ALLOCATION;
+        }
+        return NULL;
+    }
+
+    /* Check if this is using r'' syntax */
+    if (pattern[0] == 'r' && (pattern[1] == '\'' || pattern[1] == '"')) {
+        regex->is_rift_syntax = true;
+
+        /* Verify that the RIFT_SYNTAX flag is enabled */
+        if (!(flags & RIFT_REGEX_FLAG_RIFT_SYNTAX)) {
+            if (error) {
+                error->code = RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE;
+            }
+            snprintf(regex->error_message, sizeof(regex->error_message),
+                     "LibRift r'' syntax used but RIFT_REGEX_FLAG_RIFT_SYNTAX not enabled");
+            rift_regex_pattern_free(regex);
+            return NULL;
+        }
+    }
+
+    /* Parse the pattern to AST */
+    regex->ast = rift_regex_parse(pattern, flags, error);
+    if (!regex->ast) {
+        rift_regex_pattern_free(regex);
+        return NULL;
+    }
+
+    /* Count capture groups in the AST */
+    regex->group_count = rift_regex_ast_count_groups(regex->ast);
+
+    /* Compile the AST to automaton */
+    regex->automaton = rift_regex_compile_ast(regex->ast, flags, error);
+    if (!regex->automaton) {
+        rift_regex_pattern_free(regex);
+        return NULL;
+    }
+
+    /* Apply optimizations if requested */
+    if (flags & RIFT_REGEX_FLAG_OPTIMIZE) {
+        if (!rift_regex_optimize_automaton(regex->automaton, flags, error)) {
+            rift_regex_pattern_free(regex);
+            return NULL;
+        }
+    }
+
+    return regex;
+}
+
+/**
+ * @brief Get the flags used to compile the pattern
+ *
+ * @param pattern The pattern
+ * @return The compilation flags
+ */
+rift_regex_flags_t
+rift_regex_pattern_get_flags(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return RIFT_REGEX_FLAG_NONE;
+    }
+
+    return pattern->flags;
+}
+
+/**
+ * @brief Get the number of capture groups in the pattern
+ *
+ * @param pattern The pattern
+ * @return The number of groups
+ */
+size_t
+rift_regex_pattern_get_group_count(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return 0;
+    }
+
+    return pattern->group_count;
+}
+
+/**
+ * @brief Get the compiled automaton from the pattern
+ *
+ * @param pattern The pattern
+ * @return The automaton or NULL if not compiled
+ */
+rift_regex_automaton_t *
+rift_regex_pattern_get_automaton(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return NULL;
+    }
+
+    return pattern->automaton;
+}
+
+/**
+ * @brief Free a compiled pattern
+ *
+ * @param pattern The pattern to free
+ */
+void
+rift_regex_pattern_free(rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return;
+    }
+
+    /* Free all owned resources */
+    if (pattern->source) {
+        free(pattern->source);
+    }
+
+    if (pattern->ast) {
+        free_ast(pattern->ast);
+    }
+
+    if (pattern->automaton) {
+        free_automaton(pattern->automaton);
+    }
+
+    /* Free the pattern itself */
+    free(pattern);
+}
+/**
+ * @brief Get the original source string of the pattern
+ *
+ * @param pattern The pattern
+ * @return The source string or NULL if not available
+ */
+const char *
+rift_regex_pattern_get_source(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return NULL;
+    }
+
+    return pattern->source ? pattern->source : NULL;
+}
+
+/**
+ * @brief Check if the pattern uses LibRift r'' syntax
+ *
+ * @param pattern The pattern
+ * @return true if it uses r'' syntax, false otherwise
+ */
+bool
+rift_regex_pattern_is_rift_syntax(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return false;
+    }
+
+    return pattern->is_rift_syntax;
+}
+
+/**
+ * @brief Get the AST for the pattern
+ *
+ * @param pattern The pattern
+ * @return The AST or NULL if not available
+ */
+const rift_regex_ast_t *
+rift_regex_pattern_get_ast(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return NULL;
+    }
+
+    return pattern->ast;
+}
+
+/**
+ * @brief Create a duplicate of a pattern
+ *
+ * @param pattern The pattern to clone
+ * @return A new pattern that is a copy of the original, or NULL on failure
+ */
+rift_regex_pattern_t *
+rift_regex_pattern_clone(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return NULL;
+    }
+
+    /* Allocate the pattern structure */
+    rift_regex_pattern_t *clone = (rift_regex_pattern_t *)malloc(sizeof(rift_regex_pattern_t));
+    if (!clone) {
+        return NULL;
+    }
+
+    /* Initialize with default values */
+    clone->source = NULL;
+    clone->ast = NULL;
+    clone->automaton = NULL;
+    clone->flags = pattern->flags;
+    clone->group_count = pattern->group_count;
+    clone->is_rift_syntax = pattern->is_rift_syntax;
+
+    /* Copy the source string */
+    if (pattern->source) {
+        clone->source = strdup(pattern->source);
+        if (!clone->source) {
+            rift_regex_pattern_free(clone);
+            return NULL;
+        }
+    }
+
+    /* Clone the AST */
+    if (pattern->ast) {
+        clone->ast = rift_regex_ast_clone(pattern->ast);
+        if (!clone->ast) {
+            rift_regex_pattern_free(clone);
+            return NULL;
+        }
+    }
+
+    /* Clone the automaton */
+    if (pattern->automaton) {
+        clone->automaton = rift_automaton_clone(pattern->automaton);
+        if (!clone->automaton) {
+            rift_regex_pattern_free(clone);
+            return NULL;
+        }
+    }
+
+    /* Copy the error message */
+    strncpy(clone->error_message, pattern->error_message, sizeof(clone->error_message));
+    clone->error_message[sizeof(clone->error_message) - 1] = '\0';
+
+    return clone;
+}
+
+/**
+ * @brief Get the last error message from a pattern compilation
+ *
+ * @param pattern The pattern
+ * @return The error message or NULL if no error occurred
+ */
+const char *
+rift_regex_pattern_get_error(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern || pattern->error_message[0] == '\0') {
+        return NULL;
+    }
+
+    return pattern->error_message;
+}
+
+/**
+ * @brief Check if a pattern is valid for use
+ *
+ * @param pattern The pattern to check
+ * @return true if the pattern is valid, false otherwise
+ */
+bool
+rift_regex_pattern_is_valid(const rift_regex_pattern_t *pattern)
+{
+    if (!pattern) {
+        return false;
+    }
+
+    /* A pattern is valid if it has an automaton */
+    return pattern->automaton != NULL;
+}
+
+/**
+ * @brief Get a string representation of a pattern for debugging
+ *
+ * @param pattern The pattern
+ * @param buffer Buffer to store the string
+ * @param buffer_size Size of the buffer
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_pattern_to_string(const rift_regex_pattern_t *pattern, char *buffer, size_t buffer_size)
+{
+    if (!pattern || !buffer || buffer_size == 0) {
+        return false;
+    }
+
+    /* Initialize the buffer */
+    buffer[0] = '\0';
+
+    /* Format: Pattern: "source" (flags: 0xXXXX, groups: N, automaton: valid/invalid) */
+    int written = snprintf(buffer, buffer_size,
+                           "Pattern: \"%s\" (flags: 0x%X, groups: %zu, automaton: %s, syntax: %s)",
+                           pattern->source ? pattern->source : "(null)", pattern->flags,
+                           pattern->group_count, pattern->automaton ? "valid" : "invalid",
+                           pattern->is_rift_syntax ? "r''" : "standard");
+
+    return (written > 0 && (size_t)written < buffer_size);
+}
+
+/**
+ * @brief Serialize a pattern to a binary format for storage
+ *
+ * @param pattern The pattern to serialize
+ * @param data Pointer to store the serialized data
+ * @param size Pointer to store the size of the serialized data
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_pattern_serialize(const rift_regex_pattern_t *pattern, unsigned char **data,
+                             size_t *size)
+{
+    /* Stub implementation - would require a full serialization format */
+    /* This would serialize the pattern's components (flags, source, automaton) */
+    /* For a real implementation, consider using a proper serialization library */
+
+    (void)pattern;
+    (void)data;
+    (void)size;
+    return false;
+}
+
+/**
+ * @brief Deserialize a pattern from a binary format
+ *
+ * @param data The serialized data
+ * @param size Size of the serialized data
+ * @param error Pointer to store error code (can be NULL)
+ * @return A new pattern or NULL on failure
+ */
+rift_regex_pattern_t *
+rift_regex_pattern_deserialize(const unsigned char *data, size_t size, rift_regex_error_t *error)
+{
+    /* Stub implementation - would require a full deserialization format */
+    /* This would reconstruct the pattern from serialized components */
+    /* For a real implementation, consider using a proper serialization library */
+
+    (void)data;
+    (void)size;
+    if (error) {
+        error->code = RIFT_REGEX_ERROR_UNSUPPORTED_OPERATION;
+    }
+    return NULL;
+}
+
+/**
+ * @brief Check if two patterns are equivalent
+ *
+ * @param pattern1 The first pattern
+ * @param pattern2 The second pattern
+ * @return true if the patterns are equivalent, false otherwise
+ */
+bool
+rift_regex_pattern_equals(const rift_regex_pattern_t *pattern1,
+                          const rift_regex_pattern_t *pattern2)
+{
+    if (!pattern1 || !pattern2) {
+        return pattern1 == pattern2; /* Both NULL is true, otherwise false */
+    }
+
+    /* Check if the source strings are the same */
+    if (strcmp(pattern1->source, pattern2->source) != 0) {
+        return false;
+    }
+
+    /* Check if the flags are the same */
+    if (pattern1->flags != pattern2->flags) {
+        return false;
+    }
+
+    /* For a more thorough check, we could compare the automata,
+     * but that's complex and potentially expensive.
+     * For most purposes, identical source and flags means equivalent patterns.
+     */
+
+    return true;
+}
+
+/**
+ * @brief Create a pattern from an AST
+ *
+ * This is useful for programmatically constructing patterns.
+ *
+ * @param ast The AST to compile
+ * @param flags Compilation flags
+ * @param error Pointer to store error code (can be NULL)
+ * @return A new pattern or NULL on failure
+ */
+rift_regex_pattern_t *
+rift_regex_pattern_from_ast(const rift_regex_ast_t *ast, rift_regex_flags_t flags,
+                            rift_regex_error_t *error)
+{
+    if (!ast) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+        }
+        return NULL;
+    }
+
+    /* Allocate the pattern structure */
+    rift_regex_pattern_t *regex = (rift_regex_pattern_t *)malloc(sizeof(rift_regex_pattern_t));
+    if (!regex) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_MEMORY_ALLOCATION;
+        }
+        return NULL;
+    }
+
+    /* Initialize the pattern */
+    regex->source = NULL; /* No source string for AST-derived patterns */
+    regex->ast = rift_regex_ast_clone(ast);
+    regex->automaton = NULL;
+    regex->flags = flags;
+    regex->group_count = 0;
+    regex->is_rift_syntax = false;
+    regex->error_message[0] = '\0';
+
+    if (!regex->ast) {
+        free(regex);
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_MEMORY_ALLOCATION;
+        }
+        return NULL;
+    }
+
+    /* Count capture groups in the AST */
+    regex->group_count = rift_regex_ast_count_groups(regex->ast);
+
+    /* Compile the AST to automaton */
+    regex->automaton = rift_regex_compile_ast(regex->ast, flags, error);
+    if (!regex->automaton) {
+        rift_regex_pattern_free(regex);
+        return NULL;
+    }
+
+    /* Apply optimizations if requested */
+    if (flags & RIFT_REGEX_FLAG_OPTIMIZE) {
+        if (!rift_regex_optimize_automaton(regex->automaton, flags, error)) {
+            rift_regex_pattern_free(regex);
+            return NULL;
+        }
+    }
+
+    /* Generate a source string representation from the AST */
+    char *ast_string = rift_regex_ast_to_string(ast);
+    if (ast_string) {
+        regex->source = ast_string;
+    }
+
+    return regex;
+}
+
+/**
+ * @brief Parse a pattern string without full compilation
+ *
+ * This is useful for syntax validation without automaton construction.
+ *
+ * @param pattern The pattern string
+ * @param flags Parsing flags
+ * @param error Pointer to store error code (can be NULL)
+ * @return true if the pattern is syntactically valid, false otherwise
+ */
+bool
+rift_regex_pattern_validate(const char *pattern, rift_regex_flags_t flags,
+                            rift_regex_error_t *error)
+{
+    if (!pattern) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_INVALID_PARAMETER;
+        }
+        return false;
+    }
+
+    /* Check for r'' syntax */
+    if (pattern[0] == 'r' && (pattern[1] == '\'' || pattern[1] == '"')) {
+        /* Verify that the RIFT_SYNTAX flag is enabled */
+        if (!(flags & RIFT_REGEX_FLAG_RIFT_SYNTAX)) {
+            if (error) {
+                error->code = RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE;
+            }
+            return false;
+        }
+    }
+
+    /* Create a parser */
+    rift_regex_parser_t *parser =
+        rift_regex_parser_create(flags, flags & RIFT_REGEX_FLAG_RIFT_SYNTAX);
+    if (!parser) {
+        if (error) {
+            error->code = RIFT_REGEX_ERROR_MEMORY_ALLOCATION;
+        }
+        return false;
+    }
+
+    /* Perform lightweight validation (just tokenize and check syntax) */
+    bool valid = rift_regex_parser_validate(parser, pattern, flags);
+
+    /* If validation failed, get the error */
+    if (!valid && error) {
+        error->code = rift_regex_parser_get_error_code(parser);
+        const char *msg = rift_regex_parser_get_error_message(parser);
+        if (msg) {
+            strncpy(error->message, msg, RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1);
+            error->message[RIFT_REGEX_ERROR_MAX_MESSAGE_LENGTH - 1] = '\0';
+        } else {
+            error->message[0] = '\0';
+        }
+    }
+
+    /* Free the parser */
+    rift_regex_parser_free(parser);
+
+    return valid;
+}
+
+/**
+ * @brief Split a pattern into subpatterns based on alternation
+ *
+ * This splits a pattern like "a|b|c" into ["a", "b", "c"].
+ *
+ * @param pattern The pattern to split
+ * @param subpatterns Array to store the subpatterns
+ * @param max_subpatterns Maximum number of subpatterns to return
+ * @param num_subpatterns Pointer to store the number of subpatterns found
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_pattern_split_alternation(const rift_regex_pattern_t *pattern,
+                                     rift_regex_pattern_t **subpatterns, size_t max_subpatterns,
+                                     size_t *num_subpatterns)
+{
+    if (!pattern || !subpatterns || !num_subpatterns || max_subpatterns == 0) {
+        return false;
+    }
+
+    /* Initialize the count */
+    *num_subpatterns = 0;
+
+    /* Get the AST */
+    const rift_regex_ast_t *ast = pattern->ast;
+    if (!ast) {
+        return false;
+    }
+
+    /* Get the root node */
+    rift_regex_ast_node_t *root = rift_regex_ast_get_root(ast);
+    if (!root) {
+        return false;
+    }
+
+    /* Find the alternation node */
+    rift_regex_ast_node_t *alt_node = NULL;
+
+    /* If the root is the alternation, use it directly */
+    if (rift_regex_ast_get_node_type(root) == RIFT_REGEX_AST_NODE_ALTERNATION) {
+        alt_node = root;
+    }
+    /* If the root has a single child that is alternation, use that */
+    else if (rift_regex_ast_get_child_count(root) == 1) {
+        rift_regex_ast_node_t *child = rift_regex_ast_get_child(root, 0);
+        if (rift_regex_ast_get_node_type(child) == RIFT_REGEX_AST_NODE_ALTERNATION) {
+            alt_node = child;
+        }
+    }
+
+    /* If we didn't find an alternation node, treat the whole pattern as a single alternative */
+    if (!alt_node) {
+        if (max_subpatterns > 0) {
+            subpatterns[0] = rift_regex_pattern_clone(pattern);
+            if (subpatterns[0]) {
+                *num_subpatterns = 1;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /* Count the number of alternatives */
+    size_t alt_count = rift_regex_ast_get_child_count(alt_node);
+    if (alt_count == 0) {
+        return false; /* Empty alternation */
+    }
+
+    /* Create a pattern for each alternative */
+    size_t count = alt_count < max_subpatterns ? alt_count : max_subpatterns;
+
+    for (size_t i = 0; i < count; i++) {
+        /* Get the alternative node */
+        rift_regex_ast_node_t *alt = rift_regex_ast_get_child(alt_node, i);
+
+        /* Create a new AST with this alternative as the root */
+        rift_regex_ast_t *alt_ast = rift_regex_ast_create();
+        if (!alt_ast) {
+            break;
+        }
+
+        /* Clone the alternative node */
+        rift_regex_ast_node_t *alt_clone = rift_regex_ast_clone_node(alt);
+        if (!alt_clone) {
+            rift_regex_ast_free(alt_ast);
+            break;
+        }
+
+        /* Set as root */
+        if (!rift_regex_ast_set_root(alt_ast, alt_clone)) {
+            rift_regex_ast_free_node(alt_clone);
+            rift_regex_ast_free(alt_ast);
+            break;
+        }
+
+        /* Create a pattern from this AST */
+        subpatterns[i] = rift_regex_pattern_from_ast(alt_ast, pattern->flags, NULL);
+        rift_regex_ast_free(alt_ast);
+
+        if (!subpatterns[i]) {
+            break;
+        }
+
+        (*num_subpatterns)++;
+    }
+
+    return *num_subpatterns > 0;
+}

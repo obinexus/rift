@@ -1,0 +1,132 @@
+Creating missing header: include/src/rift.h
+#include "rift.h
+src/rift.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/rift.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/rift.h"
+#include "Created directory: include/src
+#include "version.h"
+rift.h"
+src/rift.h"
+/**
+ * @file rift.c
+ * @brief Main implementation file for the LibRift regex engine
+ *
+ * This file implements the global library initialization, version checking,
+ * and cleanup functionality for the LibRift library.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+ 
+ /* Flag to track library initialization state */
+ static bool g_librift_initialized = false;
+ 
+ /**
+  * @brief Runtime version check function
+  *
+  * Use this to verify at runtime that the library version matches the expected version
+  *
+  * @return true if the used library version is compatible with the header version
+  */
+ bool librift_check_version(void) {
+     /* Check if the linked library version matches the header version */
+     /* This assumes that the header defines LIBRIFT_VERSION_MAJOR, etc. and
+        the implementation provides similar constants that are linked in. */
+     
+     /* Major version must match exactly for API compatibility */
+     if (LIBRIFT_VERSION_MAJOR != LIBRIFT_VERSION_MAJOR) {
+         return false;
+     }
+     
+     /* Minor version must be greater or equal (backward compatible) */
+     if (LIBRIFT_VERSION_MINOR < LIBRIFT_VERSION_MINOR) {
+         return false;
+     }
+     
+     /* Patch version can be different (bugfixes only) */
+     return true;
+ }
+ 
+ /**
+  * @brief Initialize the LibRift library
+  *
+  * This must be called before using any LibRift functionality.
+  *
+  * @return true if initialization is successful, false otherwise
+  */
+ bool librift_initialize(void) {
+     /* Return early if already initialized */
+     if (g_librift_initialized) {
+         return true;
+     }
+     
+     /* Initialize bytecode system */
+     if (!rift_bytecode_system_initialize()) {
+         return false;
+     }
+     
+     /* Initialize memory management system */
+     /* The memory system initialization would be called here if needed */
+     
+     /* Initialize the parser subsystem if needed */
+     /* Example: if (rift_parser_initialize() == false) return false; */
+     
+     /* Initialize the engine subsystem */
+     /* Example: if (rift_engine_initialize() == false) return false; */
+     
+     /* Mark as initialized */
+     g_librift_initialized = true;
+     
+     return true;
+ }
+ 
+ /**
+  * @brief Clean up and release resources used by LibRift
+  *
+  * Call this when finished using the library to release all resources.
+  */
+ void librift_cleanup(void) {
+     /* Return early if not initialized */
+     if (!g_librift_initialized) {
+         return;
+     }
+     
+     /* Cleanup bytecode system */
+     /* This would be implemented based on the bytecode system's cleanup needs */
+     
+     /* Cleanup other subsystems */
+     /* Example: rift_engine_cleanup(); */
+     
+     /* Mark as uninitialized */
+     g_librift_initialized = false;
+ }
+ 
+ /**
+  * @brief Get the LibRift library version string
+  *
+  * @return Version string in format "major.minor.patch"
+  */
+ const char* librift_get_version_string(void) {
+     return LIBRIFT_VERSION_STRING;
+ }
+ 
+ /**
+  * @brief Get the LibRift library version as an integer
+  *
+  * Version is encoded as: (major << 16) | (minor << 8) | patch
+  *
+  * @return Version integer
+  */
+ uint32_t librift_get_version(void) {
+     return LIBRIFT_VERSION;
+ }
+ 
+ /**
+  * @brief Check if the LibRift library is initialized
+  *
+  * @return true if initialized, false otherwise
+  */
+ bool librift_is_initialized(void) {
+     return g_librift_initialized;
+ }

@@ -1,0 +1,313 @@
+// ============================================================================
+// Phone Number Validator - RiftLang Example
+// ============================================================================
+//
+// Demonstrates pattern composition with quantifiers and alternation.
+// Supports multiple phone formats:
+//   - US: (123) 456-7890
+//   - International: +1-123-456-7890
+//   - Simple: 1234567890
+//
+// Compilation targets: C, C++, Go, Python, Rust, Java, JavaScript, Lua, WASM
+// Author: OBINexus Computing
+// Date: May 28, 2026
+// Version: 1.0.0
+
+package patterns.phone;
+
+// ============================================================================
+// Basic Digit and Separator Patterns
+// ============================================================================
+
+pattern DIGIT = /[0-9]/;
+pattern DIGITS3 = DIGIT @ DIGIT @ DIGIT;
+pattern DIGITS4 = DIGIT @ DIGIT @ DIGIT @ DIGIT;
+pattern SPACE = / /;
+pattern DASH = /-/;
+pattern PLUS = /\+/;
+
+// ============================================================================
+// Format-Specific Patterns
+// ============================================================================
+
+// US Format: (123) 456-7890
+pattern US_AREA_CODE = /\(/ @ DIGITS3 @ /\)/;
+pattern US_EXCHANGE = DIGITS3;
+pattern US_SUBSCRIBER = DIGITS4;
+pattern US_FORMATTED = US_AREA_CODE @ SPACE @ US_EXCHANGE @ DASH @ US_SUBSCRIBER;
+
+// International Format: +1-123-456-7890
+pattern COUNTRY_CODE = PLUS @ DIGIT+;
+pattern INTERNATIONAL = COUNTRY_CODE @ DASH @ DIGITS3 @ DASH @ DIGITS3 @ DASH @ DIGITS4;
+
+// Simple Format: 1234567890 (10 digits)
+pattern SIMPLE = (DIGIT){10};
+
+// Alternative format: 123-456-7890
+pattern DASHED = DIGITS3 @ DASH @ DIGITS3 @ DASH @ DIGITS4;
+
+// Master phone pattern (all formats)
+pattern PHONE = US_FORMATTED | INTERNATIONAL | SIMPLE | DASHED;
+
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+type Phone {
+    pattern: PHONE,
+    constraints: {
+        length: { min: 10, max: 20 },
+        unique: false,
+        required: true
+    }
+}
+
+type CountryCode {
+    pattern: COUNTRY_CODE,
+    constraints: {
+        length: { min: 2, max: 4 },
+        regex: /^\+\d{1,3}$/
+    }
+}
+
+type AreaCode {
+    pattern: DIGITS3,
+    constraints: {
+        length: { min: 3, max: 3 },
+        regex: /^[0-9]{3}$/
+    }
+}
+
+// ============================================================================
+// Function Declarations
+// ============================================================================
+
+fn validate_phone(input: string) -> bool {
+    match input {
+        PHONE => true,
+        _ => false
+    }
+}
+
+fn normalize_phone(input: string) -> string {
+    match input {
+        // Remove all non-digit characters except +
+        _ => {
+            let normalized = "";
+            for char in input {
+                if (char >= '0' && char <= '9') || char == '+' {
+                    normalized = normalized @ char;
+                }
+            }
+            return normalized;
+        }
+    }
+}
+
+fn extract_area_code(phone: string) -> string | null {
+    match phone {
+        // US Formatted: (123) 456-7890
+        /\(/ @ (DIGIT @ DIGIT @ DIGIT) @ /\)/ @ SPACE @ DIGITS3 @ DASH @ DIGITS4 => {
+            return (DIGIT @ DIGIT @ DIGIT);
+        },
+        // Dashed: 123-456-7890
+        (DIGIT @ DIGIT @ DIGIT) @ DASH @ DIGITS3 @ DASH @ DIGITS4 => {
+            return (DIGIT @ DIGIT @ DIGIT);
+        },
+        // Simple: 1234567890
+        (DIGIT @ DIGIT @ DIGIT) @ (DIGIT){7} => {
+            return (DIGIT @ DIGIT @ DIGIT);
+        },
+        _ => {
+            return null;
+        }
+    }
+}
+
+fn extract_exchange(phone: string) -> string | null {
+    match phone {
+        // US Formatted: (123) 456-7890
+        /\(/ @ DIGITS3 @ /\)/ @ SPACE @ (DIGIT @ DIGIT @ DIGIT) @ DASH @ DIGITS4 => {
+            return (DIGIT @ DIGIT @ DIGIT);
+        },
+        // Dashed: 123-456-7890
+        DIGITS3 @ DASH @ (DIGIT @ DIGIT @ DIGIT) @ DASH @ DIGITS4 => {
+            return (DIGIT @ DIGIT @ DIGIT);
+        },
+        // Simple: 1234567890 (digits 3-5)
+        DIGIT @ DIGIT @ DIGIT @ (DIGIT @ DIGIT @ DIGIT) @ (DIGIT){4} => {
+            return (DIGIT @ DIGIT @ DIGIT);
+        },
+        _ => {
+            return null;
+        }
+    }
+}
+
+fn is_us_phone(phone: string) -> bool {
+    match phone {
+        US_FORMATTED => true,
+        SIMPLE => {
+            // Check if it starts with valid US area code
+            let area = extract_area_code(phone);
+            if area == null {
+                return false;
+            }
+            return true;
+        },
+        DASHED => true,
+        _ => false
+    }
+}
+
+fn is_international_phone(phone: string) -> bool {
+    match phone {
+        INTERNATIONAL => true,
+        COUNTRY_CODE @ DASH @ (DIGIT)+ => true,
+        _ => false
+    }
+}
+
+// ============================================================================
+// Test Blocks
+// ============================================================================
+
+test validate_phone {
+    config {
+        framework: "unit",
+        timeout_ms: 1000
+    }
+
+    // US Format tests
+    assert validate_phone("(123) 456-7890") == true,
+           "US format should be valid";
+
+    assert validate_phone("(555) 123-4567") == true,
+           "Another US format should be valid";
+
+    // International format tests
+    assert validate_phone("+1-123-456-7890") == true,
+           "International format should be valid";
+
+    assert validate_phone("+44-20-7946-0958") == true,
+           "International UK format should be valid";
+
+    // Simple format tests
+    assert validate_phone("1234567890") == true,
+           "Simple 10-digit format should be valid";
+
+    assert validate_phone("9876543210") == true,
+           "Another 10-digit format should be valid";
+
+    // Dashed format tests
+    assert validate_phone("123-456-7890") == true,
+           "Dashed format should be valid";
+
+    // Invalid cases
+    assert validate_phone("123456789") == false,
+           "9-digit number should be invalid";
+
+    assert validate_phone("12345678901") == false,
+           "11-digit number should be invalid";
+
+    assert validate_phone("abc-def-ghij") == false,
+           "Non-numeric should be invalid";
+
+    assert validate_phone("") == false,
+           "Empty string should be invalid";
+}
+
+test normalize_phone {
+    config {
+        framework: "unit",
+        timeout_ms: 500
+    }
+
+    let input1 = "(123) 456-7890";
+    let normalized1 = normalize_phone(input1);
+    assert normalized1 == "+1234567890",
+           "Should normalize US format";
+
+    let input2 = "+1-123-456-7890";
+    let normalized2 = normalize_phone(input2);
+    assert normalized2 == "+11234567890",
+           "Should preserve + and normalize international";
+
+    let input3 = "123-456-7890";
+    let normalized3 = normalize_phone(input3);
+    assert normalized3 == "1234567890",
+           "Should remove dashes";
+}
+
+test extract_components {
+    config {
+        framework: "unit",
+        timeout_ms: 1000
+    }
+
+    // US Formatted
+    let us_phone = "(555) 123-4567";
+    let area = extract_area_code(us_phone);
+    assert area == "555",
+           "Should extract area code from US format";
+
+    let exchange = extract_exchange(us_phone);
+    assert exchange == "123",
+           "Should extract exchange from US format";
+
+    // Simple format
+    let simple = "9876543210";
+    let simple_area = extract_area_code(simple);
+    assert simple_area == "987",
+           "Should extract area code from simple format";
+
+    // Invalid
+    assert extract_area_code("invalid") == null,
+           "Invalid phone should return null area code";
+}
+
+test phone_type_classification {
+    config {
+        framework: "unit",
+        timeout_ms: 1000
+    }
+
+    assert is_us_phone("(123) 456-7890") == true,
+           "US formatted should classify as US";
+
+    assert is_us_phone("1234567890") == true,
+           "Simple 10-digit should classify as US";
+
+    assert is_us_phone("123-456-7890") == true,
+           "Dashed should classify as US";
+
+    assert is_international_phone("+1-123-456-7890") == true,
+           "International format should classify as international";
+
+    assert is_international_phone("+44-20-7946-0958") == true,
+           "UK number should classify as international";
+
+    assert is_international_phone("1234567890") == false,
+           "Simple US should not be international";
+}
+
+test phone_validation_performance {
+    config {
+        framework: "benchmark",
+        iterations: 5000,
+        timeout_ms: 3000,
+        performance_assertions: {
+            max_time_per_op_us: 50,
+            max_memory_bytes: 512,
+            throughput_min_ops_per_sec: 20000
+        }
+    }
+
+    for i in 0..5000 {
+        validate_phone("(" @ i @ ") 123-4567");
+    }
+}
+
+// ============================================================================
+// End of phone_validator.rf
+// ============================================================================

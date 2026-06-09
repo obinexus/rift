@@ -1,0 +1,13 @@
+C:/Users/Public/Public RIFT/rift/dist/CMakeFiles/rift_static.dir
+C:/Users/Public/Public RIFT/rift/dist/CMakeFiles/rift_shared.dir
+C:/Users/Public/Public RIFT/rift/dist/CMakeFiles/rift_cli.dir
+C:/Users/Public/Public RIFT/rift/dist/CMakeFiles/RUN_TESTS.dir
+C:/Users/Public/Public RIFT/rift/dist/CMakeFiles/INSTALL.dir
+C:/Users/Public/Public RIFT/rift/dist/CMakeFiles/ALL_BUILD.dir
+C:/Users/Public/Public RIFT/rift/dist/CMakeFiles/ZERO_CHECK.dir
+C:/Users/Public/Public RIFT/rift/dist/tests/CMakeFiles/test_token.dir
+C:/Users/Public/Public RIFT/rift/dist/tests/CMakeFiles/test_lexer.dir
+C:/Users/Public/Public RIFT/rift/dist/tests/CMakeFiles/test_codec.dir
+C:/Users/Public/Public RIFT/rift/dist/tests/CMakeFiles/test_cli.dir
+C:/Users/Public/Public RIFT/rift/dist/tests/CMakeFiles/RUN_TESTS.dir
+C:/Users/Public/Public RIFT/rift/dist/tests/CMakeFiles/INSTALL.dir

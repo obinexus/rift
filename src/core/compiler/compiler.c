@@ -1,0 +1,1791 @@
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/compiler/compiler.h
+tmp/librift_analysis/librift-4933472-W/src/core/compiler/compiler.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/compiler/compiler.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/compiler/compiler.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/compiler/compiler.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/compiler/compiler.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @file compiler.c
+ * @brief Implementation of the pattern compiler for the LibRift regex engine
+ *
+ * This file handles the transformation of parsed AST to NFA and DFA structures
+ * to enable efficient pattern matching.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/compiler/compiler.h
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Optimize an automaton based on specified flags
+ *
+ * This function applies optimization techniques to the automaton based on
+ * the provided flags to improve performance or reduce memory usage.
+ *
+ * @param automaton The automaton to optimize
+ * @param flags Optimization flags
+ * @param error Pointer to store error information (can be NULL)
+ * @return true if optimization was successful, false otherwise
+ */
+#define RIFT_REGEX_SET_ERROR(err, code, msg, ...)                                                  \
+    if (err) {                                                                                     \
+        rift_regex_error_set_formatted(err, code, msg, ##__VA_ARGS__);                             \
+    }
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Find the index of a subset in a list of subsets
+ *
+ * @param states The states to look for
+ * @param num_states Number of states
+ * @param subsets Array of subsets
+ * @param subset_sizes Array of subset sizes
+ * @param num_subsets Number of subsets
+ * @return The index of the subset or -1 if not found
+ */
+int
+find_subset_index(rift_regex_state_t **states, size_t num_states, rift_regex_state_t ***subsets,
+                  size_t *subset_sizes, size_t num_subsets)
+{
+    if (!states || !subsets || !subset_sizes) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < num_subsets; i++) {
+        if (subset_sizes[i] != num_states) {
+            continue;
+        }
+
+        bool match = true;
+        for (size_t j = 0; j < num_states; j++) {
+            bool found = false;
+            for (size_t k = 0; k < num_states; k++) {
+                if (states[j] == subsets[i][k]) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                match = false;
+                break;
+            }
+        }
+
+        if (match) {
+            return (int)i;
+        }
+    }
+
+    return -1;
+}
+
+bool
+rift_regex_optimize_automaton(rift_regex_automaton_t *automaton, rift_regex_flags_t flags,
+                              rift_regex_error_t *error)
+{
+    // Parameter validation first
+    if (!automaton) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid automaton parameter");
+        }
+        return false;
+    }
+
+    // Optimize based on flags
+    if ((flags & RIFT_REGEX_FLAG_OPTIMIZE_SIZE) != 0) {
+        // Apply state reduction techniques
+        if (!rift_automaton_minimize(automaton)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                     "Failed to minimize automaton");
+            }
+            return false;
+        }
+    }
+
+    if ((flags & RIFT_REGEX_FLAG_OPTIMIZE_SPEED) != 0) {
+        // Implement transition table optimization
+        if (!rift_automaton_optimize_transitions(automaton)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                     "Failed to optimize transitions");
+            }
+            return false;
+        }
+    }
+
+    // Remove unreachable states (common optimization regardless of flags)
+    if (!rift_automaton_remove_unreachable_states(automaton)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                 "Failed to remove unreachable states");
+        }
+        return false;
+    }
+
+    // All optimizations succeeded
+    return true;
+}
+
+bool
+optimize_speed_if_flag_set(rift_regex_automaton_t *automaton, rift_regex_flags_t flags,
+                           rift_regex_error_t *error)
+{
+    if (flags & RIFT_REGEX_FLAG_OPTIMIZE_SPEED) {
+        // Implement transition table optimization
+        if (!rift_automaton_optimize_transitions(automaton)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                     "Failed to optimize transitions", 0);
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Get a string describing a pattern compilation error
+ */
+const char *
+rift_regex_get_compile_error_message(rift_regex_error_t error)
+{
+    if (error.code == RIFT_REGEX_ERROR_NONE) {
+        return "No error";
+    }
+    if (error.code == RIFT_REGEX_ERROR_INVALID_PARAMETER) {
+        return "Invalid parameter";
+    }
+    if (error.code == RIFT_REGEX_ERROR_MEMORY) {
+        return "Memory allocation failed";
+    }
+    if (error.code == RIFT_REGEX_ERROR_SYNTAX) {
+        return "Syntax error in pattern";
+    }
+    if (error.code == RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE) {
+        return "Unsupported feature";
+    }
+    if (error.code == RIFT_REGEX_ERROR_INVALID_QUANTIFIER) {
+        return "Invalid quantifier";
+    }
+    if (error.code == RIFT_REGEX_ERROR_INVALID_ESCAPE) {
+        return "Invalid escape sequence";
+    }
+    if (error.code == RIFT_REGEX_ERROR_INVALID_CHARACTER_CLASS) {
+        return "Invalid character class";
+    }
+    if (error.code == RIFT_REGEX_ERROR_INVALID_BACKREFERENCE) {
+        return "Invalid backreference";
+    }
+    if (error.code == RIFT_REGEX_ERROR_UNBALANCED_PARENTHESES) {
+        return "Unbalanced parentheses";
+    }
+    if (error.code == RIFT_REGEX_ERROR_UNBALANCED_BRACKETS) {
+        return "Unbalanced brackets";
+    }
+    if (error.code == RIFT_REGEX_ERROR_TRAILING_BACKSLASH) {
+        return "Trailing backslash";
+    }
+    if (error.code == RIFT_REGEX_ERROR_INTERNAL) {
+        return "Internal error";
+    }
+    if (error.code == RIFT_REGEX_ERROR_UNSUPPORTED_OPERATION) {
+        return "Unsupported operation";
+    }
+    if (error.code == RIFT_REGEX_ERROR_UNEXPECTED_TOKEN) {
+        return "Unexpected token";
+    }
+    if (error.code == RIFT_REGEX_ERROR_LIMIT_EXCEEDED) {
+        return "Limit exceeded";
+    }
+    if (error.code == RIFT_REGEX_ERROR_BUFFER_OVERFLOW) {
+        return "Buffer overflow";
+    }
+    return "Unknown error";
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Compile an AST into an automaton structure
+ */
+rift_regex_automaton_t *
+rift_regex_compile_ast(const rift_regex_ast_t *ast, rift_regex_flags_t flags,
+                       rift_regex_error_t *error)
+{
+    if (!ast) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER, "Invalid AST parameter",
+                                 0);
+        }
+        return NULL;
+    }
+
+    // Create an empty NFA
+    rift_regex_automaton_t *nfa = rift_automaton_create(RIFT_AUTOMATON_NFA);
+    if (!nfa) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY, "Failed to create automaton");
+        }
+        return NULL;
+    }
+
+    // Traverse AST and build NFA
+    if (!build_automaton_from_ast(nfa, ast, flags, error)) {
+        rift_automaton_free(nfa);
+        return NULL;
+    }
+
+    // Determine if DFA conversion is needed based on flags
+    if (flags & RIFT_REGEX_FLAG_USE_DFA) {
+        rift_regex_automaton_t *dfa = rift_automaton_nfa_to_dfa(nfa, error);
+        rift_automaton_free(nfa);
+
+        if (!dfa) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                     "Failed to convert NFA to DFA");
+            }
+            return NULL;
+        }
+
+        // Apply optimizations if requested
+        if (flags & (RIFT_REGEX_FLAG_OPTIMIZE_SIZE | RIFT_REGEX_FLAG_OPTIMIZE_SPEED)) {
+            if (!rift_regex_optimize_automaton(dfa, flags, error)) {
+                rift_automaton_free(dfa);
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                         "Failed to optimize automaton");
+                }
+                return NULL;
+            }
+        }
+
+        return dfa;
+    }
+
+    return nfa;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Compile a pattern string into an automaton structure
+ */
+rift_regex_automaton_t *
+rift_regex_compile_pattern(const char *pattern, rift_regex_flags_t flags, rift_regex_error_t *error)
+{
+    if (!pattern) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid pattern parameter");
+        }
+        return NULL;
+    }
+
+    // Parse the pattern into an AST
+    rift_regex_ast_t *ast = rift_regex_parse(pattern, flags, error);
+    if (!ast) {
+        return NULL;
+    }
+
+    // Compile the AST into an automaton
+    rift_regex_automaton_t *automaton = rift_regex_compile_ast(ast, flags, error);
+
+    // Free the AST (no longer needed after compilation)
+    rift_regex_ast_free(ast);
+
+    return automaton;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Build an automaton from an AST
+ */
+bool
+build_automaton_from_ast(rift_regex_automaton_t *automaton, const rift_regex_ast_t *ast,
+                         rift_regex_flags_t flags, rift_regex_error_t *error)
+{
+    if (!automaton || !ast) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid automaton or AST parameter");
+        }
+        return false;
+    }
+
+    // Get the root node of the AST
+    rift_regex_ast_node_t *root = rift_regex_ast_get_root(ast);
+    if (!root) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid AST root node");
+        }
+        return false;
+    }
+
+    // Create start and end states
+    rift_regex_state_t *start_state = NULL;
+    rift_regex_state_t *end_state = NULL;
+
+    // Convert AST to NFA
+    if (!convert_node_to_nfa(automaton, root, &start_state, &end_state, flags, error)) {
+        return false;
+    }
+
+    // Set the end state as accepting
+    if (!rift_automaton_set_state_accepting(automaton, end_state, true)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL, "Failed to set accepting state");
+        }
+        return false;
+    }
+
+    // Set the start state as the initial state of the automaton
+    if (!rift_automaton_set_initial_state(automaton, start_state)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL, "Failed to set initial state");
+        }
+        return false;
+    }
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Convert an AST node to an NFA
+ */
+bool
+convert_node_to_nfa(rift_regex_automaton_t *automaton, const rift_regex_ast_node_t *node,
+                    rift_regex_state_t **start_state, rift_regex_state_t **end_state,
+                    rift_regex_flags_t flags, rift_regex_error_t *error)
+{
+    if (!automaton || !node || !start_state || !end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid parameters for NFA conversion");
+        }
+        return false;
+    }
+
+    // Handle different node types
+    switch (rift_regex_ast_get_node_type(node)) {
+    case RIFT_REGEX_AST_NODE_ALTERNATION:
+        return handle_alternation(automaton, node, start_state, end_state, flags, error);
+
+    case RIFT_REGEX_AST_NODE_CONCATENATION:
+        return handle_concatenation(automaton, node, start_state, end_state, flags, error);
+
+    case RIFT_REGEX_AST_NODE_QUANTIFIER:
+        return handle_quantifier(automaton, node, start_state, end_state, flags, error);
+
+    case RIFT_REGEX_AST_NODE_CHARACTER_CLASS:
+        return handle_character_class(automaton, node, start_state, end_state, error);
+
+    case RIFT_REGEX_AST_NODE_LITERAL:
+        return handle_literal(automaton, node, start_state, end_state, error);
+
+    case RIFT_REGEX_AST_NODE_DOT:
+        // Create a dot (any character) NFA
+        *start_state = rift_automaton_create_state(automaton, false);
+        *end_state = rift_automaton_create_state(automaton, false);
+
+        if (!*start_state || !*end_state) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create start or end states", 0);
+            }
+            return false;
+        }
+
+        // Use "." as the pattern for the transition
+        return rift_automaton_add_transition(automaton, *start_state, *end_state, ".");
+
+    case RIFT_REGEX_AST_NODE_GROUP:
+
+    case RIFT_REGEX_AST_NODE_NON_CAPTURING_GROUP:
+    case RIFT_REGEX_AST_NODE_NAMED_GROUP:
+        return handle_group(automaton, node, start_state, end_state, flags, error);
+
+    case RIFT_REGEX_AST_NODE_ANCHOR:
+        return handle_anchor(automaton, node, start_state, end_state, error);
+
+    case RIFT_REGEX_AST_NODE_ROOT:
+        // Root node should have exactly one child
+        if (rift_regex_ast_get_child_count(node) != 1) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                     "Root node must have exactly one child", 0);
+            }
+            return false;
+        }
+
+        // Convert the child node
+        return convert_node_to_nfa(automaton, rift_regex_ast_get_child(node, 0), start_state,
+                                   end_state, flags, error);
+
+    default:
+        // Unsupported node type
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE,
+                                 "Unsupported AST node type", 0);
+        }
+        return false;
+
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE,
+                                 "Unsupported AST node type", 0);
+        }
+        return false;
+    }
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Handle alternation (|) node
+ */
+bool
+handle_alternation(rift_regex_automaton_t *automaton, const rift_regex_ast_node_t *node,
+                   rift_regex_state_t **start_state, rift_regex_state_t **end_state,
+                   rift_regex_flags_t flags, rift_regex_error_t *error)
+{
+    if (!automaton || !node || !start_state || !end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid parameters for alternation handling", 0);
+        }
+        return false;
+    }
+
+    // Alternation must have at least 2 children
+    size_t child_count = rift_regex_ast_get_child_count(node);
+    if (child_count < 2) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                 "Alternation must have at least 2 children");
+        }
+        return false;
+    }
+
+    // Create common start and end states
+    *start_state = rift_automaton_create_state(automaton, false);
+    *end_state = rift_automaton_create_state(automaton, false);
+
+    if (!*start_state || !*end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create start or end states", 0);
+        }
+        return false;
+    }
+
+    // Process each alternative
+    for (size_t i = 0; i < child_count; i++) {
+        rift_regex_ast_node_t *child = rift_regex_ast_get_child(node, i);
+        if (!child) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                     "Invalid alternation child node", 0);
+            }
+            return false;
+        }
+
+        // Create sub-NFA for this alternative
+        rift_regex_state_t *alt_start = NULL;
+        rift_regex_state_t *alt_end = NULL;
+
+        if (!convert_node_to_nfa(automaton, child, &alt_start, &alt_end, flags, error)) {
+            return false;
+        }
+
+        // Connect to common start and end states with epsilon transitions
+        if (!rift_automaton_create_epsilon_transition(automaton, *start_state, alt_start) ||
+            !rift_automaton_create_epsilon_transition(automaton, alt_end, *end_state)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create epsilon transition", 0);
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Handle concatenation node
+ */
+bool
+handle_concatenation(rift_regex_automaton_t *automaton, const rift_regex_ast_node_t *node,
+                     rift_regex_state_t **start_state, rift_regex_state_t **end_state,
+                     rift_regex_flags_t flags, rift_regex_error_t *error)
+{
+    if (!automaton || !node || !start_state || !end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid parameters for concatenation handling", 0);
+        }
+        return false;
+    }
+
+    // Concatenation must have at least 1 child
+    size_t child_count = rift_regex_ast_get_child_count(node);
+    if (child_count < 1) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                 "Concatenation must have at least 1 child", 0);
+        }
+        return false;
+    }
+
+    // Handle the special case of a single child
+    if (child_count == 1) {
+        return convert_node_to_nfa(automaton, rift_regex_ast_get_child(node, 0), start_state,
+                                   end_state, flags, error);
+    }
+
+    // Process the first child
+    rift_regex_state_t *first_start = NULL;
+    rift_regex_state_t *first_end = NULL;
+
+    if (!convert_node_to_nfa(automaton, rift_regex_ast_get_child(node, 0), &first_start, &first_end,
+                             flags, error)) {
+        return false;
+    }
+
+    // Set the start state to the first child's start state
+    *start_state = first_start;
+    rift_regex_state_t *current_end = first_end;
+
+    // Process remaining children
+    for (size_t i = 1; i < child_count; i++) {
+        rift_regex_ast_node_t *child = rift_regex_ast_get_child(node, i);
+        if (!child) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                     "Invalid concatenation child node", 0);
+            }
+            return false;
+        }
+
+        // Create sub-NFA for this child
+        rift_regex_state_t *child_start = NULL;
+        rift_regex_state_t *child_end = NULL;
+
+        if (!convert_node_to_nfa(automaton, child, &child_start, &child_end, flags, error)) {
+            return false;
+        }
+
+        // Connect the current end to the child's start
+        if (!rift_automaton_create_epsilon_transition(automaton, current_end, child_start)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create epsilon transition", 0);
+            }
+            return false;
+        }
+
+        // Update the current end state
+        current_end = child_end;
+    }
+
+    // Set the end state to the last child's end state
+    *end_state = current_end;
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Handle quantifier (*, +, ?, {m,n}) node
+ */
+bool
+handle_quantifier(rift_regex_automaton_t *automaton, const rift_regex_ast_node_t *node,
+                  rift_regex_state_t **start_state, rift_regex_state_t **end_state,
+                  rift_regex_flags_t flags, rift_regex_error_t *error)
+{
+    if (!automaton || !node || !start_state || !end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid parameters for quantifier handling", 0);
+        }
+        return false;
+    }
+
+    // Quantifier must have exactly one child
+    if (rift_regex_ast_get_child_count(node) != 1) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                 "Quantifier must have exactly one child", 0);
+        }
+        return false;
+    }
+
+    // Get the quantifier pattern
+    const char *pattern = rift_regex_ast_get_node_value(node);
+    if (!pattern) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL, "Invalid quantifier pattern", 0);
+        }
+        return false;
+    }
+
+    // Parse quantifier values
+    size_t min = 0;
+    size_t max = 0;
+    bool is_greedy = true;
+
+    if (!parse_quantifier_values(pattern, &min, &max, &is_greedy)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_QUANTIFIER,
+                                 "Invalid quantifier pattern: '%s'", pattern);
+        }
+        fprintf(stderr, "Error: Failed to parse quantifier pattern: '%s'\n", pattern);
+        return false;
+    }
+
+    // Create common start and end states
+    *start_state = rift_automaton_create_state(automaton, false);
+    *end_state = rift_automaton_create_state(automaton, false);
+    if (!*start_state || !*end_state) {
+        RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY, "Failed to create start or end states",
+                             0);
+        return false;
+    }
+
+    // Get the quantified sub-expression
+    rift_regex_ast_node_t *child = rift_regex_ast_get_child(node, 0);
+
+    // Handle different quantifier types
+    if (min == 0 && max == 0) {
+        // * or {0,} - Zero or more repetitions
+        rift_regex_state_t *sub_start = NULL;
+        rift_regex_state_t *sub_end = NULL;
+
+        if (!convert_node_to_nfa(automaton, child, &sub_start, &sub_end, flags, error)) {
+            return false;
+        }
+
+        // Connect start and end states
+        if (!rift_automaton_create_epsilon_transition(automaton, *start_state, *end_state) ||
+            !rift_automaton_create_epsilon_transition(automaton, *start_state, sub_start) ||
+            !rift_automaton_create_epsilon_transition(automaton, sub_end, *end_state) ||
+            !rift_automaton_create_epsilon_transition(automaton, sub_end, sub_start)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create epsilon transition", 0);
+            }
+            return false;
+        }
+    } else if (min == 1 && max == 0) {
+        // + or {1,} - One or more repetitions
+        rift_regex_state_t *sub_start = NULL;
+        rift_regex_state_t *sub_end = NULL;
+
+        if (!convert_node_to_nfa(automaton, child, &sub_start, &sub_end, flags, error)) {
+            return false;
+        }
+
+        // Connect start and end states
+        if (!rift_automaton_create_epsilon_transition(automaton, *start_state, sub_start) ||
+            !rift_automaton_create_epsilon_transition(automaton, sub_end, *end_state) ||
+            !rift_automaton_create_epsilon_transition(automaton, sub_end, sub_start)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create epsilon transition", 0);
+            }
+            return false;
+        }
+    } else if (min == 0 && max == 1) {
+        // ? or {0,1} - Zero or one repetition
+        rift_regex_state_t *sub_start = NULL;
+        rift_regex_state_t *sub_end = NULL;
+
+        if (!convert_node_to_nfa(automaton, child, &sub_start, &sub_end, flags, error)) {
+            return false;
+        }
+
+        // Connect start and end states
+        if (!rift_automaton_create_epsilon_transition(automaton, *start_state, *end_state) ||
+            !rift_automaton_create_epsilon_transition(automaton, *start_state, sub_start) ||
+            !rift_automaton_create_epsilon_transition(automaton, sub_end, *end_state)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create epsilon transition", 0);
+            }
+            return false;
+        }
+    } else {
+        // {m,n} - Between m and n repetitions
+
+        // First, handle the minimum number of repetitions
+        rift_regex_state_t *prev_end = *start_state;
+
+        for (size_t i = 0; i < min; i++) {
+            rift_regex_state_t *sub_start = NULL;
+            rift_regex_state_t *sub_end = NULL;
+
+            if (!convert_node_to_nfa(automaton, child, &sub_start, &sub_end, flags, error)) {
+                return false;
+            }
+
+            // Connect the previous end to this copy's start
+            if (!rift_automaton_create_epsilon_transition(automaton, prev_end, sub_start)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                         "Failed to create epsilon transition", 0);
+                }
+                return false;
+            }
+
+            prev_end = sub_end;
+        }
+
+        // If max is unlimited or there are additional optional repetitions
+        if (max == 0 || max > min) {
+            // Create a repeating section for the optional repetitions
+            rift_regex_state_t *optional_start = NULL;
+            rift_regex_state_t *optional_end = NULL;
+
+            if (!convert_node_to_nfa(automaton, child, &optional_start, &optional_end, flags,
+                                     error)) {
+                return false;
+            }
+
+            // Connect the last required repetition to the optional section
+            if (!rift_automaton_create_epsilon_transition(automaton, prev_end, optional_start)) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create epsilon transition", 0);
+                return false;
+            }
+
+            // For unlimited repetitions
+            if (max == 0) {
+                // Add a loop back to allow multiple repetitions
+                if (!rift_automaton_create_epsilon_transition(automaton, optional_end,
+                                                              optional_start)) {
+                    if (error) {
+                        RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                             "Failed to create epsilon transition");
+                    }
+                    return false;
+                }
+            } else {
+                if (!rift_automaton_create_epsilon_transition(automaton, optional_end,
+                                                              *end_state)) {
+                    if (error) {
+                        RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                             "Failed to create epsilon transition", 0);
+                    }
+
+                    return false;
+                }
+            }
+        } else {
+            // For limited optional repetitions, create the remaining copies
+            rift_regex_state_t *optional_end = NULL; // Declare and initialize optional_end
+            rift_regex_state_t *opt_prev_end = optional_end;
+
+            // We already created one optional repetition, so start from 1
+            for (size_t i = 1; i < max - min; i++) {
+                rift_regex_state_t *sub_start = NULL;
+                rift_regex_state_t *sub_end = NULL;
+
+                if (!convert_node_to_nfa(automaton, child, &sub_start, &sub_end, flags, error)) {
+                    return false;
+                }
+
+                // Connect the previous optional end to this copy's start and to the final
+                // end
+                if (!rift_automaton_create_epsilon_transition(automaton, opt_prev_end, sub_start) ||
+                    !rift_automaton_create_epsilon_transition(automaton, opt_prev_end,
+                                                              *end_state)) {
+                    if (error) {
+                        RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                             "Failed to create epsilon transition", 0);
+                    }
+                    return false;
+                }
+
+                opt_prev_end = sub_end;
+            }
+
+            // Connect the last optional copy to the final end state
+            if (!rift_automaton_create_epsilon_transition(automaton, opt_prev_end, *end_state)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                         "Failed to create epsilon transition", 0);
+                }
+                return false;
+            }
+        }
+        // Just connect the last required repetition to the end state
+        if (!rift_automaton_create_epsilon_transition(automaton, prev_end, *end_state)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create epsilon transition", 0);
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Handle character class node
+ */
+bool
+handle_character_class(rift_regex_automaton_t *automaton, const rift_regex_ast_node_t *node,
+                       rift_regex_state_t **start_state, rift_regex_state_t **end_state,
+                       rift_regex_error_t *error)
+{
+    if (!automaton || !node || !start_state || !end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid parameters for character class handling");
+        }
+        return false;
+    }
+
+    // Get the character class pattern
+    const char *pattern = rift_regex_ast_get_node_value(node);
+    if (!pattern) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                 "Invalid character class pattern");
+        }
+        return false;
+    }
+
+    // Create start and end states
+    *start_state = rift_automaton_create_state(automaton, false);
+    *end_state = rift_automaton_create_state(automaton, false);
+
+    if (!*start_state || !*end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create start or end states");
+        }
+        return false;
+    }
+
+    // Add a transition for the character class
+    // For character classes, we use the whole pattern as a transition condition
+    if (!rift_automaton_add_transition(automaton, *start_state, *end_state, pattern)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create character class transition");
+        }
+        return false;
+    }
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Handle literal node
+ */
+bool
+handle_literal(rift_regex_automaton_t *automaton, const rift_regex_ast_node_t *node,
+               rift_regex_state_t **start_state, rift_regex_state_t **end_state,
+               rift_regex_error_t *error)
+{
+    if (!automaton || !node || !start_state || !end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid parameters for literal handling");
+        }
+        return false;
+    }
+
+    // Get the literal pattern
+    const char *pattern = rift_regex_ast_get_node_value(node);
+    if (!pattern) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL, "Invalid literal pattern");
+        }
+        return false;
+    }
+
+    // Create start and end states
+    *start_state = rift_automaton_create_state(automaton, false);
+    *end_state = rift_automaton_create_state(automaton, false);
+
+    if (!*start_state || !*end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create start or end states");
+        }
+        return false;
+    }
+
+    // For a single character literal, create a direct transition
+    if (strlen(pattern) == 1) {
+        if (!rift_automaton_add_transition(automaton, *start_state, *end_state, pattern)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create literal transition");
+            }
+            return false;
+        }
+    } else {
+        // For multi-character literals, create a chain of states
+        rift_regex_state_t *prev_state = *start_state;
+        size_t pattern_len = strlen(pattern);
+
+        for (size_t i = 0; i < pattern_len - 1; i++) {
+            // Create a temporary character buffer for single character
+            char char_buf[2] = {pattern[i], '\0'};
+
+            // Create a new intermediate state
+            rift_regex_state_t *next_state = rift_automaton_create_state(automaton, false);
+            if (!next_state) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                         "Failed to create intermediate state");
+                }
+                return false;
+            }
+
+            // Add transition for the current character
+            if (!rift_automaton_add_transition(automaton, prev_state, next_state, char_buf)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                         "Failed to create literal transition");
+                }
+                return false;
+            }
+
+            prev_state = next_state;
+        }
+
+        // Add transition for the last character
+        char last_char_buf[2] = {pattern[pattern_len - 1], '\0'};
+        if (!rift_automaton_add_transition(automaton, prev_state, *end_state, last_char_buf)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create literal transition");
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Handle group (capturing and non-capturing) nodes
+ */
+bool
+handle_group(rift_regex_automaton_t *automaton, const rift_regex_ast_node_t *node,
+             rift_regex_state_t **start_state, rift_regex_state_t **end_state,
+             rift_regex_flags_t flags, rift_regex_error_t *error)
+{
+    if (!automaton || !node || !start_state || !end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid parameters for group handling");
+        }
+        return false;
+    }
+
+    // Group must have exactly one child (the group contents)
+    if (rift_regex_ast_get_child_count(node) != 1) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                 "Group must have exactly one child");
+        }
+        return false;
+    }
+
+    rift_regex_ast_node_t *child = rift_regex_ast_get_child(node, 0);
+    if (!child) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL, "Invalid group child node");
+        }
+        return false;
+    }
+
+    // Create states for group boundaries
+    *start_state = rift_automaton_create_state(automaton, false);
+    *end_state = rift_automaton_create_state(automaton, false);
+
+    if (!*start_state || !*end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create start or end states");
+        }
+        return false;
+    }
+
+    // Handle different group types
+    rift_regex_ast_node_type_t group_type = rift_regex_ast_get_node_type(node);
+
+    if (group_type == RIFT_REGEX_AST_NODE_GROUP) {
+        // Capturing group - store group number or name if available
+        const char *group_name = rift_regex_ast_get_node_value(node);
+        if (group_name) {
+            if (!rift_automaton_set_state_group_name(*start_state, group_name)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                         "Failed to set group name");
+                }
+                return false;
+            }
+        }
+
+        // Mark states as group boundaries
+        if (!rift_automaton_set_state_group_start(*start_state, true) ||
+            !rift_automaton_set_state_group_end(*end_state, true)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to set group boundary flags");
+            }
+            return false;
+        }
+    } else if (group_type == RIFT_REGEX_AST_NODE_NAMED_GROUP) {
+        // Named capturing group
+        const char *group_name = rift_regex_ast_get_node_value(node);
+        if (!group_name) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL, "Named group missing name");
+            }
+            return false;
+        }
+
+        if (!rift_automaton_set_state_group_name(*start_state, group_name)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY, "Failed to set group name");
+            }
+            return false;
+        }
+
+        // Mark states as group boundaries
+        if (!rift_automaton_set_state_group_start(*start_state, true) ||
+            !rift_automaton_set_state_group_end(*end_state, true)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to set group boundary flags");
+            }
+            return false;
+        }
+    }
+    // Non-capturing groups don't need special handling
+
+    // Convert group contents to NFA
+    rift_regex_state_t *contents_start = NULL;
+    rift_regex_state_t *contents_end = NULL;
+
+    if (!convert_node_to_nfa(automaton, child, &contents_start, &contents_end, flags, error)) {
+        return false;
+    }
+
+    // Connect group boundaries to contents
+    if (!rift_automaton_create_epsilon_transition(automaton, *start_state, contents_start) ||
+        !rift_automaton_create_epsilon_transition(automaton, contents_end, *end_state)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create epsilon transition");
+        }
+        return false;
+    }
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Handle anchor (^ and $) nodes
+ */
+bool
+handle_anchor(rift_regex_automaton_t *automaton, const rift_regex_ast_node_t *node,
+              rift_regex_state_t **start_state, rift_regex_state_t **end_state,
+              rift_regex_error_t *error)
+{
+    if (!automaton || !node || !start_state || !end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid parameters for anchor handling");
+        }
+        return false;
+    }
+
+    // Get the anchor type from the node value
+    const char *anchor_type = rift_regex_ast_get_node_value(node);
+    if (!anchor_type) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL, "Invalid anchor type");
+        }
+        return false;
+    }
+
+    // Create start and end states
+    *start_state = rift_automaton_create_state(automaton, false);
+    *end_state = rift_automaton_create_state(automaton, false);
+
+    if (!*start_state || !*end_state) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create start or end states");
+        }
+        return false;
+    }
+
+    // Handle different anchor types
+    if (strcmp(anchor_type, "^") == 0) {
+        // Start of line anchor
+        if (!rift_automaton_set_state_flag(*start_state, RIFT_STATE_FLAG_ANCHOR_START)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to set start anchor flag");
+            }
+            return false;
+        }
+    } else if (strcmp(anchor_type, "$") == 0) {
+        // End of line anchor
+        if (!rift_automaton_set_state_flag(*end_state, RIFT_STATE_FLAG_ANCHOR_END)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to set end anchor flag");
+            }
+            return false;
+        }
+    } else if (strcmp(anchor_type, "\\b") == 0) {
+        // Word boundary anchor
+        if (!rift_automaton_set_state_flag(*start_state, RIFT_STATE_FLAG_WORD_BOUNDARY)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to set word boundary flag");
+            }
+            return false;
+        }
+    } else if (strcmp(anchor_type, "\\B") == 0) {
+        // Non-word boundary anchor
+        if (!rift_automaton_set_state_flag(*start_state, RIFT_STATE_FLAG_NOT_WORD_BOUNDARY)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to set non-word boundary flag");
+            }
+            return false;
+        }
+    } else {
+        // Unsupported anchor type
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_UNSUPPORTED_FEATURE,
+                                 "Unsupported anchor type: %s", anchor_type);
+        }
+        return false;
+    }
+
+    // Connect start and end states with epsilon transition
+    if (!rift_automaton_create_epsilon_transition(automaton, *start_state, *end_state)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create epsilon transition");
+        }
+        return false;
+    }
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Parse quantifier values from a pattern string
+ *
+ * @param pattern The quantifier pattern string (e.g. "*", "+", "?", "{1,3}", "{2,}", "{4}")
+ * @param min Pointer to store minimum repetitions
+ * @param max Pointer to store maximum repetitions (0 means unlimited)
+ * @param is_greedy Pointer to store greediness flag
+ * @return true if parsing successful, false if invalid pattern
+ */
+bool
+parse_quantifier_values(const char *pattern, size_t *min, size_t *max, bool *is_greedy)
+{
+    if (!pattern || !min || !max || !is_greedy) {
+        return false;
+    }
+
+    // Default to greedy
+    *is_greedy = true;
+
+    // Handle standard quantifiers first
+    if (strcmp(pattern, "*") == 0) {
+        *min = 0;
+        *max = 0; // Unlimited
+        return true;
+    } else if (strcmp(pattern, "+") == 0) {
+        *min = 1;
+        *max = 0; // Unlimited
+        return true;
+    } else if (strcmp(pattern, "?") == 0) {
+        *min = 0;
+        *max = 1;
+        return true;
+    } else if (strcmp(pattern, "*?") == 0) {
+        *min = 0;
+        *max = 0; // Unlimited
+        *is_greedy = false;
+        return true;
+    } else if (strcmp(pattern, "+?") == 0) {
+        *min = 1;
+        *max = 0; // Unlimited
+        *is_greedy = false;
+        return true;
+    } else if (strcmp(pattern, "??") == 0) {
+        *min = 0;
+        *max = 1;
+        *is_greedy = false;
+        return true;
+    }
+
+    // Handle {n,m} style quantifiers
+    if (pattern[0] != '{') {
+        return false;
+    }
+
+    const char *p = pattern + 1;
+    char *endptr;
+
+    // Parse minimum value
+    *min = strtoull(p, &endptr, 10);
+    if (p == endptr) {
+        return false;
+    }
+
+    p = endptr;
+    if (*p == '}') {
+        // {n} format - exact count
+        *max = *min;
+        p++;
+    } else if (*p == ',') {
+        p++;
+        if (*p == '}') {
+            // {n,} format - n or more
+            *max = 0; // Unlimited
+            p++;
+        } else {
+            // {n,m} format
+            *max = strtoull(p, &endptr, 10);
+            if (p == endptr || *endptr != '}') {
+                return false;
+            }
+            if (*max < *min && *max != 0) {
+                return false;
+            }
+            p = endptr + 1;
+        }
+    } else {
+        return false;
+    }
+
+    // Check for non-greedy modifier
+    if (*p == '?') {
+        *is_greedy = false;
+        p++;
+    }
+
+    // Pattern should be fully consumed
+    return *p == '\0';
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Compute the epsilon closure of a set of states
+ *
+ * @param automaton The automaton
+ * @param states The states to compute the closure for
+ * @param num_states Number of states in the input set
+ * @param closure Array to store the closure states
+ * @param closure_size Pointer to store the number of states in the closure
+ * @return true if successful, false otherwise
+ */
+bool
+compute_epsilon_closure(const rift_regex_automaton_t *automaton, rift_regex_state_t **states,
+                        size_t num_states, rift_regex_state_t **closure, size_t *closure_size)
+{
+    if (!automaton || !states || !closure || !closure_size) {
+        return false;
+    }
+
+    // Initialize the closure with the input states
+    memcpy(closure, states, num_states * sizeof(rift_regex_state_t *));
+    *closure_size = num_states;
+
+    // Use a stack to track states to process
+    rift_regex_state_t **stack =
+        (rift_regex_state_t **)rift_malloc(num_states * sizeof(rift_regex_state_t *));
+    if (!stack) {
+        return false;
+    }
+
+    memcpy(stack, states, num_states * sizeof(rift_regex_state_t *));
+    size_t stack_size = num_states;
+    size_t stack_pos = 0;
+
+    // Process states until the stack is empty
+    while (stack_pos < stack_size) {
+        rift_regex_state_t *current = stack[stack_pos++];
+
+        // Get all epsilon transitions from the current state
+        rift_regex_transition_t **transitions = NULL;
+        size_t num_transitions =
+            rift_automaton_get_state_transitions(automaton, current, &transitions);
+
+        // Process each epsilon transition
+        for (size_t i = 0; i < num_transitions; i++) {
+            if (rift_automaton_is_epsilon_transition(transitions[i])) {
+                rift_regex_state_t *target = rift_automaton_transition_get_target(transitions[i]);
+
+                // Check if the target is already in the closure
+                bool found = false;
+                for (size_t j = 0; j < *closure_size; j++) {
+                    if (closure[j] == target) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                // If not already in the closure, add it to both closure and stack
+                if (!found) {
+                    closure[(*closure_size)++] = target;
+                    stack[stack_size++] = target;
+                }
+            }
+        }
+
+        // Free transitions array if allocated by the get_state_transitions function
+        if (transitions) {
+            rift_free(transitions);
+        }
+    }
+
+    // Free the stack
+    rift_free(stack);
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Compute the next states after processing a character
+ *
+ * @param automaton The automaton
+ * @param states The current states
+ * @param num_states Number of current states
+ * @param c The character to process
+ * @param next_states Array to store the next states
+ * @param next_size Pointer to store the number of next states
+ * @return true if successful, false otherwise
+ */
+bool
+compute_next_states(const rift_regex_automaton_t *automaton, rift_regex_state_t **states,
+                    size_t num_states, char c, rift_regex_state_t **next_states, size_t *next_size)
+{
+    if (!automaton || !states || !next_states || !next_size) {
+        return false;
+    }
+
+    *next_size = 0;
+
+    // Process each state
+    for (size_t i = 0; i < num_states; i++) {
+        rift_regex_state_t *current = states[i];
+
+        // Get all transitions from the current state
+        rift_regex_transition_t **transitions = NULL;
+        size_t num_transitions =
+            rift_automaton_get_state_transitions(automaton, current, &transitions);
+
+        // Process each transition
+        for (size_t j = 0; j < num_transitions; j++) {
+            // Skip epsilon transitions
+            if (rift_automaton_is_epsilon_transition(transitions[j])) {
+                continue;
+            }
+
+            // Check if the transition matches the character
+            if (rift_automaton_transition_matches(transitions[j], &c)) {
+                rift_regex_state_t *target = rift_automaton_transition_get_target(transitions[j]);
+
+                // Check if the target is already in the next states
+                bool found = false;
+                for (size_t k = 0; k < *next_size; k++) {
+                    if (next_states[k] == target) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                // If not already in the next states, add it
+                if (!found) {
+                    next_states[(*next_size)++] = target;
+                }
+            }
+        }
+
+        // Free transitions array if allocated by the get_state_transitions function
+        if (transitions) {
+            rift_free(transitions);
+        }
+    }
+
+    return true;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Check if a subset of states contains an accepting state
+ *
+ * @param automaton The automaton
+ * @param states The states to check
+ * @param num_states Number of states
+ * @return true if any state is accepting, false otherwise
+ */
+bool
+is_subset_accepting(const rift_regex_automaton_t *automaton, rift_regex_state_t **states,
+                    size_t num_states)
+{
+    if (!automaton || !states) {
+        return false;
+    }
+
+    for (size_t i = 0; i < num_states; i++) {
+        if (rift_automaton_is_state_accepting(automaton, states[i])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+ompiler/compiler.h"/a #include "core/runtime/matcher.h"
+/**
+ * @brief Convert an NFA to a DFA using the subset construction algorithm
+ *
+ * This is a helper function for rift_automaton_nfa_to_dfa.
+ *
+ * @param nfa The NFA to convert
+ * @param error Pointer to store error code (can be NULL)
+ * @return The equivalent DFA or NULL on failure
+ */
+rift_regex_automaton_t *
+nfa_to_dfa(const rift_regex_automaton_t *nfa, rift_regex_error_t *error)
+{
+    if (!nfa) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INVALID_PARAMETER,
+                                 "Invalid NFA parameter");
+        }
+        return NULL;
+    }
+
+    // Create a new DFA
+    rift_regex_automaton_t *dfa = rift_automaton_create(RIFT_AUTOMATON_DFA);
+    if (!dfa) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY, "Failed to create DFA");
+        }
+        return NULL;
+    }
+
+    // Get the initial state of the NFA
+    rift_regex_state_t *nfa_initial = rift_automaton_get_initial_state(nfa);
+    if (!nfa_initial) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL, "NFA has no initial state");
+        }
+        rift_automaton_free(dfa);
+        return NULL;
+    }
+
+    // Create the initial state of the DFA
+    rift_regex_state_t *dfa_initial = rift_automaton_create_state(dfa, false);
+    if (!dfa_initial) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create initial DFA state");
+        }
+        rift_automaton_free(dfa);
+        return NULL;
+    }
+
+    // Compute the epsilon closure of the NFA initial state
+    rift_regex_state_t *nfa_initial_closure[RIFT_REGEX_MAX_STATES];
+    size_t nfa_initial_closure_size = 0;
+
+    if (!compute_epsilon_closure(nfa, &nfa_initial, 1, nfa_initial_closure,
+                                 &nfa_initial_closure_size)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                 "Failed to compute NFA initial state closure");
+        }
+        rift_automaton_free(dfa);
+        return NULL;
+    }
+
+    // Set the initial state of the DFA to the epsilon closure of the NFA initial state
+    if (!rift_automaton_set_initial_state(dfa, dfa_initial)) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY, "Failed to set initial DFA state");
+        }
+        rift_automaton_free(dfa);
+        return NULL;
+    }
+
+    // Create a queue to process DFA states
+    rift_regex_state_t **queue =
+        (rift_regex_state_t **)rift_malloc(RIFT_REGEX_MAX_STATES * sizeof(rift_regex_state_t *));
+    if (!queue) {
+        if (error) {
+            RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                 "Failed to create DFA state queue");
+        }
+        rift_automaton_free(dfa);
+        return NULL;
+    }
+
+    // Initialize the queue with the initial state
+    memcpy(queue, nfa_initial_closure, nfa_initial_closure_size * sizeof(rift_regex_state_t *));
+    size_t queue_size = nfa_initial_closure_size;
+    size_t queue_pos = 0;
+
+    // Create arrays to store DFA states and their corresponding NFA subsets
+    rift_regex_state_t **dfa_states[RIFT_REGEX_MAX_STATES];
+    size_t dfa_state_sizes[RIFT_REGEX_MAX_STATES];
+    size_t dfa_state_count = 0;
+    size_t current_closure_size = 0; // Declare and initialize current_closure_size
+
+    // Process states until the queue is empty
+    while (queue_pos < queue_size) {
+        // Get the current state from the queue
+        rift_regex_state_t *current = queue[queue_pos++];
+
+        // Compute the epsilon closure of the current state
+        rift_regex_state_t *current_closure[RIFT_REGEX_MAX_STATES];
+        size_t current_closure_size = 0;
+
+        if (!compute_epsilon_closure(nfa, &current, 1, current_closure, &current_closure_size)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                     "Failed to compute current state closure");
+            }
+            rift_automaton_free(dfa);
+            rift_free(queue);
+            return NULL;
+        }
+
+        // Check if the current state is already in the DFA
+        int existing_index = find_subset_index(current_closure, current_closure_size, dfa_states,
+                                               dfa_state_sizes, dfa_state_count);
+
+        if (existing_index >= 0) {
+            // State already exists, just add a transition from the current DFA state
+            if (!rift_automaton_create_transition(dfa, queue[queue_pos - 1],
+                                                  dfa_states[existing_index][0], NULL)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                         "Failed to create DFA transition");
+                }
+                rift_automaton_free(dfa);
+                rift_free(queue);
+                return NULL;
+            }
+
+            continue;
+        }
+
+        // Add the current state to the DFA
+        rift_regex_state_t *dfa_state = rift_automaton_create_state(dfa, false);
+        if (!dfa_state) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY, "Failed to create DFA state");
+            }
+            rift_automaton_free(dfa);
+            rift_free(queue);
+            return NULL;
+        }
+
+        // Add the current state to the DFA states array
+        dfa_states[dfa_state_count] =
+            (rift_regex_state_t **)rift_malloc(current_closure_size * sizeof(rift_regex_state_t *));
+        if (!dfa_states[dfa_state_count]) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create DFA state subset");
+            }
+            rift_automaton_free(dfa);
+            rift_free(queue);
+            return NULL;
+        }
+
+        memcpy(dfa_states[dfa_state_count], current_closure,
+               current_closure_size * sizeof(rift_regex_state_t *));
+        // Declare and initialize current_closure_size
+        dfa_state_sizes[dfa_state_count] = current_closure_size;
+        dfa_state_count++;
+
+        // Add a transition from the current DFA state
+        if (!rift_automaton_create_transition(dfa, queue[queue_pos - 1], dfa_state, NULL)) {
+            if (error) {
+                RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                     "Failed to create DFA transition");
+            }
+            rift_automaton_free(dfa);
+            rift_free(queue);
+            return NULL;
+        }
+
+        // Check if the current state is accepting
+        if (is_subset_accepting(nfa, current_closure, current_closure_size)) {
+            if (!rift_automaton_set_state_accepting(dfa, dfa_state, true)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                         "Failed to set DFA state accepting flag");
+                }
+                rift_automaton_free(dfa);
+                rift_free(queue);
+                return NULL;
+            }
+        }
+
+        // Compute the next states for each character
+        for (char c = 0; c < 128; c++) {
+            rift_regex_state_t *next_states[RIFT_REGEX_MAX_STATES];
+            size_t next_size = 0;
+
+            if (!compute_next_states(nfa, current_closure, current_closure_size, c, next_states,
+                                     &next_size)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                         "Failed to compute next states");
+                }
+                rift_automaton_free(dfa);
+                rift_free(queue);
+                return NULL;
+            }
+
+            // Compute the epsilon closure of the next states
+            rift_regex_state_t *next_closure[RIFT_REGEX_MAX_STATES];
+            size_t next_closure_size = 0;
+
+            if (!compute_epsilon_closure(nfa, next_states, next_size, next_closure,
+                                         &next_closure_size)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_INTERNAL,
+                                         "Failed to compute next state closure");
+                }
+                rift_automaton_free(dfa);
+                rift_free(queue);
+                return NULL;
+            }
+
+            // Check if the next state is already in the DFA
+            int next_index = find_subset_index(next_closure, next_closure_size, dfa_states,
+                                               dfa_state_sizes, dfa_state_count);
+
+            if (next_index < 0) {
+                // Add the next state to the queue
+                queue[queue_size++] = next_closure[0];
+            }
+
+            // Add a transition from the current DFA state to the next state
+            if (!rift_automaton_create_transition(
+                    dfa, dfa_state, next_index >= 0 ? dfa_states[next_index][0] : NULL, &c)) {
+                if (error) {
+                    RIFT_REGEX_SET_ERROR(error, RIFT_REGEX_ERROR_MEMORY,
+                                         "Failed to create DFA transition");
+                }
+                rift_automaton_free(dfa);
+                rift_free(queue);
+                return NULL;
+            }
+        }
+
+        // Free the current closure
+        for (size_t i = 0; i < current_closure_size; i++) {
+            rift_free(current_closure[i]);
+        }
+    }
+
+    // Free the queue
+    rift_free(queue);
+
+    return dfa;
+}

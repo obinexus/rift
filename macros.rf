@@ -1,0 +1,11 @@
+// This is a verb-noun pair extractor
+macro_rules! r {
+  ($pattern:expr) => {{
+    let token = RiftToken::from_pattern($pattern);
+    token.activate_dimension(D_semantic);
+    token
+  }};
+}
+
+let keyword = r"^[let]$";  // Activates D_syntactic with salience 1.0
+let identifier = r"^[a-z]+$"; // Activates D_lexical with salience 0.8

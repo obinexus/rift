@@ -1,0 +1,545 @@
+/**
+ * @file ast_node.c
+ * @brief Implementation of AST node functions for the LibRift regex engine
+ *
+ * This file implements the functions for manipulating Abstract Syntax Tree (AST)
+ * nodes in the LibRift regex engine.
+ *
+ * @copyright Copyright (c) 2025 LibRift Project
+ * @license MIT License
+ */
+
+#include "core/parser/ast_node.h
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "librift/parser/ast_node.h"
+
+tmp/librift_analysis/librift-4933472-W/backup/v1/src/parser/ast_node.h
+tmp/librift_analysis/librift-4933472-W/backup/v2/parser/ast_node.h
+tmp/librift_analysis/librift-4933472-W/src/core/parser/ast_node.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v1/src/parser/ast_node.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/backup/v2/parser/ast_node.h
+tmp/librift_analysis/librift-4e7961d-Milestone_Refatored/src/core/parser/ast_node.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v1/src/parser/ast_node.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/backup/v2/parser/ast_node.h
+tmp/librift_analysis/librift-a3c62d2-Milestone_Refatored/src/core/parser/ast_node.h"
+
+/**
+ * @brief Initial capacity for the children array
+ */
+#define INITIAL_CHILD_CAPACITY 4
+
+/**
+ * @brief Create a new AST node
+ *
+ * @param type The type of node to create
+ * @return A new AST node or NULL on failure
+ */
+rift_regex_ast_node_t *
+rift_regex_ast_node_create(rift_regex_ast_node_type_t type)
+{
+    rift_regex_ast_node_t *node = (rift_regex_ast_node_t *)malloc(sizeof(rift_regex_ast_node_t));
+
+    if (!node) {
+        return NULL;
+    }
+
+    /* Initialize the node */
+    node->type = type;
+    node->value = NULL;
+    node->children = NULL;
+    node->num_children = 0;
+    node->child_capacity = 0;
+    node->flags = 0;
+    node->parent = NULL;
+    node->state_info = NULL;
+
+    return node;
+}
+
+/**
+ * @brief Free an AST node and its resources (but not its children)
+ *
+ * @param node The node to free
+ */
+void
+rift_regex_ast_node_free(rift_regex_ast_node_t *node)
+{
+    if (!node) {
+        return;
+    }
+
+    /* Free the value if it exists */
+    if (node->value) {
+        free(node->value);
+    }
+
+    /* Free the children array but not the children themselves */
+    if (node->children) {
+        free(node->children);
+    }
+
+    /* Free the node itself */
+    free(node);
+}
+
+/**
+ * @brief Free an AST node (wrapper for compatibility)
+ *
+ * @param node The node to free
+ */
+void
+free_ast_node(rift_regex_ast_node_t *node)
+{
+    rift_regex_ast_node_free(node);
+}
+
+/**
+ * @brief Create an AST node (wrapper for compatibility)
+ *
+ * @param type The type of node to create
+ * @return A new AST node or NULL on failure
+ */
+rift_regex_ast_node_t *
+create_ast_node(rift_regex_ast_node_type_t type)
+{
+    return rift_regex_ast_node_create(type);
+}
+
+/**
+ * @brief Free an AST node and all its children recursively
+ *
+ * @param node The node to free
+ */
+void
+rift_regex_ast_node_free_recursive(rift_regex_ast_node_t *node)
+{
+    if (!node) {
+        return;
+    }
+
+    /* Free all child nodes recursively */
+    if (node->children) {
+        for (size_t i = 0; i < node->num_children; i++) {
+            rift_regex_ast_node_free_recursive(node->children[i]);
+        }
+    }
+
+    /* Free this node */
+    rift_regex_ast_node_free(node);
+}
+
+/**
+ * @brief Set a string value for a node
+ *
+ * @param node The node
+ * @param value The string value to set
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_ast_node_set_value(rift_regex_ast_node_t *node, const char *value)
+{
+    if (!node) {
+        return false;
+    }
+
+    /* Free old value if it exists */
+    if (node->value) {
+        free(node->value);
+        node->value = NULL;
+    }
+
+    /* Set the new value */
+    if (value) {
+        node->value = strdup(value);
+        if (!node->value) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Get the value of a node
+ *
+ * @param node The node
+ * @return The node value or NULL if not set
+ */
+const char *
+rift_regex_ast_node_get_value(const rift_regex_ast_node_t *node)
+{
+    if (!node) {
+        return NULL;
+    }
+
+    return node->value;
+}
+
+/**
+ * @brief Add a child node
+ *
+ * @param parent The parent node
+ * @param child The child node to add
+ * @return true if successful, false otherwise
+ */
+bool
+rift_regex_ast_node_add_child(rift_regex_ast_node_t *parent, rift_regex_ast_node_t *child)
+{
+    if (!parent || !child) {
+        return false;
+    }
+
+    /* Check if we need to allocate or expand the children array */
+    if (parent->num_children >= parent->child_capacity) {
+        size_t new_capacity =
+            parent->child_capacity == 0 ? INITIAL_CHILD_CAPACITY : parent->child_capacity * 2;
+
+        rift_regex_ast_node_t **new_children = (rift_regex_ast_node_t **)realloc(
+            parent->children, sizeof(rift_regex_ast_node_t *) * new_capacity);
+
+        if (!new_children) {
+            return false;
+        }
+
+        parent->children = new_children;
+        parent->child_capacity = new_capacity;
+    }
+
+    /* Add the child to the array */
+    parent->children[parent->num_children++] = child;
+
+    /* Update the child's parent pointer */
+    child->parent = parent;
+
+    return true;
+}
+
+/**
+ * @brief Remove a child node (without freeing it)
+ *
+ * @param parent The parent node
+ * @param index The index of the child to remove
+ * @return The removed child node or NULL if not found
+ */
+rift_regex_ast_node_t *
+rift_regex_ast_node_remove_child(rift_regex_ast_node_t *parent, size_t index)
+{
+    if (!parent || index >= parent->num_children) {
+        return NULL;
+    }
+
+    /* Get the child node */
+    rift_regex_ast_node_t *child = parent->children[index];
+
+    /* Remove the child from the array by shifting all subsequent children */
+    for (size_t i = index + 1; i < parent->num_children; i++) {
+        parent->children[i - 1] = parent->children[i];
+    }
+
+    parent->num_children--;
+
+    /* Clear the child's parent pointer */
+    if (child) {
+        child->parent = NULL;
+    }
+
+    return child;
+}
+
+/**
+ * @brief Get a child node by index
+ *
+ * @param node The parent node
+ * @param index The index of the child
+ * @return The child node or NULL if not found
+ */
+rift_regex_ast_node_t *
+rift_regex_ast_node_get_child(const rift_regex_ast_node_t *node, size_t index)
+{
+    if (!node || index >= node->num_children) {
+        return NULL;
+    }
+
+    return node->children[index];
+}
+
+/**
+ * @brief Get the number of children
+ *
+ * @param node The node
+ * @return The number of children
+ */
+size_t
+rift_regex_ast_node_get_child_count(const rift_regex_ast_node_t *node)
+{
+    if (!node) {
+        return 0;
+    }
+
+    return node->num_children;
+}
+
+/**
+ * @brief Get the parent node
+ *
+ * @param node The node
+ * @return The parent node or NULL if it's a root node
+ */
+rift_regex_ast_node_t *
+rift_regex_ast_node_get_parent(const rift_regex_ast_node_t *node)
+{
+    if (!node) {
+        return NULL;
+    }
+
+    return node->parent;
+}
+
+/**
+ * @brief Clone a node (shallow copy, without children)
+ *
+ * @param node The node to clone
+ * @return A new node that is a copy of the original, or NULL on failure
+ */
+rift_regex_ast_node_t *
+rift_regex_ast_node_clone(const rift_regex_ast_node_t *node)
+{
+    if (!node) {
+        return NULL;
+    }
+
+    /* Create a new node with the same type */
+    rift_regex_ast_node_t *clone = rift_regex_ast_node_create(node->type);
+    if (!clone) {
+        return NULL;
+    }
+
+    /* Copy the value if it exists */
+    if (node->value) {
+        if (!rift_regex_ast_node_set_value(clone, node->value)) {
+            rift_regex_ast_node_free(clone);
+            return NULL;
+        }
+    }
+
+    /* Copy flags */
+    clone->flags = node->flags;
+
+    return clone;
+}
+
+/**
+ * @brief Clone a node and all its children recursively
+ *
+ * @param node The node to clone
+ * @return A new node that is a copy of the original with all children, or NULL on failure
+ */
+rift_regex_ast_node_t *
+rift_regex_ast_node_clone_recursive(const rift_regex_ast_node_t *node)
+{
+    if (!node) {
+        return NULL;
+    }
+
+    /* Create a shallow clone of the node */
+    rift_regex_ast_node_t *clone = rift_regex_ast_node_clone(node);
+    if (!clone) {
+        return NULL;
+    }
+
+    /* Clone and add all children */
+    for (size_t i = 0; i < node->num_children; i++) {
+        rift_regex_ast_node_t *child_clone = rift_regex_ast_node_clone_recursive(node->children[i]);
+
+        if (!child_clone) {
+            rift_regex_ast_node_free_recursive(clone);
+            return NULL;
+        }
+
+        if (!rift_regex_ast_node_add_child(clone, child_clone)) {
+            rift_regex_ast_node_free_recursive(child_clone);
+            rift_regex_ast_node_free_recursive(clone);
+            return NULL;
+        }
+    }
+
+    return clone;
+}
+
+/**
+ * @brief Check if a node is of a specific type
+ *
+ * @param node The node to check
+ * @param type The type to check against
+ * @return true if the node is of the specified type, false otherwise
+ */
+bool
+rift_regex_ast_node_is_type(const rift_regex_ast_node_t *node, rift_regex_ast_node_type_t type)
+{
+    if (!node) {
+        return false;
+    }
+
+    return node->type == type;
+}
+
+/**
+ * @brief Get a string representation of a node type
+ *
+ * @param type The node type
+ * @return A string representation of the type
+ */
+const char *
+rift_regex_ast_node_type_to_string(rift_regex_ast_node_type_t type)
+{
+    switch (type) {
+    case RIFT_REGEX_AST_NODE_ALTERNATION:
+        return "ALTERNATION";
+    case RIFT_REGEX_AST_NODE_CONCATENATION:
+        return "CONCATENATION";
+    case RIFT_REGEX_AST_NODE_LITERAL:
+        return "LITERAL";
+    case RIFT_REGEX_AST_NODE_DOT:
+        return "DOT";
+    case RIFT_REGEX_AST_NODE_CHARACTER_CLASS:
+        return "CHARACTER_CLASS";
+    case RIFT_REGEX_AST_NODE_GROUP:
+        return "GROUP";
+    case RIFT_REGEX_AST_NODE_NON_CAPTURING_GROUP:
+        return "NON_CAPTURING_GROUP";
+    case RIFT_REGEX_AST_NODE_NAMED_GROUP:
+        return "NAMED_GROUP";
+    case RIFT_REGEX_AST_NODE_BACKREFERENCE:
+        return "BACKREFERENCE";
+    case RIFT_REGEX_AST_NODE_NAMED_BACKREFERENCE:
+        return "NAMED_BACKREFERENCE";
+    case RIFT_REGEX_AST_NODE_QUANTIFIER:
+        return "QUANTIFIER";
+    case RIFT_REGEX_AST_NODE_ANCHOR:
+        return "ANCHOR";
+    case RIFT_REGEX_AST_NODE_LOOKAHEAD:
+        return "LOOKAHEAD";
+    case RIFT_REGEX_AST_NODE_NEGATIVE_LOOKAHEAD:
+        return "NEGATIVE_LOOKAHEAD";
+    case RIFT_REGEX_AST_NODE_LOOKBEHIND:
+        return "LOOKBEHIND";
+    case RIFT_REGEX_AST_NODE_NEGATIVE_LOOKBEHIND:
+        return "NEGATIVE_LOOKBEHIND";
+    case RIFT_REGEX_AST_NODE_ATOMIC_GROUP:
+        return "ATOMIC_GROUP";
+    case RIFT_REGEX_AST_NODE_COMMENT:
+        return "COMMENT";
+    case RIFT_REGEX_AST_NODE_CONDITIONAL:
+        return "CONDITIONAL";
+    case RIFT_REGEX_AST_NODE_OPTION:
+        return "OPTION";
+    case RIFT_REGEX_AST_NODE_BACKTRACK_CONTROL:
+        return "BACKTRACK_CONTROL";
+    case RIFT_REGEX_AST_NODE_BACKREF_RESET:
+        return "BACKREF_RESET";
+    case RIFT_REGEX_AST_NODE_WORD_BOUNDARY:
+        return "WORD_BOUNDARY";
+    case RIFT_REGEX_AST_NODE_NOT_WORD_BOUNDARY:
+        return "NOT_WORD_BOUNDARY";
+    case RIFT_REGEX_AST_NODE_POSIX_CLASS:
+        return "POSIX_CLASS";
+    case RIFT_REGEX_AST_NODE_UNICODE_PROPERTY:
+        return "UNICODE_PROPERTY";
+    case RIFT_REGEX_AST_NODE_ROOT:
+        return "ROOT";
+    case RIFT_REGEX_AST_NODE_PATTERN:
+        return "PATTERN";
+    case RIFT_REGEX_AST_NODE_SEQUENCE:
+        return "SEQUENCE";
+    case RIFT_REGEX_AST_NODE_CHAR:
+        return "CHAR";
+    case RIFT_REGEX_AST_NODE_NONE:
+        return "NONE";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+/**
+ * @brief Convert a node to a string representation (for debugging)
+ *
+ * @param node The node
+ * @param include_children Whether to include children in the string
+ * @return A string representation of the node or NULL on failure
+ *         The caller is responsible for freeing the returned string.
+ */
+char *
+rift_regex_ast_node_to_string(const rift_regex_ast_node_t *node, bool include_children)
+{
+    if (!node) {
+        return NULL;
+    }
+
+    /* Buffer for the string representation */
+    size_t buffer_size = 4096;
+    char *buffer = (char *)malloc(buffer_size);
+    if (!buffer) {
+        return NULL;
+    }
+
+    /* Initialize buffer */
+    size_t offset = 0;
+
+    /* Add node type */
+    const char *type_str = rift_regex_ast_node_type_to_string(node->type);
+    offset += snprintf(buffer + offset, buffer_size - offset, "Type: %s", type_str);
+
+    /* Add value if present */
+    if (node->value) {
+        offset += snprintf(buffer + offset, buffer_size - offset, ", Value: \"%s\"", node->value);
+    }
+
+    /* Add number of children */
+    offset +=
+        snprintf(buffer + offset, buffer_size - offset, ", Children: %zu", node->num_children);
+
+    /* Add flags if non-zero */
+    if (node->flags) {
+        offset += snprintf(buffer + offset, buffer_size - offset, ", Flags: 0x%x", node->flags);
+    }
+
+    /* Add children recursively if requested */
+    if (include_children && node->num_children > 0) {
+        offset += snprintf(buffer + offset, buffer_size - offset, "\nChildren:\n");
+
+        for (size_t i = 0; i < node->num_children; i++) {
+            char *child_str = rift_regex_ast_node_to_string(node->children[i], true);
+            if (child_str) {
+                size_t child_len = strlen(child_str);
+                if (offset + child_len + 10 < buffer_size) {
+                    offset += snprintf(buffer + offset, buffer_size - offset, "  %zu: ", i);
+
+                    /* Replace newlines with indented newlines */
+                    char *newline = child_str;
+                    size_t remaining_len = strlen(newline);
+
+                    while ((newline = strchr(newline, '\n')) != NULL) {
+                        *newline = ' ';
+                        size_t pos = newline - child_str;
+                        remaining_len = strlen(child_str + pos);
+
+                        if (*(newline + 1) != '\0') {
+                            /* Insert "  " after the space that was a newline */
+                            memmove(newline + 3, newline + 1, remaining_len);
+                            memcpy(newline + 1, "  ", 2);
+                            newline += 3;
+                        }
+                    }
+
+                    offset += snprintf(buffer + offset, buffer_size - offset, "%s\n", child_str);
+                }
+
+                free(child_str);
+            }
+        }
+    }
+
+    return buffer;
+}

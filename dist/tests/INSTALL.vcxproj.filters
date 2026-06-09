@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Public\Public RIFT\rift\dist\CMakeFiles\a581198fcdfeea0ceaa05cfcfcc6f16c\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F5790A34-BD44-3F2F-A681-FFE4CCD9C8EB}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
