@@ -35,14 +35,24 @@ if(NOT WIN32)
     find_package(Threads REQUIRED)
 endif()
 
+# Name the compiler the way users and CI invoke it: CMake reports gcc as "GNU",
+# which would otherwise produce build/bin/linux-gnu.
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    set(RIFT_COMPILER_TAG "gcc")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+    set(RIFT_COMPILER_TAG "clang")
+else()
+    set(RIFT_COMPILER_TAG "${CMAKE_C_COMPILER_ID}")
+endif()
+
 if(MSVC)
     set(RIFT_PLATFORM_TAG "windows-msvc")
 elseif(MINGW)
     set(RIFT_PLATFORM_TAG "windows-mingw")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(RIFT_PLATFORM_TAG "linux-${CMAKE_C_COMPILER_ID}")
+    set(RIFT_PLATFORM_TAG "linux-${RIFT_COMPILER_TAG}")
 else()
-    string(TOLOWER "${CMAKE_SYSTEM_NAME}-${CMAKE_C_COMPILER_ID}" RIFT_PLATFORM_TAG)
+    string(TOLOWER "${CMAKE_SYSTEM_NAME}-${RIFT_COMPILER_TAG}" RIFT_PLATFORM_TAG)
 endif()
 string(TOLOWER "${RIFT_PLATFORM_TAG}" RIFT_PLATFORM_TAG)
 set(RIFT_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/build/bin/${RIFT_PLATFORM_TAG}")
@@ -357,6 +367,24 @@ if(RIFT_BUILD_TESTS)
             "-DCONFIG=$<CONFIG>"
             ${RIFT_CONSUMER_COMPILER_ARG}
             -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/package_consumer/run.cmake")
+
+    # The CI workflow looks for build/bin/linux-<gcc|clang>/; keep CMake's
+    # output layout in step with it.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
+        add_test(NAME rift_ci_artifact_layout
+            COMMAND ${CMAKE_COMMAND}
+                "-DSOURCE_DIR=${CMAKE_SOURCE_DIR}"
+                "-DCOMPILER_ID=${CMAKE_C_COMPILER_ID}"
+                "-DNM=${CMAKE_NM}"
+                "-DCONFIG=$<CONFIG>"
+                "-DRIFT_STATIC=$<TARGET_FILE:rift>"
+                "-DRIFT_SHARED=$<TARGET_FILE:rift_shared>"
+                "-DRIFTLANG_STATIC=$<TARGET_FILE:riftlang>"
+                "-DRIFTLANG_SHARED=$<TARGET_FILE:riftlang_shared>"
+                "-DRIFTTEST_STATIC=$<TARGET_FILE:rifttest>"
+                "-DRIFTTEST_SHARED=$<TARGET_FILE:rifttest_shared>"
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/check_artifacts.cmake")
+    endif()
 
     add_test(NAME rift_cli_version COMMAND rift_cli --version)
     add_test(NAME rift_cli_tests COMMAND rift_cli test)
