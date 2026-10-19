@@ -9,11 +9,11 @@ static const rift_command_t commands[] = {
     { "lang",     "Pattern matching engine",          rift_cmd_lang     },
     { "man",      "Display manual pages",             rift_cmd_man      },
     { "doctor",   "Run diagnostics",                  rift_cmd_doctor   },
-    { "raf",      "Regulation as firmware",            rift_cmd_raf      },
+    { "raf",      "Regulation as firmware (not implemented)", rift_cmd_raf },
     { "compile",  "Compile source file",               rift_cmd_compile  },
     { "tokenize", "Tokenize input file",               rift_cmd_tokenize },
-    { "parse",    "Parse to AST",                      rift_cmd_parse    },
-    { "emit",     "Emit target code",                  rift_cmd_emit     },
+    { "parse",    "Parse to AST (not implemented)",    rift_cmd_parse    },
+    { "emit",     "Emit target code (not implemented)", rift_cmd_emit    },
     { NULL, NULL, NULL }
 };
 

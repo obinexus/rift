@@ -66,6 +66,14 @@ static void test_diagnostics(void) {
     expect_error("pattern X = \"x\" @ /[a-z]\n",
                  "1:19: error: unterminated regular expression");
     expect_error("// nothing\n", "error: no pattern declarations found");
+
+    /* Malformed declarations used to compile (an empty name, a raw "(((" ). */
+    expect_error("pattern = = (((",
+                 "1:9: error: expected a name after 'pattern'");
+    expect_error("let X = ;\npattern Y = \"y\"\n",
+                 "1:9: error: expected an expression for 'X'");
+    expect_error("pattern X = r\"(((\"\n",
+                 "1:13: error: 'X' is not a valid regular expression: unclosed group");
 }
 
 static void test_allow_unknown(void) {

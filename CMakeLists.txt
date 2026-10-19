@@ -407,10 +407,6 @@ if(RIFT_BUILD_TESTS)
 
     add_test(NAME rift_cli_version COMMAND rift_cli --version)
     add_test(NAME rift_cli_tests COMMAND rift_cli test)
-    add_test(NAME rift_cli_compile
-        COMMAND rift_cli compile
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift"
-            "${CMAKE_CURRENT_BINARY_DIR}/smoke-rift.c")
     add_test(NAME riftlang_cli_validate
         COMMAND riftlang_cli --validate
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift")
@@ -421,13 +417,14 @@ if(RIFT_BUILD_TESTS)
 
     # rift_command_test(<name> EXIT <status> COMMAND <program> [<arg>...]
     #     [WORKING_DIRECTORY <dir>] [STDOUT_FILE <golden>] [STDERR_FILE <golden>]
-    #     [STDOUT_REGEX <regex>] [STDERR_REGEX <regex>] [CREATES <file>])
+    #     [STDOUT_REGEX <regex>] [STDERR_REGEX <regex>] [CREATES <file>]
+    #     [ABSENT <file>])
     # Runs the command through tests/cmake/run_command.cmake, which requires
     # the exact exit status and checks the given output.
     set(RIFT_RUN_COMMAND_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/run_command.cmake")
     function(rift_command_test name)
         cmake_parse_arguments(PARSE_ARGV 1 arg ""
-            "EXIT;WORKING_DIRECTORY;STDOUT_FILE;STDERR_FILE;STDOUT_REGEX;STDERR_REGEX;CREATES"
+            "EXIT;WORKING_DIRECTORY;STDOUT_FILE;STDERR_FILE;STDOUT_REGEX;STDERR_REGEX;CREATES;ABSENT"
             "COMMAND")
         list(JOIN arg_COMMAND "|" command)
         set(definitions "-DCOMMAND=${command}" "-DEXPECT_EXIT=${arg_EXIT}")
@@ -444,6 +441,9 @@ if(RIFT_BUILD_TESTS)
         if(DEFINED arg_CREATES)
             list(APPEND definitions "-DEXPECT_FILE=${arg_CREATES}")
         endif()
+        if(DEFINED arg_ABSENT)
+            list(APPEND definitions "-DEXPECT_ABSENT=${arg_ABSENT}")
+        endif()
         add_test(NAME ${name}
             COMMAND ${CMAKE_COMMAND} ${definitions} -P "${RIFT_RUN_COMMAND_SCRIPT}")
     endfunction()
@@ -451,7 +451,8 @@ if(RIFT_BUILD_TESTS)
     # riftlang diagnostics: each file in tests/data/riftlang must fail with
     # exactly the message in its .stderr file, and print nothing on stdout.
     set(RIFTLANG_GOLDEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/riftlang")
-    foreach(case undefined forward recursive mutual cycle duplicate unknown)
+    foreach(case undefined forward recursive mutual cycle duplicate unknown
+                 badregex empty)
         rift_command_test(riftlang_diagnostic_${case}
             EXIT 1
             COMMAND $<TARGET_FILE:riftlang_cli> ${case}.rf
@@ -488,6 +489,53 @@ if(RIFT_BUILD_TESTS)
         COMMAND $<TARGET_FILE:riftlang_cli> --allow-unknown -p EMAIL email_validator.rf
         WORKING_DIRECTORY "${RIFT_EXAMPLES_DIR}"
         STDOUT_FILE "${RIFTLANG_GOLDEN_DIR}/email_validator.EMAIL.stdout")
+
+    # rift compile: valid input produces output; malformed input is rejected
+    # with riftlang's diagnostic and writes nothing.
+    rift_command_test(rift_cli_compile
+        EXIT 0
+        COMMAND $<TARGET_FILE:rift_cli> compile
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift"
+            "${CMAKE_CURRENT_BINARY_DIR}/smoke-rift.c"
+        STDERR_REGEX "^$"
+        CREATES "${CMAKE_CURRENT_BINARY_DIR}/smoke-rift.c")
+    foreach(case bad undefined)
+        if(case STREQUAL "bad")
+            set(input bad.rift)
+        else()
+            set(input ${case}.rf)
+        endif()
+        rift_command_test(rift_cli_compile_rejects_${case}
+            EXIT 1
+            COMMAND $<TARGET_FILE:rift_cli> compile ${input}
+                "${CMAKE_CURRENT_BINARY_DIR}/rejected-${case}.c"
+            WORKING_DIRECTORY "${RIFTLANG_GOLDEN_DIR}"
+            STDOUT_REGEX "^$"
+            STDERR_FILE "${RIFTLANG_GOLDEN_DIR}/${case}.stderr"
+            ABSENT "${CMAKE_CURRENT_BINARY_DIR}/rejected-${case}.c")
+    endforeach()
+    rift_command_test(riftlang_diagnostic_bad
+        EXIT 1
+        COMMAND $<TARGET_FILE:riftlang_cli> bad.rift
+        WORKING_DIRECTORY "${RIFTLANG_GOLDEN_DIR}"
+        STDERR_FILE "${RIFTLANG_GOLDEN_DIR}/bad.stderr")
+
+    # Commands that are not implemented say so and exit 2.
+    foreach(command parse emit raf)
+        rift_command_test(rift_cli_${command}_not_implemented
+            EXIT 2
+            COMMAND $<TARGET_FILE:rift_cli> ${command} --validate
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift"
+            STDOUT_REGEX "^$"
+            STDERR_REGEX "^rift ${command}: not implemented")
+    endforeach()
+
+    # The command handlers, linked without the CLI's main().
+    set(RIFT_CLI_COMMAND_SOURCES ${RIFT_CLI_SOURCES})
+    list(REMOVE_ITEM RIFT_CLI_COMMAND_SOURCES src/cli/main.c)
+    add_executable(test_cli tests/test_cli.c ${RIFT_CLI_COMMAND_SOURCES})
+    target_link_libraries(test_cli PRIVATE rift riftlang rifttest)
+    add_test(NAME test_cli COMMAND test_cli)
 endif()
 
 install(TARGETS

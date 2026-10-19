@@ -7,6 +7,9 @@
 extern "C" {
 #endif
 
+/* Exit status of a command that exists but is not implemented yet. */
+#define RIFT_CLI_EXIT_NOT_IMPLEMENTED 2
+
 typedef int (*rift_cmd_fn)(int argc, char **argv);
 
 typedef struct rift_command {

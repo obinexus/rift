@@ -10,6 +10,7 @@
 #   EXPECT_STDOUT_REGEX   Regular expression stdout must match.
 #   EXPECT_STDERR_REGEX   Regular expression stderr must match.
 #   EXPECT_FILE           A file the command must have created (non-empty).
+#   EXPECT_ABSENT         A file the command must not have created.
 #
 # Carriage returns are removed before comparing, so golden files are the same
 # on every platform.
@@ -21,9 +22,11 @@ string(REPLACE "|" ";" command "${COMMAND}")
 if(NOT WORKING_DIRECTORY)
     set(WORKING_DIRECTORY ".")
 endif()
-if(EXPECT_FILE)
-    file(REMOVE "${EXPECT_FILE}")
-endif()
+foreach(path IN ITEMS "${EXPECT_FILE}" "${EXPECT_ABSENT}")
+    if(path)
+        file(REMOVE "${path}")
+    endif()
+endforeach()
 
 execute_process(COMMAND ${command}
     WORKING_DIRECTORY "${WORKING_DIRECTORY}"
@@ -60,6 +63,9 @@ if(EXPECT_FILE)
             list(APPEND failures "${EXPECT_FILE} is empty")
         endif()
     endif()
+endif()
+if(EXPECT_ABSENT AND EXISTS "${EXPECT_ABSENT}")
+    list(APPEND failures "${EXPECT_ABSENT} should not have been created")
 endif()
 
 if(failures)

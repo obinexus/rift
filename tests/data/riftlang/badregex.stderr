@@ -1,0 +1,1 @@
+badregex.rf:1:13: error: 'X' is not a valid regular expression: unclosed group

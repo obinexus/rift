@@ -43,12 +43,28 @@ TEST(test_all_commands_exist) {
     }
 }
 
+/* parse, emit and raf must not report success they have not earned. */
+TEST(test_unimplemented_commands) {
+    const char *names[] = { "parse", "emit", "raf", NULL };
+    for (int i = 0; names[i]; i++) {
+        const rift_command_t *cmd = rift_cli_find_command(names[i]);
+        char *bare[] = { (char *)names[i], NULL };
+        char *args[] = { (char *)names[i], (char *)"--validate", (char *)"x", NULL };
+        char *help[] = { (char *)names[i], (char *)"--help", NULL };
+        RIFT_CHECK(cmd != NULL);
+        RIFT_CHECK(cmd->handler(1, bare) == RIFT_CLI_EXIT_NOT_IMPLEMENTED);
+        RIFT_CHECK(cmd->handler(3, args) == RIFT_CLI_EXIT_NOT_IMPLEMENTED);
+        RIFT_CHECK(cmd->handler(2, help) == 0);
+    }
+}
+
 int main(void) {
     printf("test_cli:\n");
     RUN(test_find_command_bridge);
     RUN(test_find_command_test);
     RUN(test_find_command_unknown);
     RUN(test_all_commands_exist);
+    RUN(test_unimplemented_commands);
     printf("\n%d passed, %d failed\n", tests_passed, tests_failed);
     return tests_failed;
 }

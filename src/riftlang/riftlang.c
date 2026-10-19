@@ -704,6 +704,11 @@ static void scan_declarations(compile_state_t *state) {
         while (isalnum((unsigned char)*cursor) || *cursor == '_') cursor++;
         name_end = cursor;
         name_length = (size_t)(name_end - name_at);
+        if (!name_length) {
+            error_at(state, name_at, "expected a name after '%s'",
+                     pattern ? "pattern" : "let");
+            return;
+        }
         cursor = skip_space(cursor);
         if (*cursor != '=') {
             error_at(state, cursor, "expected '=' after declaration");
@@ -743,13 +748,30 @@ static void scan_declarations(compile_state_t *state) {
 static void compile_declaration(compile_state_t *state, size_t index) {
     const declaration_t *declaration = &state->declarations[index];
     char *compiled;
+    RIFTRegex regex;
     state->current = index;
+    if (!*skip_space(declaration->expression)) {
+        error_at(state, declaration->expression_at,
+                 "expected an expression for '%s'", declaration->name);
+        return;
+    }
     compiled = compile_block(state, declaration->expression,
                              declaration->expression_at);
     if (!compiled) {
         error_at(state, declaration->expression_at, "invalid pattern expression");
         return;
     }
+    /* Every definition must be a regex the RIFT engine accepts: a reference
+     * inserts it as a group, so a fragment such as "(((" is never usable. */
+    if (rift_regex_compile(&regex, compiled) != 0) {
+        error_at(state, declaration->expression_at,
+                 "'%s' is not a valid regular expression: %s",
+                 declaration->name, rift_regex_error(&regex));
+        rift_regex_free(&regex);
+        free(compiled);
+        return;
+    }
+    rift_regex_free(&regex);
     if (!program_add(state->program, declaration->name, compiled,
                      declaration->pattern)) {
         out_of_memory(state);
