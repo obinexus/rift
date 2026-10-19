@@ -45,6 +45,7 @@ RTestCase rtest_case_create(const char *name, const char *pattern,
     test_case.input = test_strdup(input ? input : "");
     test_case.should_match = should_match;
     test_case.result = RTEST_SKIP;
+    test_case.outcome = RTEST_OUTCOME_NONE;
     return test_case;
 }
 
@@ -77,9 +78,15 @@ bool rtest_suite_add(RTestSuite *suite, RTestCase test_case) {
 
 RTestResult rtest_run_case(RTestCase *test_case) {
     int matched;
-    if (!test_case || !test_case->pattern || !test_case->input) return RTEST_ERROR;
+    if (!test_case) return RTEST_ERROR;
     free(test_case->error_message);
     test_case->error_message = NULL;
+    /* An errored case has no matrix outcome; it must not count as a TP. */
+    test_case->outcome = RTEST_OUTCOME_NONE;
+    if (!test_case->pattern || !test_case->input) {
+        test_case->result = RTEST_ERROR;
+        return test_case->result;
+    }
 
     matched = test_full_match(
         test_case->pattern, test_case->input, &test_case->error_message);
@@ -122,6 +129,7 @@ bool rtest_run_suite(RTestSuite *suite) {
             case RTEST_TRUE_NEGATIVE: suite->true_negatives++; break;
             case RTEST_FALSE_POSITIVE: suite->false_positives++; break;
             case RTEST_FALSE_NEGATIVE: suite->false_negatives++; break;
+            case RTEST_OUTCOME_NONE: break;
         }
     }
     return suite->failed == 0;
@@ -172,13 +180,15 @@ void rtest_suite_free(RTestSuite *suite) {
 bool rtest_assert_match(const char *pattern, const char *input,
                         const char *file, int line) {
     int matched = test_full_match(pattern, input, NULL);
-    if (!matched) fprintf(stderr, "%s:%d: expected pattern to match\n", file, line);
-    return matched != 0;
+    if (matched < 0) fprintf(stderr, "%s:%d: invalid pattern\n", file, line);
+    else if (!matched) fprintf(stderr, "%s:%d: expected pattern to match\n", file, line);
+    return matched > 0;
 }
 
 bool rtest_assert_no_match(const char *pattern, const char *input,
                            const char *file, int line) {
     int matched = test_full_match(pattern, input, NULL);
-    if (matched) fprintf(stderr, "%s:%d: expected pattern not to match\n", file, line);
+    if (matched < 0) fprintf(stderr, "%s:%d: invalid pattern\n", file, line);
+    else if (matched) fprintf(stderr, "%s:%d: expected pattern not to match\n", file, line);
     return matched == 0;
 }

@@ -22,7 +22,9 @@ typedef enum RTestMatrixOutcome {
     RTEST_TRUE_POSITIVE = 0,
     RTEST_TRUE_NEGATIVE,
     RTEST_FALSE_POSITIVE,
-    RTEST_FALSE_NEGATIVE
+    RTEST_FALSE_NEGATIVE,
+    /* Not in the confusion matrix: the case errored or has not run. */
+    RTEST_OUTCOME_NONE
 } RTestMatrixOutcome;
 
 typedef struct RTestCase {

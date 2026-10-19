@@ -338,6 +338,15 @@ if(RIFT_BUILD_TESTS)
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
 
+    # RIFT_CHECK must fire even when NDEBUG is defined (the Release default).
+    add_executable(test_check_ndebug tests/test_check_ndebug.c)
+    add_test(NAME test_check_ndebug
+        COMMAND ${CMAKE_COMMAND}
+            "-DCOMMAND=$<TARGET_FILE:test_check_ndebug>"
+            -DEXPECT_EXIT=1
+            "-DEXPECT_STDERR_REGEX=check failed: value == 2"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/run_command.cmake")
+
     add_executable(test_headers_c tests/test_headers.c)
     target_link_libraries(test_headers_c PRIVATE rift riftlang rifttest)
     add_test(NAME test_headers_c COMMAND test_headers_c)

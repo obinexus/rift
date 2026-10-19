@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "rift_check.h"
 #include <stdio.h>
 #include "rift/riftbridge.h"
 
@@ -17,13 +17,13 @@ int main(void) {
     rift_token_set_position(&tokens[3], 1, 14, 13);
 
     matrix = rift_semantic_matrix_create(tokens, 4, 0.70);
-    assert(matrix != NULL);
+    RIFT_CHECK(matrix != NULL);
     traversal_result = rift_bridge_traverse(matrix, &result);
-    assert(traversal_result == 0);
-    assert(result.root_count == 1);
-    assert(result.accepted_tokens == 4);
-    assert(tokens[0].intent == RIFT_INTENT_DECLARE);
-    assert(tokens[2].intent == RIFT_INTENT_ASSIGN);
+    RIFT_CHECK(traversal_result == 0);
+    RIFT_CHECK(result.root_count == 1);
+    RIFT_CHECK(result.accepted_tokens == 4);
+    RIFT_CHECK(tokens[0].intent == RIFT_INTENT_DECLARE);
+    RIFT_CHECK(tokens[2].intent == RIFT_INTENT_ASSIGN);
 
     rift_bridge_result_destroy(&result);
     rift_semantic_matrix_destroy(matrix);

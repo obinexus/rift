@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
+#include "rift_check.h"
 #include "rift/cli.h"
 
 static int tests_passed = 0;
@@ -16,20 +16,20 @@ static int tests_failed = 0;
 
 TEST(test_find_command_bridge) {
     const rift_command_t *cmd = rift_cli_find_command("bridge");
-    assert(cmd != NULL);
-    assert(strcmp(cmd->name, "bridge") == 0);
-    assert(cmd->handler != NULL);
+    RIFT_CHECK(cmd != NULL);
+    RIFT_CHECK(strcmp(cmd->name, "bridge") == 0);
+    RIFT_CHECK(cmd->handler != NULL);
 }
 
 TEST(test_find_command_test) {
     const rift_command_t *cmd = rift_cli_find_command("test");
-    assert(cmd != NULL);
-    assert(strcmp(cmd->name, "test") == 0);
+    RIFT_CHECK(cmd != NULL);
+    RIFT_CHECK(strcmp(cmd->name, "test") == 0);
 }
 
 TEST(test_find_command_unknown) {
     const rift_command_t *cmd = rift_cli_find_command("nonexistent");
-    assert(cmd == NULL);
+    RIFT_CHECK(cmd == NULL);
 }
 
 TEST(test_all_commands_exist) {
@@ -39,7 +39,7 @@ TEST(test_all_commands_exist) {
     };
     for (int i = 0; names[i]; i++) {
         const rift_command_t *cmd = rift_cli_find_command(names[i]);
-        assert(cmd != NULL);
+        RIFT_CHECK(cmd != NULL);
     }
 }
 

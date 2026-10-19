@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "rift_check.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,19 +15,19 @@ int main(void) {
     char *output;
     bool added;
 
-    assert(result.success);
+    RIFT_CHECK(result.success);
     pattern = rlang_execute_pattern(result.program, "number");
-    assert(pattern != NULL);
-    assert(strstr(pattern, "[0-9]") != NULL);
+    RIFT_CHECK(pattern != NULL);
+    RIFT_CHECK(strstr(pattern, "[0-9]") != NULL);
     free(pattern);
 
     engine = rift_pattern_engine_create(RIFT_MODE_CLASSICAL);
-    assert(engine != NULL);
+    RIFT_CHECK(engine != NULL);
     added = rift_pattern_engine_add_pair(engine, "^yes$", "true", 1);
-    assert(added);
-    assert(rift_pattern_engine_compile(engine));
+    RIFT_CHECK(added);
+    RIFT_CHECK(rift_pattern_engine_compile(engine));
     output = rift_pattern_engine_match(engine, "yes", &output_length, NULL);
-    assert(output != NULL && strcmp(output, "true") == 0);
+    RIFT_CHECK(output != NULL && strcmp(output, "true") == 0);
     free(output);
     rift_pattern_engine_destroy(engine);
 
