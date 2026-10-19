@@ -1,0 +1,1 @@
+duplicate.rf:2:9: error: duplicate definition of 'X' (first defined at 1:9)

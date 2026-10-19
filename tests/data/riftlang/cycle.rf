@@ -1,0 +1,3 @@
+pattern A = B
+pattern B = C
+pattern C = "c" A

@@ -408,6 +408,76 @@ if(RIFT_BUILD_TESTS)
         COMMAND riftlang_cli
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift"
             -o "${CMAKE_CURRENT_BINARY_DIR}/smoke-riftlang.c")
+
+    # rift_command_test(<name> EXIT <status> COMMAND <program> [<arg>...]
+    #     [WORKING_DIRECTORY <dir>] [STDOUT_FILE <golden>] [STDERR_FILE <golden>]
+    #     [STDOUT_REGEX <regex>] [STDERR_REGEX <regex>] [CREATES <file>])
+    # Runs the command through tests/cmake/run_command.cmake, which requires
+    # the exact exit status and checks the given output.
+    set(RIFT_RUN_COMMAND_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/run_command.cmake")
+    function(rift_command_test name)
+        cmake_parse_arguments(PARSE_ARGV 1 arg ""
+            "EXIT;WORKING_DIRECTORY;STDOUT_FILE;STDERR_FILE;STDOUT_REGEX;STDERR_REGEX;CREATES"
+            "COMMAND")
+        list(JOIN arg_COMMAND "|" command)
+        set(definitions "-DCOMMAND=${command}" "-DEXPECT_EXIT=${arg_EXIT}")
+        foreach(option WORKING_DIRECTORY)
+            if(DEFINED arg_${option})
+                list(APPEND definitions "-D${option}=${arg_${option}}")
+            endif()
+        endforeach()
+        foreach(option STDOUT_FILE STDERR_FILE STDOUT_REGEX STDERR_REGEX)
+            if(DEFINED arg_${option})
+                list(APPEND definitions "-DEXPECT_${option}=${arg_${option}}")
+            endif()
+        endforeach()
+        if(DEFINED arg_CREATES)
+            list(APPEND definitions "-DEXPECT_FILE=${arg_CREATES}")
+        endif()
+        add_test(NAME ${name}
+            COMMAND ${CMAKE_COMMAND} ${definitions} -P "${RIFT_RUN_COMMAND_SCRIPT}")
+    endfunction()
+
+    # riftlang diagnostics: each file in tests/data/riftlang must fail with
+    # exactly the message in its .stderr file, and print nothing on stdout.
+    set(RIFTLANG_GOLDEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/riftlang")
+    foreach(case undefined forward recursive mutual cycle duplicate unknown)
+        rift_command_test(riftlang_diagnostic_${case}
+            EXIT 1
+            COMMAND $<TARGET_FILE:riftlang_cli> ${case}.rf
+            WORKING_DIRECTORY "${RIFTLANG_GOLDEN_DIR}"
+            STDOUT_REGEX "^$"
+            STDERR_FILE "${RIFTLANG_GOLDEN_DIR}/${case}.stderr")
+    endforeach()
+    # --allow-unknown turns unsupported constructs into warnings and skips
+    # their bodies, including the `let` inside `type T { ... }`.
+    rift_command_test(riftlang_diagnostic_unknown_allowed
+        EXIT 0
+        COMMAND $<TARGET_FILE:riftlang_cli> --allow-unknown -p Z unknown.rf
+        WORKING_DIRECTORY "${RIFTLANG_GOLDEN_DIR}"
+        STDOUT_FILE "${RIFTLANG_GOLDEN_DIR}/unknown-allowed.stdout"
+        STDERR_FILE "${RIFTLANG_GOLDEN_DIR}/unknown-allowed.stderr")
+
+    # The example validators use constructs riftlang does not support yet.
+    set(RIFT_EXAMPLES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/examples")
+    foreach(example email_validator phone_validator)
+        rift_command_test(riftlang_example_${example}_strict
+            EXIT 1
+            COMMAND $<TARGET_FILE:riftlang_cli> --validate ${example}.rf
+            WORKING_DIRECTORY "${RIFT_EXAMPLES_DIR}"
+            STDERR_REGEX "^${example}.rf:[0-9]+:1: error: unsupported construct 'package'")
+        rift_command_test(riftlang_example_${example}_allow_unknown
+            EXIT 0
+            COMMAND $<TARGET_FILE:riftlang_cli> --allow-unknown --validate ${example}.rf
+            WORKING_DIRECTORY "${RIFT_EXAMPLES_DIR}"
+            STDOUT_REGEX "^${example}.rf: valid"
+            STDERR_REGEX "${example}.rf:[0-9]+:1: warning: unsupported construct 'type' ignored")
+    endforeach()
+    rift_command_test(riftlang_example_email_pattern
+        EXIT 0
+        COMMAND $<TARGET_FILE:riftlang_cli> --allow-unknown -p EMAIL email_validator.rf
+        WORKING_DIRECTORY "${RIFT_EXAMPLES_DIR}"
+        STDOUT_FILE "${RIFTLANG_GOLDEN_DIR}/email_validator.EMAIL.stdout")
 endif()
 
 install(TARGETS

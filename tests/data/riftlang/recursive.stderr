@@ -1,0 +1,1 @@
+recursive.rf:2:26: error: recursive reference to 'EXPR'

@@ -20,14 +20,24 @@ typedef struct RLangBinding {
     const char *value;
 } RLangBinding;
 
+/*
+ * Source errors are reported as "LINE:COLUMN: error: MESSAGE" (rlang_load_file
+ * prefixes "PATH:"). Undefined names, recursive or forward references,
+ * duplicate definitions and unsupported top-level constructs are errors.
+ */
 typedef struct RLangCompileResult {
     bool success;
     char *error_message;
     RLangProgram *program;
+    /* Newline-terminated "LINE:COLUMN: warning: MESSAGE" lines, or NULL. */
+    char *warnings;
 } RLangCompileResult;
 
 RIFTLANG_API RLangContext *rlang_context_create(void);
 RIFTLANG_API void rlang_context_free(RLangContext *ctx);
+/* Skip top-level constructs other than `pattern` and `let` with a warning
+ * instead of rejecting them. Off by default. */
+RIFTLANG_API void rlang_context_set_allow_unknown(RLangContext *ctx, bool allow);
 RIFTLANG_API RLangCompileResult rlang_compile(RLangContext *ctx, const char *source);
 RIFTLANG_API RLangCompileResult rlang_load_file(RLangContext *ctx, const char *filepath);
 RIFTLANG_API char *rlang_execute_pattern(RLangProgram *program, const char *pattern_name);
