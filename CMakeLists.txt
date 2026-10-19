@@ -28,14 +28,31 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# The POSIX build uses pthread mutexes (src/core/platform.c). glibc older than
+# 2.34 and other libcs keep them in a separate library, so link it explicitly.
+if(NOT WIN32)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
+endif()
+
+# Name the compiler the way users and CI invoke it: CMake reports gcc as "GNU",
+# which would otherwise produce build/bin/linux-gnu.
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    set(RIFT_COMPILER_TAG "gcc")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+    set(RIFT_COMPILER_TAG "clang")
+else()
+    set(RIFT_COMPILER_TAG "${CMAKE_C_COMPILER_ID}")
+endif()
+
 if(MSVC)
     set(RIFT_PLATFORM_TAG "windows-msvc")
 elseif(MINGW)
     set(RIFT_PLATFORM_TAG "windows-mingw")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(RIFT_PLATFORM_TAG "linux-${CMAKE_C_COMPILER_ID}")
+    set(RIFT_PLATFORM_TAG "linux-${RIFT_COMPILER_TAG}")
 else()
-    string(TOLOWER "${CMAKE_SYSTEM_NAME}-${CMAKE_C_COMPILER_ID}" RIFT_PLATFORM_TAG)
+    string(TOLOWER "${CMAKE_SYSTEM_NAME}-${RIFT_COMPILER_TAG}" RIFT_PLATFORM_TAG)
 endif()
 string(TOLOWER "${RIFT_PLATFORM_TAG}" RIFT_PLATFORM_TAG)
 set(RIFT_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/build/bin/${RIFT_PLATFORM_TAG}")
@@ -97,6 +114,16 @@ set(RIFTTEST_SOURCES
     src/rifttest/rifttest.c
 )
 
+# With CMAKE_C_EXTENSIONS OFF the compiler runs in strict ISO C mode, and glibc
+# then hides POSIX declarations such as clock_gettime, CLOCK_MONOTONIC and
+# posix_memalign. Request POSIX.1-2008 explicitly. Apple is excluded: its
+# headers expose POSIX by default, and the macro would only narrow them.
+function(rift_posix_target target)
+    if(UNIX AND NOT APPLE)
+        target_compile_definitions(${target} PRIVATE _POSIX_C_SOURCE=200809L)
+    endif()
+endfunction()
+
 function(rift_common_target target)
     target_include_directories(${target}
         PUBLIC
@@ -128,11 +155,15 @@ function(rift_common_target target)
     else()
         target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
     endif()
+    rift_posix_target(${target})
 endfunction()
 
 add_library(rift STATIC ${RIFT_CORE_SOURCES})
 set_target_properties(rift PROPERTIES OUTPUT_NAME rift PREFIX "" EXPORT_NAME rift)
 rift_common_target(rift)
+if(NOT WIN32)
+    target_link_libraries(rift PUBLIC Threads::Threads)
+endif()
 add_library(RIFT::rift ALIAS rift)
 
 add_library(rift_shared SHARED ${RIFT_CORE_SOURCES})
@@ -147,6 +178,9 @@ endif()
 target_compile_definitions(rift_shared PRIVATE RIFT_CORE_BUILD_DLL)
 target_compile_definitions(rift_shared INTERFACE RIFT_CORE_USE_DLL)
 rift_common_target(rift_shared)
+if(NOT WIN32)
+    target_link_libraries(rift_shared PUBLIC Threads::Threads)
+endif()
 add_library(RIFT::rift_shared ALIAS rift_shared)
 
 add_library(riftlang STATIC ${RIFTLANG_SOURCES})
@@ -287,6 +321,7 @@ endif()
 if(RIFT_BUILD_TESTS)
     enable_testing()
     set(RIFT_TESTS
+        test_platform
         test_token
         test_lexer
         test_codec
@@ -303,6 +338,25 @@ if(RIFT_BUILD_TESTS)
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
 
+    # Allocation-failure injection wraps malloc and posix_memalign at link
+    # time (GNU ld and lld), so it is built only where --wrap is available.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
+        add_executable(test_lexer_oom tests/test_lexer_oom.c)
+        target_link_libraries(test_lexer_oom PRIVATE rift)
+        target_link_options(test_lexer_oom PRIVATE
+            "LINKER:--wrap=malloc" "LINKER:--wrap=posix_memalign")
+        add_test(NAME test_lexer_oom COMMAND test_lexer_oom)
+    endif()
+
+    # RIFT_CHECK must fire even when NDEBUG is defined (the Release default).
+    add_executable(test_check_ndebug tests/test_check_ndebug.c)
+    add_test(NAME test_check_ndebug
+        COMMAND ${CMAKE_COMMAND}
+            "-DCOMMAND=$<TARGET_FILE:test_check_ndebug>"
+            -DEXPECT_EXIT=1
+            "-DEXPECT_STDERR_REGEX=check failed: value == 2"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/run_command.cmake")
+
     add_executable(test_headers_c tests/test_headers.c)
     target_link_libraries(test_headers_c PRIVATE rift riftlang rifttest)
     add_test(NAME test_headers_c COMMAND test_headers_c)
@@ -317,12 +371,42 @@ if(RIFT_BUILD_TESTS)
     rift_common_target(test_shared_consumer)
     add_test(NAME test_shared_consumer COMMAND test_shared_consumer)
 
+    # Installs this tree and builds tests/package_consumer against it, which
+    # checks that the exported targets (including Threads::Threads) resolve.
+    set(RIFT_CONSUMER_COMPILER_ARG)
+    if(NOT CMAKE_GENERATOR MATCHES "Visual Studio")
+        set(RIFT_CONSUMER_COMPILER_ARG "-DC_COMPILER=${CMAKE_C_COMPILER}")
+    endif()
+    add_test(NAME rift_package_consumer
+        COMMAND ${CMAKE_COMMAND}
+            "-DRIFT_BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCONSUMER_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/tests/package_consumer"
+            "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/package_consumer/$<CONFIG>"
+            "-DGENERATOR=${CMAKE_GENERATOR}"
+            "-DCONFIG=$<CONFIG>"
+            ${RIFT_CONSUMER_COMPILER_ARG}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/package_consumer/run.cmake")
+
+    # The CI workflow looks for build/bin/linux-<gcc|clang>/; keep CMake's
+    # output layout in step with it.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
+        add_test(NAME rift_ci_artifact_layout
+            COMMAND ${CMAKE_COMMAND}
+                "-DSOURCE_DIR=${CMAKE_SOURCE_DIR}"
+                "-DCOMPILER_ID=${CMAKE_C_COMPILER_ID}"
+                "-DNM=${CMAKE_NM}"
+                "-DCONFIG=$<CONFIG>"
+                "-DRIFT_STATIC=$<TARGET_FILE:rift>"
+                "-DRIFT_SHARED=$<TARGET_FILE:rift_shared>"
+                "-DRIFTLANG_STATIC=$<TARGET_FILE:riftlang>"
+                "-DRIFTLANG_SHARED=$<TARGET_FILE:riftlang_shared>"
+                "-DRIFTTEST_STATIC=$<TARGET_FILE:rifttest>"
+                "-DRIFTTEST_SHARED=$<TARGET_FILE:rifttest_shared>"
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/check_artifacts.cmake")
+    endif()
+
     add_test(NAME rift_cli_version COMMAND rift_cli --version)
     add_test(NAME rift_cli_tests COMMAND rift_cli test)
-    add_test(NAME rift_cli_compile
-        COMMAND rift_cli compile
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift"
-            "${CMAKE_CURRENT_BINARY_DIR}/smoke-rift.c")
     add_test(NAME riftlang_cli_validate
         COMMAND riftlang_cli --validate
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift")
@@ -330,6 +414,128 @@ if(RIFT_BUILD_TESTS)
         COMMAND riftlang_cli
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift"
             -o "${CMAKE_CURRENT_BINARY_DIR}/smoke-riftlang.c")
+
+    # rift_command_test(<name> EXIT <status> COMMAND <program> [<arg>...]
+    #     [WORKING_DIRECTORY <dir>] [STDOUT_FILE <golden>] [STDERR_FILE <golden>]
+    #     [STDOUT_REGEX <regex>] [STDERR_REGEX <regex>] [CREATES <file>]
+    #     [ABSENT <file>])
+    # Runs the command through tests/cmake/run_command.cmake, which requires
+    # the exact exit status and checks the given output.
+    set(RIFT_RUN_COMMAND_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/run_command.cmake")
+    function(rift_command_test name)
+        cmake_parse_arguments(PARSE_ARGV 1 arg ""
+            "EXIT;WORKING_DIRECTORY;STDOUT_FILE;STDERR_FILE;STDOUT_REGEX;STDERR_REGEX;CREATES;ABSENT"
+            "COMMAND")
+        list(JOIN arg_COMMAND "|" command)
+        set(definitions "-DCOMMAND=${command}" "-DEXPECT_EXIT=${arg_EXIT}")
+        foreach(option WORKING_DIRECTORY)
+            if(DEFINED arg_${option})
+                list(APPEND definitions "-D${option}=${arg_${option}}")
+            endif()
+        endforeach()
+        foreach(option STDOUT_FILE STDERR_FILE STDOUT_REGEX STDERR_REGEX)
+            if(DEFINED arg_${option})
+                list(APPEND definitions "-DEXPECT_${option}=${arg_${option}}")
+            endif()
+        endforeach()
+        if(DEFINED arg_CREATES)
+            list(APPEND definitions "-DEXPECT_FILE=${arg_CREATES}")
+        endif()
+        if(DEFINED arg_ABSENT)
+            list(APPEND definitions "-DEXPECT_ABSENT=${arg_ABSENT}")
+        endif()
+        add_test(NAME ${name}
+            COMMAND ${CMAKE_COMMAND} ${definitions} -P "${RIFT_RUN_COMMAND_SCRIPT}")
+    endfunction()
+
+    # riftlang diagnostics: each file in tests/data/riftlang must fail with
+    # exactly the message in its .stderr file, and print nothing on stdout.
+    set(RIFTLANG_GOLDEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/riftlang")
+    foreach(case undefined forward recursive mutual cycle duplicate unknown
+                 badregex empty)
+        rift_command_test(riftlang_diagnostic_${case}
+            EXIT 1
+            COMMAND $<TARGET_FILE:riftlang_cli> ${case}.rf
+            WORKING_DIRECTORY "${RIFTLANG_GOLDEN_DIR}"
+            STDOUT_REGEX "^$"
+            STDERR_FILE "${RIFTLANG_GOLDEN_DIR}/${case}.stderr")
+    endforeach()
+    # --allow-unknown turns unsupported constructs into warnings and skips
+    # their bodies, including the `let` inside `type T { ... }`.
+    rift_command_test(riftlang_diagnostic_unknown_allowed
+        EXIT 0
+        COMMAND $<TARGET_FILE:riftlang_cli> --allow-unknown -p Z unknown.rf
+        WORKING_DIRECTORY "${RIFTLANG_GOLDEN_DIR}"
+        STDOUT_FILE "${RIFTLANG_GOLDEN_DIR}/unknown-allowed.stdout"
+        STDERR_FILE "${RIFTLANG_GOLDEN_DIR}/unknown-allowed.stderr")
+
+    # The example validators use constructs riftlang does not support yet.
+    set(RIFT_EXAMPLES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/examples")
+    foreach(example email_validator phone_validator)
+        rift_command_test(riftlang_example_${example}_strict
+            EXIT 1
+            COMMAND $<TARGET_FILE:riftlang_cli> --validate ${example}.rf
+            WORKING_DIRECTORY "${RIFT_EXAMPLES_DIR}"
+            STDERR_REGEX "^${example}.rf:[0-9]+:1: error: unsupported construct 'package'")
+        rift_command_test(riftlang_example_${example}_allow_unknown
+            EXIT 0
+            COMMAND $<TARGET_FILE:riftlang_cli> --allow-unknown --validate ${example}.rf
+            WORKING_DIRECTORY "${RIFT_EXAMPLES_DIR}"
+            STDOUT_REGEX "^${example}.rf: valid"
+            STDERR_REGEX "${example}.rf:[0-9]+:1: warning: unsupported construct 'type' ignored")
+    endforeach()
+    rift_command_test(riftlang_example_email_pattern
+        EXIT 0
+        COMMAND $<TARGET_FILE:riftlang_cli> --allow-unknown -p EMAIL email_validator.rf
+        WORKING_DIRECTORY "${RIFT_EXAMPLES_DIR}"
+        STDOUT_FILE "${RIFTLANG_GOLDEN_DIR}/email_validator.EMAIL.stdout")
+
+    # rift compile: valid input produces output; malformed input is rejected
+    # with riftlang's diagnostic and writes nothing.
+    rift_command_test(rift_cli_compile
+        EXIT 0
+        COMMAND $<TARGET_FILE:rift_cli> compile
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift"
+            "${CMAKE_CURRENT_BINARY_DIR}/smoke-rift.c"
+        STDERR_REGEX "^$"
+        CREATES "${CMAKE_CURRENT_BINARY_DIR}/smoke-rift.c")
+    foreach(case bad undefined)
+        if(case STREQUAL "bad")
+            set(input bad.rift)
+        else()
+            set(input ${case}.rf)
+        endif()
+        rift_command_test(rift_cli_compile_rejects_${case}
+            EXIT 1
+            COMMAND $<TARGET_FILE:rift_cli> compile ${input}
+                "${CMAKE_CURRENT_BINARY_DIR}/rejected-${case}.c"
+            WORKING_DIRECTORY "${RIFTLANG_GOLDEN_DIR}"
+            STDOUT_REGEX "^$"
+            STDERR_FILE "${RIFTLANG_GOLDEN_DIR}/${case}.stderr"
+            ABSENT "${CMAKE_CURRENT_BINARY_DIR}/rejected-${case}.c")
+    endforeach()
+    rift_command_test(riftlang_diagnostic_bad
+        EXIT 1
+        COMMAND $<TARGET_FILE:riftlang_cli> bad.rift
+        WORKING_DIRECTORY "${RIFTLANG_GOLDEN_DIR}"
+        STDERR_FILE "${RIFTLANG_GOLDEN_DIR}/bad.stderr")
+
+    # Commands that are not implemented say so and exit 2.
+    foreach(command parse emit raf)
+        rift_command_test(rift_cli_${command}_not_implemented
+            EXIT 2
+            COMMAND $<TARGET_FILE:rift_cli> ${command} --validate
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/data/smoke.rift"
+            STDOUT_REGEX "^$"
+            STDERR_REGEX "^rift ${command}: not implemented")
+    endforeach()
+
+    # The command handlers, linked without the CLI's main().
+    set(RIFT_CLI_COMMAND_SOURCES ${RIFT_CLI_SOURCES})
+    list(REMOVE_ITEM RIFT_CLI_COMMAND_SOURCES src/cli/main.c)
+    add_executable(test_cli tests/test_cli.c ${RIFT_CLI_COMMAND_SOURCES})
+    target_link_libraries(test_cli PRIVATE rift riftlang rifttest)
+    add_test(NAME test_cli COMMAND test_cli)
 endif()
 
 install(TARGETS

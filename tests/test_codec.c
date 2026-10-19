@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
+#include "rift_check.h"
 #include "rift/codec.h"
 
 static int tests_passed = 0;
@@ -17,23 +17,23 @@ static int tests_failed = 0;
 TEST(test_link_empty) {
     rift_cir_program_t prog;
     int result = rift_link("", 0, &prog);
-    assert(result == -1);
+    RIFT_CHECK(result == -1);
 }
 
 TEST(test_link_basic) {
     rift_cir_program_t prog;
     const char *src = "let x = 1";
     int result = rift_link(src, strlen(src), &prog);
-    assert(result == 0);
-    assert(prog.node_count == 1);
-    assert(prog.nodes[0].kind == RIFT_CIR_ASSIGN);
+    RIFT_CHECK(result == 0);
+    RIFT_CHECK(prog.node_count == 1);
+    RIFT_CHECK(prog.nodes[0].kind == RIFT_CIR_ASSIGN);
 }
 
 TEST(test_codec_emit_unknown_target) {
     rift_cir_program_t prog;
     memset(&prog, 0, sizeof(prog));
     int result = rift_codec_emit(&prog, "unknown", NULL);
-    assert(result == -1);
+    RIFT_CHECK(result == -1);
 }
 
 int main(void) {

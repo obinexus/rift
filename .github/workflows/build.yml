@@ -13,11 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure
-        run: cmake -S . -B build/${{ matrix.compiler }} -DCMAKE_C_COMPILER=${{ matrix.compiler }} -DRIFT_BUILD_TESTS=ON
+        run: cmake -S . -B build/${{ matrix.compiler }} -DCMAKE_C_COMPILER=${{ matrix.compiler }} -DCMAKE_BUILD_TYPE=Release -DRIFT_BUILD_TESTS=ON
       - name: Build
         run: cmake --build build/${{ matrix.compiler }} --parallel
       - name: Test
         run: ctest --test-dir build/${{ matrix.compiler }} --output-on-failure
+      # CMakeLists.txt maps the GNU compiler ID to "gcc", so these paths match
+      # the matrix names. ctest's rift_ci_artifact_layout checks the same.
       - name: Check artifacts
         run: |
           test -f build/bin/linux-${{ matrix.compiler }}/rift.a
@@ -29,6 +31,19 @@ jobs:
           nm -D build/bin/linux-${{ matrix.compiler }}/rift.so | grep rift_regex_compile
           nm -D build/bin/linux-${{ matrix.compiler }}/riftlang.so | grep rlang_compile
           nm -D build/bin/linux-${{ matrix.compiler }}/rifttest.so | grep rtest_run_suite
+
+  # Debug keeps assert() active and builds without NDEBUG, so the suite runs
+  # under both settings.
+  linux-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build/debug -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=Debug -DRIFT_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build/debug --parallel
+      - name: Test
+        run: ctest --test-dir build/debug --output-on-failure
 
   windows-msvc:
     runs-on: windows-latest

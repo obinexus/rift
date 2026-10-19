@@ -36,7 +36,7 @@ int rift_cmd_lang(int argc, char **argv) {
         printf("%s = %s\n", patterns[i], value ? value : "");
         free(value);
     }
-    rlang_program_free(result.program);
+    rlang_compile_result_free(&result);
     rlang_context_free(context);
     return 0;
 }

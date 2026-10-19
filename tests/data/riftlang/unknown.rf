@@ -1,0 +1,7 @@
+package demo;
+pattern X = "x"
+type T {
+    pattern: X,
+    let inner = Y
+}
+pattern Z = X "z"

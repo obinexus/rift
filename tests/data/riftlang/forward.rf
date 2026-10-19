@@ -1,0 +1,2 @@
+pattern A = B
+pattern B = "b"

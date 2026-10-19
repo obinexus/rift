@@ -10,6 +10,8 @@ static void print_usage(void) {
     puts("  -o <file>          Write generated regex or C source");
     puts("  -p, --pattern <n>  Select a named pattern");
     puts("  --validate         Validate without emitting");
+    puts("  --allow-unknown    Warn about, instead of rejecting, top-level");
+    puts("                     constructs other than pattern and let");
     puts("  --version          Print version");
 }
 
@@ -25,6 +27,7 @@ int main(int argc, char **argv) {
     const char *output = NULL;
     const char *selected_pattern = NULL;
     int validate_only = 0;
+    int allow_unknown = 0;
     int i;
     RLangContext *context;
     RLangCompileResult result;
@@ -44,6 +47,8 @@ int main(int argc, char **argv) {
         }
         if (strcmp(argv[i], "--validate") == 0) {
             validate_only = 1;
+        } else if (strcmp(argv[i], "--allow-unknown") == 0) {
+            allow_unknown = 1;
         } else if ((strcmp(argv[i], "-o") == 0) && i + 1 < argc) {
             output = argv[++i];
         } else if ((strcmp(argv[i], "-p") == 0 ||
@@ -63,23 +68,27 @@ int main(int argc, char **argv) {
 
     context = rlang_context_create();
     if (!context) return 1;
+    rlang_context_set_allow_unknown(context, allow_unknown != 0);
     result = rlang_load_file(context, input);
+    if (result.warnings) fputs(result.warnings, stderr);
     if (!result.success) {
-        fprintf(stderr, "riftlang: %s\n",
-                result.error_message ? result.error_message : "compilation failed");
+        /* Diagnostics already carry "<input>:<line>:<column>: error:". */
+        fprintf(stderr, "%s\n",
+                result.error_message ? result.error_message
+                                     : "riftlang: compilation failed");
         rlang_compile_result_free(&result);
         rlang_context_free(context);
         return 1;
     }
     if (validate_only) {
         printf("%s: valid\n", input);
-        rlang_program_free(result.program);
+        rlang_compile_result_free(&result);
         rlang_context_free(context);
         return 0;
     }
     if (output && has_suffix(output, ".c")) {
         int ok = rlang_export_c(result.program, output);
-        rlang_program_free(result.program);
+        rlang_compile_result_free(&result);
         rlang_context_free(context);
         return ok ? 0 : 1;
     }
@@ -91,21 +100,21 @@ int main(int argc, char **argv) {
         ? rlang_execute_pattern(result.program, selected_pattern) : NULL;
     if (!regex) {
         fprintf(stderr, "riftlang: pattern not found\n");
-        rlang_program_free(result.program);
+        rlang_compile_result_free(&result);
         rlang_context_free(context);
         return 1;
     }
     stream = output ? fopen(output, "wb") : stdout;
     if (!stream) {
         free(regex);
-        rlang_program_free(result.program);
+        rlang_compile_result_free(&result);
         rlang_context_free(context);
         return 1;
     }
     fprintf(stream, "%s\n", regex);
     if (output) fclose(stream);
     free(regex);
-    rlang_program_free(result.program);
+    rlang_compile_result_free(&result);
     rlang_context_free(context);
     return 0;
 }

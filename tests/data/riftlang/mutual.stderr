@@ -1,0 +1,1 @@
+mutual.rf:1:17: error: recursive reference to 'B' (A -> B -> A)

@@ -1,0 +1,2 @@
+let NUM = r"[0-9]+"
+pattern EXPR = NUM | "(" EXPR ")"
