@@ -55,16 +55,35 @@ jobs:
         run: cmake --build build/msvc --config Release --parallel
       - name: Test
         run: ctest --test-dir build/msvc -C Release --output-on-failure
+      # dumpbin is only on PATH in a Visual Studio developer shell, so the
+      # step finds it with vswhere. Each check names what it found missing.
       - name: Check artifacts
         shell: pwsh
         run: |
-          if (!(Test-Path build/bin/windows-msvc/rift.dll)) { exit 1 }
-          if (!(Test-Path build/bin/windows-msvc/rift.lib)) { exit 1 }
-          if (!(Test-Path build/bin/windows-msvc/riftlang.dll)) { exit 1 }
-          if (!(Test-Path build/bin/windows-msvc/rifttest.dll)) { exit 1 }
-          dumpbin /exports build/bin/windows-msvc/rift.dll | Select-String rift_regex_compile
-          dumpbin /exports build/bin/windows-msvc/riftlang.dll | Select-String rlang_compile
-          dumpbin /exports build/bin/windows-msvc/rifttest.dll | Select-String rtest_run_suite
+          $dir = "build/bin/windows-msvc"
+          foreach ($file in "rift.dll", "rift.lib", "riftlang.dll", "rifttest.dll") {
+            if (-not (Test-Path "$dir/$file")) {
+              Get-ChildItem $dir -ErrorAction SilentlyContinue | Format-Table -AutoSize | Out-String | Write-Host
+              throw "missing artifact: $dir/$file"
+            }
+          }
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $dumpbin = & $vswhere -latest -products * -find "VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe" |
+            Select-Object -First 1
+          if (-not $dumpbin) { throw "dumpbin.exe not found through $vswhere" }
+          $exports = [ordered]@{
+            "rift.dll"     = "rift_regex_compile"
+            "riftlang.dll" = "rlang_compile"
+            "rifttest.dll" = "rtest_run_suite"
+          }
+          foreach ($dll in $exports.Keys) {
+            $listing = & $dumpbin /exports "$dir/$dll"
+            if ($LASTEXITCODE -ne 0) { throw "dumpbin failed on $dir/$dll" }
+            if (-not ($listing | Select-String -SimpleMatch $exports[$dll])) {
+              throw "$dir/$dll does not export $($exports[$dll])"
+            }
+            Write-Host "$dll exports $($exports[$dll])"
+          }
 
   windows-mingw:
     runs-on: windows-latest
