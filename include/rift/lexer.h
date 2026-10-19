@@ -15,6 +15,10 @@ RIFT_API void          rift_lexer_destroy(rift_lexer_t *lexer);
 RIFT_API rift_token_t  rift_lexer_next(rift_lexer_t *lexer);
 RIFT_API rift_token_t  rift_lexer_peek(const rift_lexer_t *lexer);
 RIFT_API int           rift_lexer_eof(const rift_lexer_t *lexer);
+/* Non-zero once rift_lexer_next could not allocate a token's value. That
+ * call returns an invalid RIFT_TOKEN_UNKNOWN token and lexing stops: later
+ * calls return EOF. */
+RIFT_API int           rift_lexer_has_error(const rift_lexer_t *lexer);
 
 #ifdef __cplusplus
 }

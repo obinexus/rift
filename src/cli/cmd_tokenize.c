@@ -43,6 +43,14 @@ int rift_cmd_tokenize(int argc, char **argv) {
     }
     for (;;) {
         rift_token_t token = rift_lexer_next(lexer);
+        if (rift_lexer_has_error(lexer)) {
+            fprintf(stderr, "rift tokenize: out of memory at %u:%u\n",
+                    token.row, token.column);
+            rift_token_destroy(&token);
+            rift_lexer_destroy(lexer);
+            free(source);
+            return 1;
+        }
         printf("%u:%u %-16s %s\n", token.row, token.column,
                rift_token_type_name(token.type),
                token.lexeme ? token.lexeme : "");

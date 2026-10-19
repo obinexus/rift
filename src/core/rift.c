@@ -75,6 +75,11 @@ rift_error_t rift_compile(rift_context_t *ctx,
     }
     for (;;) {
         rift_token_t token = rift_lexer_next(ctx->lexer);
+        if (rift_lexer_has_error(ctx->lexer)) {
+            rift_token_destroy(&token);
+            error = RIFT_ERROR_MEMORY_ALLOCATION;
+            goto cleanup;
+        }
         if (token_count == token_capacity) {
             size_t next_capacity = token_capacity ? token_capacity * 2 : 32;
             rift_token_t *next = (rift_token_t *)realloc(

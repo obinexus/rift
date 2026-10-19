@@ -9,6 +9,7 @@ struct rift_lexer {
     size_t      pos;
     uint32_t    line;
     uint32_t    column;
+    int         failed;
 };
 
 rift_lexer_t *rift_lexer_create(const char *source, size_t length) {
@@ -45,6 +46,42 @@ static char lexer_advance(rift_lexer_t *lexer) {
     }
     lexer->pos++;
     return c;
+}
+
+/* An allocation failed: return an invalid token and stop lexing, so the
+ * lost value cannot pass for a token. */
+static rift_token_t lexer_fail(rift_lexer_t *lexer, uint32_t line, uint32_t column) {
+    rift_token_t token = rift_token_create(RIFT_TOKEN_UNKNOWN, NULL);
+    lexer->failed = 1;
+    lexer->pos = lexer->length;
+    token.row = line;
+    token.column = column;
+    return token;
+}
+
+/* Makes a token holding a copy of `text`; `text` is NULL when the caller's
+ * own allocation failed. */
+static rift_token_t lexer_token(rift_lexer_t *lexer, rift_token_type_t type,
+                                const char *text, uint32_t line, uint32_t column) {
+    rift_token_t token;
+    if (!text) return lexer_fail(lexer, line, column);
+    token = rift_token_create(type, text);
+    if (!token.memory.ptr) {
+        rift_token_destroy(&token);
+        return lexer_fail(lexer, line, column);
+    }
+    token.row = line;
+    token.column = column;
+    return token;
+}
+
+static char *lexer_copy(const rift_lexer_t *lexer, size_t start, size_t len) {
+    char *buf = (char *)malloc(len + 1);
+    if (buf) {
+        memcpy(buf, lexer->source + start, len);
+        buf[len] = '\0';
+    }
+    return buf;
 }
 
 rift_token_t rift_lexer_next(rift_lexer_t *lexer) {
@@ -93,12 +130,7 @@ rift_token_t rift_lexer_next(rift_lexer_t *lexer) {
                 lexer_advance(lexer);
             }
 
-            size_t len = lexer->pos - start;
-            char *buf = (char *)malloc(len + 1);
-            if (buf) {
-                memcpy(buf, lexer->source + start, len);
-                buf[len] = '\0';
-            }
+            char *buf = lexer_copy(lexer, start, lexer->pos - start);
 
             /* Skip closing delimiters */
             if (lexer->pos < lexer->length) lexer_advance(lexer);
@@ -106,9 +138,7 @@ rift_token_t rift_lexer_next(rift_lexer_t *lexer) {
                 lexer_advance(lexer);
             }
 
-            rift_token_t token = rift_token_create(type, buf);
-            token.row = start_line;
-            token.column = start_col;
+            rift_token_t token = lexer_token(lexer, type, buf, start_line, start_col);
             free(buf);
             return token;
         }
@@ -121,12 +151,8 @@ rift_token_t rift_lexer_next(rift_lexer_t *lexer) {
                (isalnum(lexer_current(lexer)) || lexer_current(lexer) == '_')) {
             lexer_advance(lexer);
         }
-        size_t len = lexer->pos - start;
-        char *buf = (char *)malloc(len + 1);
-        if (buf) {
-            memcpy(buf, lexer->source + start, len);
-            buf[len] = '\0';
-        }
+        char *buf = lexer_copy(lexer, start, lexer->pos - start);
+        if (!buf) return lexer_fail(lexer, start_line, start_col);
 
         /* Check keywords */
         rift_token_type_t type = RIFT_TOKEN_IDENTIFIER;
@@ -141,9 +167,7 @@ rift_token_t rift_lexer_next(rift_lexer_t *lexer) {
             }
         }
 
-        rift_token_t token = rift_token_create(type, buf);
-        token.row = start_line;
-        token.column = start_col;
+        rift_token_t token = lexer_token(lexer, type, buf, start_line, start_col);
         free(buf);
         return token;
     }
@@ -157,16 +181,9 @@ rift_token_t rift_lexer_next(rift_lexer_t *lexer) {
             if (lexer_current(lexer) == '.') is_float = 1;
             lexer_advance(lexer);
         }
-        size_t len = lexer->pos - start;
-        char *buf = (char *)malloc(len + 1);
-        if (buf) {
-            memcpy(buf, lexer->source + start, len);
-            buf[len] = '\0';
-        }
+        char *buf = lexer_copy(lexer, start, lexer->pos - start);
         rift_token_type_t type = is_float ? RIFT_TOKEN_LITERAL_FLOAT : RIFT_TOKEN_LITERAL_INT;
-        rift_token_t token = rift_token_create(type, buf);
-        token.row = start_line;
-        token.column = start_col;
+        rift_token_t token = lexer_token(lexer, type, buf, start_line, start_col);
         free(buf);
         return token;
     }
@@ -179,16 +196,10 @@ rift_token_t rift_lexer_next(rift_lexer_t *lexer) {
             if (lexer_current(lexer) == '\\') lexer_advance(lexer);
             lexer_advance(lexer);
         }
-        size_t len = lexer->pos - start;
-        char *buf = (char *)malloc(len + 1);
-        if (buf) {
-            memcpy(buf, lexer->source + start, len);
-            buf[len] = '\0';
-        }
+        char *buf = lexer_copy(lexer, start, lexer->pos - start);
         if (lexer->pos < lexer->length) lexer_advance(lexer);
-        rift_token_t token = rift_token_create(RIFT_TOKEN_LITERAL_STRING, buf);
-        token.row = start_line;
-        token.column = start_col;
+        rift_token_t token = lexer_token(lexer, RIFT_TOKEN_LITERAL_STRING, buf,
+                                         start_line, start_col);
         free(buf);
         return token;
     }
@@ -204,10 +215,7 @@ rift_token_t rift_lexer_next(rift_lexer_t *lexer) {
         type = RIFT_TOKEN_DELIMITER;
     }
 
-    rift_token_t token = rift_token_create(type, buf);
-    token.row = start_line;
-    token.column = start_col;
-    return token;
+    return lexer_token(lexer, type, buf, start_line, start_col);
 }
 
 rift_token_t rift_lexer_peek(const rift_lexer_t *lexer) {
@@ -217,4 +225,8 @@ rift_token_t rift_lexer_peek(const rift_lexer_t *lexer) {
 
 int rift_lexer_eof(const rift_lexer_t *lexer) {
     return !lexer || lexer->pos >= lexer->length;
+}
+
+int rift_lexer_has_error(const rift_lexer_t *lexer) {
+    return lexer && lexer->failed;
 }

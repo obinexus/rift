@@ -338,6 +338,16 @@ if(RIFT_BUILD_TESTS)
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
 
+    # Allocation-failure injection wraps malloc and posix_memalign at link
+    # time (GNU ld and lld), so it is built only where --wrap is available.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
+        add_executable(test_lexer_oom tests/test_lexer_oom.c)
+        target_link_libraries(test_lexer_oom PRIVATE rift)
+        target_link_options(test_lexer_oom PRIVATE
+            "LINKER:--wrap=malloc" "LINKER:--wrap=posix_memalign")
+        add_test(NAME test_lexer_oom COMMAND test_lexer_oom)
+    endif()
+
     # RIFT_CHECK must fire even when NDEBUG is defined (the Release default).
     add_executable(test_check_ndebug tests/test_check_ndebug.c)
     add_test(NAME test_check_ndebug

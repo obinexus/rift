@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Only these kinds may exist without a value. */
+static int token_kind_is_valueless(rift_token_type_t type) {
+    return type == RIFT_TOKEN_EOF;
+}
+
 rift_token_t rift_token_create(rift_token_type_t type, const char *value) {
     rift_token_t token;
     memset(&token, 0, sizeof(token));
@@ -25,7 +30,13 @@ rift_token_t rift_token_create(rift_token_type_t type, const char *value) {
         }
     }
 
-    token.validation_bits = token.memory.ptr || !value ? 0x07 : 0;
+    /* A value that could not be copied, or a missing value on a kind that
+     * needs one, leaves the token invalid rather than silently empty. */
+    if (value) {
+        token.validation_bits = token.memory.ptr ? 0x07 : 0;
+    } else {
+        token.validation_bits = token_kind_is_valueless(type) ? 0x07 : 0;
+    }
     return token;
 }
 

@@ -29,6 +29,19 @@ TEST(test_token_create_null_value) {
     rift_token_destroy(&t);
 }
 
+/* Only EOF may lack a value; anything else without one is invalid, so a
+ * value lost to a failed allocation cannot pass validation. */
+TEST(test_token_value_required) {
+    rift_token_t eof = rift_token_create(RIFT_TOKEN_EOF, NULL);
+    RIFT_CHECK(rift_token_validate(&eof));
+    rift_token_destroy(&eof);
+
+    rift_token_t empty = rift_token_create(RIFT_TOKEN_PATTERN_STATIC, NULL);
+    RIFT_CHECK(empty.value.str == NULL);
+    RIFT_CHECK(!rift_token_validate(&empty));
+    rift_token_destroy(&empty);
+}
+
 TEST(test_token_type_name) {
     RIFT_CHECK(strcmp(rift_token_type_name(RIFT_TOKEN_KEYWORD), "KEYWORD") == 0);
     RIFT_CHECK(strcmp(rift_token_type_name(RIFT_TOKEN_PATTERN_STATIC), "PATTERN_STATIC") == 0);
@@ -50,6 +63,7 @@ int main(void) {
     printf("test_token:\n");
     RUN(test_token_create);
     RUN(test_token_create_null_value);
+    RUN(test_token_value_required);
     RUN(test_token_type_name);
     RUN(test_token_triplet_validation);
     printf("\n%d passed, %d failed\n", tests_passed, tests_failed);
