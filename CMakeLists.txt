@@ -28,6 +28,13 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# The POSIX build uses pthread mutexes (src/core/platform.c). glibc older than
+# 2.34 and other libcs keep them in a separate library, so link it explicitly.
+if(NOT WIN32)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
+endif()
+
 if(MSVC)
     set(RIFT_PLATFORM_TAG "windows-msvc")
 elseif(MINGW)
@@ -97,6 +104,16 @@ set(RIFTTEST_SOURCES
     src/rifttest/rifttest.c
 )
 
+# With CMAKE_C_EXTENSIONS OFF the compiler runs in strict ISO C mode, and glibc
+# then hides POSIX declarations such as clock_gettime, CLOCK_MONOTONIC and
+# posix_memalign. Request POSIX.1-2008 explicitly. Apple is excluded: its
+# headers expose POSIX by default, and the macro would only narrow them.
+function(rift_posix_target target)
+    if(UNIX AND NOT APPLE)
+        target_compile_definitions(${target} PRIVATE _POSIX_C_SOURCE=200809L)
+    endif()
+endfunction()
+
 function(rift_common_target target)
     target_include_directories(${target}
         PUBLIC
@@ -128,11 +145,15 @@ function(rift_common_target target)
     else()
         target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
     endif()
+    rift_posix_target(${target})
 endfunction()
 
 add_library(rift STATIC ${RIFT_CORE_SOURCES})
 set_target_properties(rift PROPERTIES OUTPUT_NAME rift PREFIX "" EXPORT_NAME rift)
 rift_common_target(rift)
+if(NOT WIN32)
+    target_link_libraries(rift PUBLIC Threads::Threads)
+endif()
 add_library(RIFT::rift ALIAS rift)
 
 add_library(rift_shared SHARED ${RIFT_CORE_SOURCES})
@@ -147,6 +168,9 @@ endif()
 target_compile_definitions(rift_shared PRIVATE RIFT_CORE_BUILD_DLL)
 target_compile_definitions(rift_shared INTERFACE RIFT_CORE_USE_DLL)
 rift_common_target(rift_shared)
+if(NOT WIN32)
+    target_link_libraries(rift_shared PUBLIC Threads::Threads)
+endif()
 add_library(RIFT::rift_shared ALIAS rift_shared)
 
 add_library(riftlang STATIC ${RIFTLANG_SOURCES})
@@ -287,6 +311,7 @@ endif()
 if(RIFT_BUILD_TESTS)
     enable_testing()
     set(RIFT_TESTS
+        test_platform
         test_token
         test_lexer
         test_codec
@@ -316,6 +341,22 @@ if(RIFT_BUILD_TESTS)
         rift_shared riftlang_shared rifttest_shared)
     rift_common_target(test_shared_consumer)
     add_test(NAME test_shared_consumer COMMAND test_shared_consumer)
+
+    # Installs this tree and builds tests/package_consumer against it, which
+    # checks that the exported targets (including Threads::Threads) resolve.
+    set(RIFT_CONSUMER_COMPILER_ARG)
+    if(NOT CMAKE_GENERATOR MATCHES "Visual Studio")
+        set(RIFT_CONSUMER_COMPILER_ARG "-DC_COMPILER=${CMAKE_C_COMPILER}")
+    endif()
+    add_test(NAME rift_package_consumer
+        COMMAND ${CMAKE_COMMAND}
+            "-DRIFT_BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCONSUMER_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/tests/package_consumer"
+            "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/package_consumer/$<CONFIG>"
+            "-DGENERATOR=${CMAKE_GENERATOR}"
+            "-DCONFIG=$<CONFIG>"
+            ${RIFT_CONSUMER_COMPILER_ARG}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/package_consumer/run.cmake")
 
     add_test(NAME rift_cli_version COMMAND rift_cli --version)
     add_test(NAME rift_cli_tests COMMAND rift_cli test)
